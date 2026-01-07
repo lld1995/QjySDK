@@ -1,4 +1,5 @@
 ﻿using Common;
+using Model;
 using OpenAI.Graders;
 using stgInterface;
 using System;
@@ -12,7 +13,14 @@ namespace QjySDK
 {
     public abstract class StgBase
     {
-        public string Id;
+        public StgBase(string id)
+        {
+            Id = id;
+        }
+
+		public abstract StgDesc GetStgDesc();
+		protected Dictionary<string, object> ArgDic { get; set; }
+		public string Id;
         private SimpleTcpClient _stc = null;
 
         private List<RemoteTradeRecord> _rtr = new List<RemoteTradeRecord>();
@@ -56,25 +64,35 @@ namespace QjySDK
             _rtr.Add(rtr);
         }
 
-        public void Plot(string chartName, string name, PlotType pt, decimal val, object extra = null)
+        public void Plot(string chartName, string name, PlotType pt, double val, object extra = null)
         {
             var pr = new PlotRecord();
             pr.ChartName = chartName;
             pr.Name = name;
             pr.PT = pt;
-            pr.Val = val;
+            pr.Val = (decimal)val;
             pr.Extra= extra;
             _pr.Add(pr);
         }
 
         public async Task Run()
         {
+            var sd=GetStgDesc();
+            if (sd == null)
+            {
+
+            }
+            else
+            {
+                ArgDic = sd.ArgDic;
+            }
             _stc = new SimpleTcpClient(this);
             await _stc.ConnectAsync("127.0.0.1", 30898);
 
             var dic = new Dictionary<string, object>();
             dic["oper"] = "start";
             dic["id"] = Id;
+            dic["sd"] = sd;
             await _stc.SendMessageAsync(dic.ToJson());
         }
     }

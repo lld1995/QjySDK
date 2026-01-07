@@ -15,5 +15,7 @@ namespace Common
         public string MktSymbol { get; set; }
 
         public Period Period { get; set; }
-    }
+
+		public string GetStateKey() { return MktSymbol + "_" + Period; }
+	}
 }
