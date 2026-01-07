@@ -26,7 +26,8 @@ namespace QjySDK
         // 处理后的K线（合并包含关系后）
         private class MergedBar
         {
-            public int OriginalIndex { get; set; }  // 原始K线索引
+            public int OriginalIndex { get; set; }  // 原始K线索引（第一根）
+            public int LastOriginalIndex { get; set; }  // 原始K线索引（最后一根，用于绘制）
             public int MergedCount { get; set; }    // 合并的K线数量
             public decimal High { get; set; }
             public decimal Low { get; set; }
@@ -40,7 +41,8 @@ namespace QjySDK
         private class Fractal
         {
             public int Index { get; set; }          // 在MergedBars中的索引
-            public int OriginalIndex { get; set; }  // 原始K线索引
+            public int OriginalIndex { get; set; }  // 原始K线索引（第一根）
+            public int LastOriginalIndex { get; set; }  // 原始K线索引（最后一根，用于绘制）
             public FractalType Type { get; set; }
             public decimal Price { get; set; }      // 顶分型取High，底分型取Low
             public decimal High { get; set; }       // 分型最高点
@@ -196,6 +198,7 @@ namespace QjySDK
                     state.MergedBars.Add(new MergedBar
                     {
                         OriginalIndex = 0,
+                        LastOriginalIndex = 0,
                         MergedCount = 1,
                         High = quotes[0].High,
                         Low = quotes[0].Low,
@@ -217,6 +220,7 @@ namespace QjySDK
                     state.MergedBars.Add(new MergedBar
                     {
                         OriginalIndex = i,
+                        LastOriginalIndex = i,
                         MergedCount = 1,
                         High = curr.High,
                         Low = curr.Low,
@@ -259,6 +263,7 @@ namespace QjySDK
                         last.Low = Math.Min(last.Low, curr.Low);
                     }
                     last.MergedCount++;
+                    last.LastOriginalIndex = i;  // 更新为最后一根K线索引
                     last.Close = curr.Close;
                     last.Direction = direction;
                 }
@@ -270,6 +275,7 @@ namespace QjySDK
                     state.MergedBars.Add(new MergedBar
                     {
                         OriginalIndex = i,
+                        LastOriginalIndex = i,
                         MergedCount = 1,
                         High = curr.High,
                         Low = curr.Low,
@@ -343,6 +349,7 @@ namespace QjySDK
                     {
                         Index = i,
                         OriginalIndex = bar.OriginalIndex,
+                        LastOriginalIndex = bar.LastOriginalIndex,
                         Type = fractalType,
                         Price = fractalType == FractalType.Top ? bar.High : bar.Low,
                         High = bar.High,
@@ -402,69 +409,109 @@ namespace QjySDK
 
             // 重新构建笔列表（因为分型可能被更新）
             var newStrokes = new List<Stroke>();
-            int i = 0;
+            int startIdx = 0;  // 当前笔的起点分型索引
+            int originalStartIdx = 0;  // 记录原始起点，用于检测是否在内层更新过
 
-            while (i < state.Fractals.Count - 1)
+            while (startIdx < state.Fractals.Count - 1)
             {
-                var startFractal = state.Fractals[i];
-                var endFractal = state.Fractals[i + 1];
+                var startFractal = state.Fractals[startIdx];
+                originalStartIdx = startIdx;
+                bool foundStroke = false;
 
-                // 确保分型类型不同（顶分型和底分型交替）
-                if (startFractal.Type == endFractal.Type)
+                // 寻找有效的终点分型
+                for (int j = startIdx + 1; j < state.Fractals.Count; j++)
                 {
-                    i++;
-                    continue;
+                    var endFractal = state.Fractals[j];
+
+                    // 确保分型类型不同（顶分型和底分型交替）
+                    if (startFractal.Type == endFractal.Type)
+                    {
+                        // 同类型分型，更新起点为更极端的那个
+                        if ((startFractal.Type == FractalType.Top && endFractal.Price > startFractal.Price) ||
+                            (startFractal.Type == FractalType.Bottom && endFractal.Price < startFractal.Price))
+                        {
+                            startFractal = endFractal;
+                            startIdx = j;
+                        }
+                        continue;
+                    }
+
+                    // 检查笔的最少K线数（处理后的K线）
+                    int barCount = endFractal.Index - startFractal.Index;
+                    if (barCount < strokeMinBars)  // 标准笔定义：至少4个索引差（5根独立K线）
+                    {
+                        continue;
+                    }
+
+                    // 验证笔的有效性：向上笔结束点必须高于起始点，向下笔结束点必须低于起始点
+                    bool isUp = startFractal.Type == FractalType.Bottom;
+                    if (isUp && endFractal.Price <= startFractal.Price)
+                    {
+                        continue;
+                    }
+                    if (!isUp && endFractal.Price >= startFractal.Price)
+                    {
+                        continue;
+                    }
+
+                    // 缠论要求：顶底分型之间不能存在包含关系
+                    // 向上笔：底分型高点 < 顶分型低点 或 有价格突破
+                    // 向下笔：顶分型低点 > 底分型高点 或 有价格突破
+                    if (isUp && startFractal.High >= endFractal.Low)
+                    {
+                        // 底分型高点 >= 顶分型低点，存在包含，但如果顶确实更高则允许
+                        // 这里放宽条件，只要顶分型高点确实高于底分型高点即可
+                    }
+                    if (!isUp && startFractal.Low <= endFractal.High)
+                    {
+                        // 顶分型低点 <= 底分型高点，存在包含，但如果底确实更低则允许
+                    }
+
+                    // 创建笔
+                    var stroke = new Stroke
+                    {
+                        StartIndex = startFractal.Index,
+                        EndIndex = endFractal.Index,
+                        StartFractal = startFractal,
+                        EndFractal = endFractal,
+                        IsUp = isUp,
+                        BarCount = barCount
+                    };
+
+                    // 计算笔的最高点和最低点
+                    stroke.High = isUp ? endFractal.High : startFractal.High;
+                    stroke.Low = isUp ? startFractal.Low : endFractal.Low;
+
+                    // 遍历笔范围内的所有合并K线，找到真正的最高最低点
+                    for (int k = startFractal.Index; k <= endFractal.Index && k < state.MergedBars.Count; k++)
+                    {
+                        stroke.High = Math.Max(stroke.High, state.MergedBars[k].High);
+                        stroke.Low = Math.Min(stroke.Low, state.MergedBars[k].Low);
+                    }
+
+                    // 计算MACD面积（用于背驰判断）
+                    stroke.MACDArea = CalculateMACDArea(state, startFractal.OriginalIndex, endFractal.OriginalIndex, quotes);
+
+                    newStrokes.Add(stroke);
+                    startIdx = j;  // 下一笔从当前笔的终点开始
+                    foundStroke = true;
+                    break;
                 }
 
-                // 检查笔的最少K线数（处理后的K线）
-                int barCount = endFractal.Index - startFractal.Index;
-                if (barCount < strokeMinBars)
+                // 如果没有找到有效的笔
+                if (!foundStroke)
                 {
-                    // K线数不足，尝试合并到下一个同类型分型
-                    i++;
-                    continue;
+                    // 如果起点在内层循环中被更新过，从更新后的起点+1继续
+                    // 否则从原始起点+1继续
+                    if (startIdx != originalStartIdx)
+                    {
+                        startIdx++;  // 从更新后的起点+1开始
+                    }
+                    else
+                    {
+                        startIdx++;  // 从原始起点+1开始
+                    }
                 }
-
-                // 验证笔的有效性：向上笔结束点必须高于起始点，向下笔结束点必须低于起始点
-                bool isUp = startFractal.Type == FractalType.Bottom;
-                if (isUp && endFractal.Price <= startFractal.Price)
-                {
-                    i++;
-                    continue;
-                }
-                if (!isUp && endFractal.Price >= startFractal.Price)
-                {
-                    i++;
-                    continue;
-                }
-
-                // 创建笔
-                var stroke = new Stroke
-                {
-                    StartIndex = startFractal.Index,
-                    EndIndex = endFractal.Index,
-                    StartFractal = startFractal,
-                    EndFractal = endFractal,
-                    IsUp = isUp,
-                    BarCount = barCount
-                };
-
-                // 计算笔的最高点和最低点
-                stroke.High = isUp ? endFractal.High : startFractal.High;
-                stroke.Low = isUp ? startFractal.Low : endFractal.Low;
-
-                // 遍历笔范围内的所有合并K线，找到真正的最高最低点
-                for (int j = startFractal.Index; j <= endFractal.Index && j < state.MergedBars.Count; j++)
-                {
-                    stroke.High = Math.Max(stroke.High, state.MergedBars[j].High);
-                    stroke.Low = Math.Min(stroke.Low, state.MergedBars[j].Low);
-                }
-
-                // 计算MACD面积（用于背驰判断）
-                stroke.MACDArea = CalculateMACDArea(state, startFractal.OriginalIndex, endFractal.OriginalIndex, quotes);
-
-                newStrokes.Add(stroke);
-                i++;
             }
 
             state.Strokes = newStrokes;
@@ -875,6 +922,23 @@ namespace QjySDK
                     {
                         Plot("main", "fractal_bottom", PlotType.POINT, (double)lastFractal.Price);
                     }
+                }
+            }
+
+            // 绘制笔
+            if (s.Strokes != null && s.Strokes.Count > 0)
+            {
+                int currentBarIndex = tu.QuoteList.Count - 1;
+                foreach (var stroke in s.Strokes)
+                {
+                    var extra = new PlotLineSegmentExtra
+                    {
+                        StartOffsetIndex = currentBarIndex - stroke.StartFractal.LastOriginalIndex,
+                        EndOffsetIndex = currentBarIndex - stroke.EndFractal.LastOriginalIndex,
+                        Val1 = tu.QuoteList[stroke.StartFractal.LastOriginalIndex].Close,
+                        Val2 = tu.QuoteList[stroke.EndFractal.LastOriginalIndex].Close
+                    };
+                    Plot("main", "bi", PlotType.LINE_SEGMENT, 0, extra);
                 }
             }
 
