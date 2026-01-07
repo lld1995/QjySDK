@@ -1,0 +1,7 @@
+.vs/
+obj/
+Debug/
+x64/
+x86/
+bin/
+packages/
