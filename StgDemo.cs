@@ -8,14 +8,18 @@ using System.Threading.Tasks;
 
 namespace QjySDK
 {
-    public class StgDemo:StgBase
+	public class StgDemo : StgBase
     {
-        public StgDemo(string id)
-        {
-            Id = id;
-        }
+		public StgDemo(string id) : base(id)
+		{
+		}
 
-        public override void OnBar(EnumDef.Period period, TableUnit tu, bool isFinal, SkQuote tq)
+		public override StgDesc GetStgDesc()
+		{
+            return null;
+		}
+
+		public override void OnBar(EnumDef.Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
             base.OnBar(period, tu, isFinal, tq);
             if (tu.QuoteList.Count > 0)
