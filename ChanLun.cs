@@ -374,7 +374,15 @@ namespace QjySDK
                         }
                         else
                         {
-                            newFractals.Add(fractal);
+                            // 不同类型分型，检查是否共用K线
+                            // 分型由3根K线组成：Index-1, Index, Index+1
+                            // 两个分型不能共用K线，即 lastFractal.Index + 1 < fractal.Index - 1
+                            // 也就是 fractal.Index - lastFractal.Index > 2
+                            if (fractal.Index - lastFractal.Index > 2)
+                            {
+                                newFractals.Add(fractal);
+                            }
+                            // 如果共用K线，跳过这个分型（保留之前的分型）
                         }
                     }
                     else
@@ -426,8 +434,37 @@ namespace QjySDK
                         if ((startFractal.Type == FractalType.Top && endFractal.Price > startFractal.Price) ||
                             (startFractal.Type == FractalType.Bottom && endFractal.Price < startFractal.Price))
                         {
-                            startFractal = endFractal;
-                            startIdx = j;
+                            // 如果已有笔，更新最后一笔的终点为新的更极端分型
+                            if (newStrokes.Count > 0)
+                            {
+                                var lastStroke = newStrokes[newStrokes.Count - 1];
+                                // 重新计算K线数并验证
+                                int newBarCount = endFractal.Index - lastStroke.StartFractal.Index + 1;
+                                if (newBarCount >= strokeMinBars)
+                                {
+                                    lastStroke.EndFractal = endFractal;
+                                    lastStroke.EndIndex = endFractal.Index;
+                                    lastStroke.BarCount = newBarCount;
+                                    // 重新计算High/Low
+                                    if (lastStroke.IsUp)
+                                    {
+                                        lastStroke.High = endFractal.High;
+                                    }
+                                    else
+                                    {
+                                        lastStroke.Low = endFractal.Low;
+                                    }
+                                    // 只有成功更新笔时，才更新起点
+                                    startFractal = endFractal;
+                                    startIdx = j;
+                                }
+                            }
+                            else
+                            {
+                                // 没有已有笔时，直接更新起点
+                                startFractal = endFractal;
+                                startIdx = j;
+                            }
                         }
                         continue;
                     }
@@ -922,20 +959,21 @@ namespace QjySDK
                 }
             }
 
-            // 绘制笔
+            // 绘制笔（在最后一根bar上绘制所有笔）
             if (s.Strokes != null && s.Strokes.Count > 0)
             {
                 int currentBarIndex = tu.QuoteList.Count - 1;
-                foreach (var stroke in s.Strokes)
+                for (int i = 0; i < s.Strokes.Count; i++)
                 {
+                    var stroke = s.Strokes[i];
                     var extra = new PlotLineSegmentExtra
                     {
                         StartOffsetIndex = currentBarIndex - stroke.StartFractal.LastOriginalIndex,
                         EndOffsetIndex = currentBarIndex - stroke.EndFractal.LastOriginalIndex,
-                        Val1 = tu.QuoteList[stroke.StartFractal.LastOriginalIndex].Close,
-                        Val2 = tu.QuoteList[stroke.EndFractal.LastOriginalIndex].Close
+                        Val1 = stroke.StartFractal.Price,
+                        Val2 = stroke.EndFractal.Price
                     };
-                    Plot("main", "bi", PlotType.LINE_SEGMENT, 0, extra);
+                    Plot("main", "bi_" + i, PlotType.LINE_SEGMENT, 0, extra);
                 }
             }
 

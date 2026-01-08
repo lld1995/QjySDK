@@ -278,15 +278,18 @@ namespace QjySDK.Tests
         {
             // 构造包含顶分型和底分型的K线序列
             // 先上升形成顶分型，再下降形成底分型
+            // 缠论要求：两个分型不能共用K线，即分型中间索引差 > 2
             var state = new ChanLun.State
             {
                 MergedBars = new List<ChanLun.MergedBar>
                 {
-                    new ChanLun.MergedBar { High = 100m, Low = 90m, OriginalIndex = 0, LastOriginalIndex = 0 },
-                    new ChanLun.MergedBar { High = 115m, Low = 105m, OriginalIndex = 1, LastOriginalIndex = 1 }, // 顶分型
-                    new ChanLun.MergedBar { High = 110m, Low = 100m, OriginalIndex = 2, LastOriginalIndex = 2 },
-                    new ChanLun.MergedBar { High = 95m, Low = 85m, OriginalIndex = 3, LastOriginalIndex = 3 },   // 底分型
-                    new ChanLun.MergedBar { High = 100m, Low = 90m, OriginalIndex = 4, LastOriginalIndex = 4 }
+                    new ChanLun.MergedBar { High = 100m, Low = 90m, OriginalIndex = 0, LastOriginalIndex = 0 },   // 顶分型左
+                    new ChanLun.MergedBar { High = 115m, Low = 105m, OriginalIndex = 1, LastOriginalIndex = 1 },  // 顶分型中 (索引1)
+                    new ChanLun.MergedBar { High = 110m, Low = 100m, OriginalIndex = 2, LastOriginalIndex = 2 },  // 顶分型右
+                    new ChanLun.MergedBar { High = 105m, Low = 95m, OriginalIndex = 3, LastOriginalIndex = 3 },   // 独立K线
+                    new ChanLun.MergedBar { High = 100m, Low = 90m, OriginalIndex = 4, LastOriginalIndex = 4 },   // 底分型左
+                    new ChanLun.MergedBar { High = 95m, Low = 85m, OriginalIndex = 5, LastOriginalIndex = 5 },    // 底分型中 (索引5)
+                    new ChanLun.MergedBar { High = 100m, Low = 90m, OriginalIndex = 6, LastOriginalIndex = 6 }    // 底分型右
                 },
                 Fractals = new List<ChanLun.Fractal>()
             };
@@ -295,7 +298,9 @@ namespace QjySDK.Tests
 
             Assert.Equal(2, state.Fractals.Count);
             Assert.Equal(ChanLun.FractalType.Top, state.Fractals[0].Type);
+            Assert.Equal(1, state.Fractals[0].Index);
             Assert.Equal(ChanLun.FractalType.Bottom, state.Fractals[1].Type);
+            Assert.Equal(5, state.Fractals[1].Index);
         }
 
         [Fact]
