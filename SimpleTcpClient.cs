@@ -14,12 +14,12 @@ namespace QjySDK
         private bool _isConnected;
         private StgBase _sb;
         private Dictionary<string, TableUnit> _tuDic = new Dictionary<string, TableUnit>();
+        private Dictionary<string, TaskCompletionSource<Symbol>> _pendingGetSymbol = new Dictionary<string, TaskCompletionSource<Symbol>>();
 
         public SimpleTcpClient(StgBase sb)
         {
             _sb = sb;
         }
-
 
         public async Task ConnectAsync(string ip,int port)
         {
@@ -71,48 +71,62 @@ namespace QjySDK
                         if (nt == EnumDef.NotifyType.REMOTE_CALL)
                         {
                             var rcList = dic["data"].ToString().ToJsonObj<List<RemoteCall>>();
-                            foreach (var rc in rcList)
+                            ThreadPool.QueueUserWorkItem(async o =>
                             {
-                                if (rc.Name == "OnBar")
+                                foreach (var rc in rcList)
                                 {
-                                    var mktSymbol = rc.ArgList[0].ToString();
-                                    var period = Enum.Parse<EnumDef.Period>(rc.ArgList[1].ToString());
-                                    var q = ((JsonElement)rc.ArgList[2]).ToJsonObj<SkQuote>();
-                                    var isFinal = ((JsonElement)rc.ArgList[3]).GetBoolean();
-                                    var tableName = Tools.GetTableName(Tools.GetSP(mktSymbol, period));
-                                    TableUnit tu = null;
-                                    if (_tuDic.ContainsKey(tableName))
+                                    if (rc.Name == "OnBar")
                                     {
-                                        tu=_tuDic[tableName];
+                                        var mktSymbol = rc.ArgList[0].ToString();
+                                        var period = Enum.Parse<EnumDef.Period>(rc.ArgList[1].ToString());
+                                        var q = ((JsonElement)rc.ArgList[2]).ToJsonObj<SkQuote>();
+                                        var isFinal = ((JsonElement)rc.ArgList[3]).GetBoolean();
+                                        var tableName = Tools.GetTableName(Tools.GetSP(mktSymbol, period));
+                                        TableUnit tu = null;
+                                        if (_tuDic.ContainsKey(tableName))
+                                        {
+                                            tu = _tuDic[tableName];
+                                        }
+                                        else
+                                        {
+                                            tu = new TableUnit();
+                                            tu.QuoteList = new List<SkQuote>();
+                                            tu.MktSymbol = mktSymbol;
+                                            tu.Period = period;
+                                            _tuDic[tableName] = tu;
+                                        }
+                                        if (isFinal)
+                                        {
+                                            tu.QuoteList.Add(q);
+                                        }
+                                        _sb.OnBar(period, tu, isFinal, q);
                                     }
-                                    else
+                                    else if (rc.Name == "OnGlobalIndicator")
                                     {
-                                        tu = new TableUnit();
-                                        tu.QuoteList = new List<SkQuote>();
-                                        tu.MktSymbol = mktSymbol;
-                                        tu.Period = period;
-                                        _tuDic[tableName] = tu;
+                                        _sb.OnGlobalIndicator(_tuDic.Values.ToList());
                                     }
-                                    if (isFinal)
+                                    else if (rc.Name == "OnPeriodEnd")
                                     {
-                                        tu.QuoteList.Add(q);
+                                        var mktSymbol = rc.ArgList[0].ToString();
+                                        var period = Enum.Parse<EnumDef.Period>(rc.ArgList[1].ToString());
+                                        var q = ((JsonElement)rc.ArgList[2]).ToJsonObj<SkQuote>();
+                                        _sb.OnPeriodEnd(period, q, mktSymbol);
                                     }
-                                    _sb.OnBar(period, tu, isFinal, q);
                                 }
-                                else if(rc.Name== "OnGlobalIndicator")
-                                {
-                                    _sb.OnGlobalIndicator(_tuDic.Values.ToList());
-                                }
-                                else if (rc.Name == "OnPeriodEnd")
-                                {
-                                    var mktSymbol = rc.ArgList[0].ToString();
-                                    var period = Enum.Parse<EnumDef.Period>(rc.ArgList[1].ToString());
-                                    var q = ((JsonElement)rc.ArgList[2]).ToJsonObj<SkQuote>();
-                                    _sb.OnPeriodEnd(period, q, mktSymbol);
-                                }
-                            }
-
-                            await _sb.PushAndClear();
+                                await _sb.PushAndClear();
+                            });
+                           
+                        }
+                    }
+                    else if (oper == "getSymbol")
+                    {
+                        var s=((JsonElement)dic["symbolExtra"]).ToJsonObj<Symbol>();
+                        s.symbol_type = (int)Enum.Parse<EnumDef.SymbolType>(dic["st"].ToString());
+                        var mktSymbol = dic["mktSymbol"].ToString();
+                        if (_pendingGetSymbol.TryGetValue(mktSymbol, out var tcs))
+                        {
+                            _pendingGetSymbol.Remove(mktSymbol);
+                            tcs.SetResult(s);
                         }
                     }
 
@@ -126,6 +140,13 @@ namespace QjySDK
             }
         }
 
+
+        public TaskCompletionSource<Symbol> RegisterGetSymbol(string mktSymbol)
+        {
+            var tcs = new TaskCompletionSource<Symbol>();
+            _pendingGetSymbol[mktSymbol] = tcs;
+            return tcs;
+        }
 
         public async Task SendMessageAsync(string message)
         {
