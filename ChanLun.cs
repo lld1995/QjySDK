@@ -561,12 +561,11 @@ namespace QjySDK
         /// 识别中枢：寻找至少3笔连续重叠的区域
         /// 缠论定义：中枢由至少3笔重叠构成，ZG=min(各笔高点)，ZD=max(各笔低点)
         /// </summary>
-        private void UpdateZhongShus(State state)
+        internal void UpdateZhongShus(State state, int minStrokes = 3)
         {
             if (state.Strokes == null)
                 return;
 
-            int minStrokes = (int)ArgDic["zhongshuMinStrokes"];
             if (state.Strokes.Count < minStrokes)
                 return;
 

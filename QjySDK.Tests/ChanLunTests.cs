@@ -829,6 +829,287 @@ namespace QjySDK.Tests
 
         #endregion
 
+        #region UpdateZhongShus 中枢生成测试
+
+        [Fact]
+        public void UpdateZhongShus_ThreeOverlappingStrokes_CreatesZhongShu()
+        {
+            // 构造3笔重叠的场景，形成中枢
+            // 笔1: [100, 120] 向上
+            // 笔2: [105, 115] 向下 (与笔1重叠区间 [105, 115])
+            // 笔3: [108, 118] 向上 (与前两笔重叠区间 [108, 115])
+            var state = new ChanLun.State
+            {
+                Strokes = new List<ChanLun.Stroke>
+                {
+                    new ChanLun.Stroke { StartIndex = 0, EndIndex = 5, High = 120m, Low = 100m, IsUp = true },
+                    new ChanLun.Stroke { StartIndex = 5, EndIndex = 10, High = 115m, Low = 105m, IsUp = false },
+                    new ChanLun.Stroke { StartIndex = 10, EndIndex = 15, High = 118m, Low = 108m, IsUp = true }
+                },
+                ZhongShus = new List<ChanLun.ZhongShu>()
+            };
+
+            _chanLun.UpdateZhongShus(state, 3);
+
+            Assert.Single(state.ZhongShus);
+            var zs = state.ZhongShus[0];
+            // ZG = min(各笔高点) = min(120, 115, 118) = 115
+            Assert.Equal(115m, zs.ZG);
+            // ZD = max(各笔低点) = max(100, 105, 108) = 108
+            Assert.Equal(108m, zs.ZD);
+            // 验证中枢有效性
+            Assert.True(zs.IsValid);
+        }
+
+        [Fact]
+        public void UpdateZhongShus_ZGAndZD_CalculatedCorrectly()
+        {
+            // 验证ZG和ZD的计算正确性
+            // ZG = min(各笔高点), ZD = max(各笔低点)
+            var state = new ChanLun.State
+            {
+                Strokes = new List<ChanLun.Stroke>
+                {
+                    new ChanLun.Stroke { StartIndex = 0, EndIndex = 5, High = 130m, Low = 100m, IsUp = true },
+                    new ChanLun.Stroke { StartIndex = 5, EndIndex = 10, High = 125m, Low = 95m, IsUp = false },
+                    new ChanLun.Stroke { StartIndex = 10, EndIndex = 15, High = 120m, Low = 90m, IsUp = true },
+                    new ChanLun.Stroke { StartIndex = 15, EndIndex = 20, High = 115m, Low = 85m, IsUp = false }
+                },
+                ZhongShus = new List<ChanLun.ZhongShu>()
+            };
+
+            _chanLun.UpdateZhongShus(state, 3);
+
+            Assert.Single(state.ZhongShus);
+            var zs = state.ZhongShus[0];
+            // ZG = min(130, 125, 120, 115) = 115
+            Assert.Equal(115m, zs.ZG);
+            // ZD = max(100, 95, 90, 85) = 100
+            Assert.Equal(100m, zs.ZD);
+        }
+
+        [Fact]
+        public void UpdateZhongShus_GGAndDD_CalculatedCorrectly()
+        {
+            // 验证GG(最高点)和DD(最低点)的计算
+            var state = new ChanLun.State
+            {
+                Strokes = new List<ChanLun.Stroke>
+                {
+                    new ChanLun.Stroke { StartIndex = 0, EndIndex = 5, High = 130m, Low = 100m, IsUp = true },
+                    new ChanLun.Stroke { StartIndex = 5, EndIndex = 10, High = 125m, Low = 95m, IsUp = false },
+                    new ChanLun.Stroke { StartIndex = 10, EndIndex = 15, High = 135m, Low = 90m, IsUp = true }
+                },
+                ZhongShus = new List<ChanLun.ZhongShu>()
+            };
+
+            _chanLun.UpdateZhongShus(state, 3);
+
+            Assert.Single(state.ZhongShus);
+            var zs = state.ZhongShus[0];
+            // GG = max(各笔高点) = max(130, 125, 135) = 135
+            Assert.Equal(135m, zs.GG);
+            // DD = min(各笔低点) = min(100, 95, 90) = 90
+            Assert.Equal(90m, zs.DD);
+        }
+
+        [Fact]
+        public void UpdateZhongShus_NoOverlap_NoZhongShu()
+        {
+            // 笔之间无重叠，不形成中枢
+            var state = new ChanLun.State
+            {
+                Strokes = new List<ChanLun.Stroke>
+                {
+                    new ChanLun.Stroke { StartIndex = 0, EndIndex = 5, High = 100m, Low = 80m, IsUp = true },
+                    new ChanLun.Stroke { StartIndex = 5, EndIndex = 10, High = 120m, Low = 105m, IsUp = false }, // 无重叠
+                    new ChanLun.Stroke { StartIndex = 10, EndIndex = 15, High = 140m, Low = 125m, IsUp = true }
+                },
+                ZhongShus = new List<ChanLun.ZhongShu>()
+            };
+
+            _chanLun.UpdateZhongShus(state, 3);
+
+            Assert.Empty(state.ZhongShus);
+        }
+
+        [Fact]
+        public void UpdateZhongShus_InsufficientStrokes_NoZhongShu()
+        {
+            // 笔数不足3笔，不形成中枢
+            var state = new ChanLun.State
+            {
+                Strokes = new List<ChanLun.Stroke>
+                {
+                    new ChanLun.Stroke { StartIndex = 0, EndIndex = 5, High = 120m, Low = 100m, IsUp = true },
+                    new ChanLun.Stroke { StartIndex = 5, EndIndex = 10, High = 115m, Low = 105m, IsUp = false }
+                },
+                ZhongShus = new List<ChanLun.ZhongShu>()
+            };
+
+            _chanLun.UpdateZhongShus(state, 3);
+
+            Assert.Empty(state.ZhongShus);
+        }
+
+        [Fact]
+        public void UpdateZhongShus_ZhongShuContainsAllStrokes()
+        {
+            // 验证中枢包含所有参与的笔
+            var stroke1 = new ChanLun.Stroke { StartIndex = 0, EndIndex = 5, High = 120m, Low = 100m, IsUp = true };
+            var stroke2 = new ChanLun.Stroke { StartIndex = 5, EndIndex = 10, High = 115m, Low = 105m, IsUp = false };
+            var stroke3 = new ChanLun.Stroke { StartIndex = 10, EndIndex = 15, High = 118m, Low = 108m, IsUp = true };
+
+            var state = new ChanLun.State
+            {
+                Strokes = new List<ChanLun.Stroke> { stroke1, stroke2, stroke3 },
+                ZhongShus = new List<ChanLun.ZhongShu>()
+            };
+
+            _chanLun.UpdateZhongShus(state, 3);
+
+            Assert.Single(state.ZhongShus);
+            Assert.Equal(3, state.ZhongShus[0].Strokes.Count);
+        }
+
+        [Fact]
+        public void UpdateZhongShus_StartAndEndIndex_Correct()
+        {
+            // 验证中枢的起止索引正确
+            var state = new ChanLun.State
+            {
+                Strokes = new List<ChanLun.Stroke>
+                {
+                    new ChanLun.Stroke { StartIndex = 5, EndIndex = 10, High = 120m, Low = 100m, IsUp = true },
+                    new ChanLun.Stroke { StartIndex = 10, EndIndex = 15, High = 115m, Low = 105m, IsUp = false },
+                    new ChanLun.Stroke { StartIndex = 15, EndIndex = 25, High = 118m, Low = 108m, IsUp = true }
+                },
+                ZhongShus = new List<ChanLun.ZhongShu>()
+            };
+
+            _chanLun.UpdateZhongShus(state, 3);
+
+            Assert.Single(state.ZhongShus);
+            // 起始索引 = 第一笔的起始索引
+            Assert.Equal(5, state.ZhongShus[0].StartIndex);
+            // 结束索引 = 最后一笔的结束索引
+            Assert.Equal(25, state.ZhongShus[0].EndIndex);
+        }
+
+        [Fact]
+        public void UpdateZhongShus_FourOverlappingStrokes_ExtendedZhongShu()
+        {
+            // 4笔都重叠，形成一个扩展的中枢
+            var state = new ChanLun.State
+            {
+                Strokes = new List<ChanLun.Stroke>
+                {
+                    new ChanLun.Stroke { StartIndex = 0, EndIndex = 5, High = 120m, Low = 100m, IsUp = true },
+                    new ChanLun.Stroke { StartIndex = 5, EndIndex = 10, High = 118m, Low = 102m, IsUp = false },
+                    new ChanLun.Stroke { StartIndex = 10, EndIndex = 15, High = 116m, Low = 104m, IsUp = true },
+                    new ChanLun.Stroke { StartIndex = 15, EndIndex = 20, High = 114m, Low = 106m, IsUp = false }
+                },
+                ZhongShus = new List<ChanLun.ZhongShu>()
+            };
+
+            _chanLun.UpdateZhongShus(state, 3);
+
+            Assert.Single(state.ZhongShus);
+            Assert.Equal(4, state.ZhongShus[0].Strokes.Count);
+        }
+
+        [Fact]
+        public void UpdateZhongShus_TwoSeparateZhongShus()
+        {
+            // 两组不重叠的3笔，形成两个独立的中枢
+            var state = new ChanLun.State
+            {
+                Strokes = new List<ChanLun.Stroke>
+                {
+                    // 第一个中枢
+                    new ChanLun.Stroke { StartIndex = 0, EndIndex = 5, High = 120m, Low = 100m, IsUp = true },
+                    new ChanLun.Stroke { StartIndex = 5, EndIndex = 10, High = 115m, Low = 105m, IsUp = false },
+                    new ChanLun.Stroke { StartIndex = 10, EndIndex = 15, High = 118m, Low = 108m, IsUp = true },
+                    // 跳跃到更高位置（第二个中枢）
+                    new ChanLun.Stroke { StartIndex = 15, EndIndex = 20, High = 200m, Low = 180m, IsUp = false },
+                    new ChanLun.Stroke { StartIndex = 20, EndIndex = 25, High = 195m, Low = 185m, IsUp = true },
+                    new ChanLun.Stroke { StartIndex = 25, EndIndex = 30, High = 198m, Low = 188m, IsUp = false }
+                },
+                ZhongShus = new List<ChanLun.ZhongShu>()
+            };
+
+            _chanLun.UpdateZhongShus(state, 3);
+
+            Assert.Equal(2, state.ZhongShus.Count);
+            // 验证第一个中枢
+            Assert.Equal(0, state.ZhongShus[0].StartIndex);
+            Assert.Equal(15, state.ZhongShus[0].EndIndex);
+            // 验证第二个中枢
+            Assert.Equal(15, state.ZhongShus[1].StartIndex);
+            Assert.Equal(30, state.ZhongShus[1].EndIndex);
+        }
+
+        [Fact]
+        public void UpdateZhongShus_NullStrokes_NoException()
+        {
+            // Strokes为null时不抛异常
+            var state = new ChanLun.State
+            {
+                Strokes = null,
+                ZhongShus = new List<ChanLun.ZhongShu>()
+            };
+
+            _chanLun.UpdateZhongShus(state, 3);
+
+            // 不应该抛出异常，ZhongShus保持原状
+        }
+
+        [Fact]
+        public void UpdateZhongShus_CurrentZhongShu_SetToLast()
+        {
+            // 验证CurrentZhongShu被设置为最后一个中枢
+            var state = new ChanLun.State
+            {
+                Strokes = new List<ChanLun.Stroke>
+                {
+                    new ChanLun.Stroke { StartIndex = 0, EndIndex = 5, High = 120m, Low = 100m, IsUp = true },
+                    new ChanLun.Stroke { StartIndex = 5, EndIndex = 10, High = 115m, Low = 105m, IsUp = false },
+                    new ChanLun.Stroke { StartIndex = 10, EndIndex = 15, High = 118m, Low = 108m, IsUp = true }
+                },
+                ZhongShus = new List<ChanLun.ZhongShu>()
+            };
+
+            _chanLun.UpdateZhongShus(state, 3);
+
+            Assert.NotNull(state.CurrentZhongShu);
+            Assert.Equal(state.ZhongShus[0], state.CurrentZhongShu);
+        }
+
+        [Fact]
+        public void UpdateZhongShus_OverlapRange_IsValid()
+        {
+            // 验证中枢的重叠区间 [ZD, ZG] 有效
+            var state = new ChanLun.State
+            {
+                Strokes = new List<ChanLun.Stroke>
+                {
+                    new ChanLun.Stroke { StartIndex = 0, EndIndex = 5, High = 120m, Low = 100m, IsUp = true },
+                    new ChanLun.Stroke { StartIndex = 5, EndIndex = 10, High = 115m, Low = 105m, IsUp = false },
+                    new ChanLun.Stroke { StartIndex = 10, EndIndex = 15, High = 118m, Low = 108m, IsUp = true }
+                },
+                ZhongShus = new List<ChanLun.ZhongShu>()
+            };
+
+            _chanLun.UpdateZhongShus(state, 3);
+
+            var zs = state.ZhongShus[0];
+            // ZD < ZG 表示有效的重叠区间
+            Assert.True(zs.ZD < zs.ZG, $"ZD({zs.ZD}) should be less than ZG({zs.ZG})");
+            Assert.True(zs.IsValid);
+        }
+
+        #endregion
+
         #region 辅助方法
 
         private static SkQuote CreateQuote(decimal high, decimal low, decimal open, decimal close)
