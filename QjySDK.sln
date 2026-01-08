@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.3.11312.210 d18.3
+VisualStudioVersion = 18.3.11312.210
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QjySDK", "QjySDK.csproj", "{69865A86-C631-4E1C-AD56-5ADF2620E6D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QjySDK.Tests", "QjySDK.Tests\QjySDK.Tests.csproj", "{3426C797-9368-F984-FDF8-B463444EFDF7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{69865A86-C631-4E1C-AD56-5ADF2620E6D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{69865A86-C631-4E1C-AD56-5ADF2620E6D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{69865A86-C631-4E1C-AD56-5ADF2620E6D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3426C797-9368-F984-FDF8-B463444EFDF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3426C797-9368-F984-FDF8-B463444EFDF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3426C797-9368-F984-FDF8-B463444EFDF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3426C797-9368-F984-FDF8-B463444EFDF7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
