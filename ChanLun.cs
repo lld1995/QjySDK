@@ -15,8 +15,8 @@ namespace QjySDK
     /// </summary>
     public class ChanLun : StgBase
     {
-		// 分型类型
-		private enum FractalType
+        // 分型类型
+        internal enum FractalType
         {
             None = 0,
             Top = 1,    // 顶分型
@@ -24,7 +24,7 @@ namespace QjySDK
         }
 
         // 处理后的K线（合并包含关系后）
-        private class MergedBar
+        internal class MergedBar
         {
             public int OriginalIndex { get; set; }  // 原始K线索引（第一根）
             public int LastOriginalIndex { get; set; }  // 原始K线索引（最后一根，用于绘制）
@@ -38,7 +38,7 @@ namespace QjySDK
         }
 
         // 分型结构
-        private class Fractal
+        internal class Fractal
         {
             public int Index { get; set; }          // 在MergedBars中的索引
             public int OriginalIndex { get; set; }  // 原始K线索引（第一根）
@@ -52,7 +52,7 @@ namespace QjySDK
         }
 
         // 笔结构
-        private class Stroke
+        internal class Stroke
         {
             public int StartIndex { get; set; }     // 起始分型在MergedBars中的索引
             public int EndIndex { get; set; }       // 结束分型在MergedBars中的索引
@@ -66,7 +66,7 @@ namespace QjySDK
         }
 
         // 线段结构
-        private class Segment
+        internal class Segment
         {
             public int StartIndex { get; set; }
             public int EndIndex { get; set; }
@@ -79,7 +79,7 @@ namespace QjySDK
         }
 
         // 中枢结构
-        private class ZhongShu
+        internal class ZhongShu
         {
             public int StartIndex { get; set; }     // 起始K线索引
             public int EndIndex { get; set; }       // 结束K线索引
@@ -93,7 +93,7 @@ namespace QjySDK
         }
 
         // 买卖点类型
-        private enum BSPointType
+        internal enum BSPointType
         {
             None = 0,
             Buy1 = 1,   // 一买：趋势背驰后的第一个买点
@@ -105,7 +105,7 @@ namespace QjySDK
         }
 
         // 买卖点结构
-        private class BSPoint
+        internal class BSPoint
         {
             public BSPointType Type { get; set; }
             public int Index { get; set; }
@@ -144,7 +144,7 @@ namespace QjySDK
             return sd;
         }
 
-        private class State
+        internal class State
         {
             public int Status { get; set; }              // 0:无持仓 1:多仓 2:空仓
             public decimal Num { get; set; }
@@ -173,7 +173,7 @@ namespace QjySDK
 		/// 判断两根K线是否存在包含关系
 		/// 包含关系：一根K线的高低点完全在另一根K线的高低点范围内
 		/// </summary>
-		private bool HasContainRelation(decimal high1, decimal low1, decimal high2, decimal low2)
+		internal bool HasContainRelation(decimal high1, decimal low1, decimal high2, decimal low2)
         {
             // bar1包含bar2 或 bar2包含bar1
             return (high1 >= high2 && low1 <= low2) || (high2 >= high1 && low2 <= low1);
@@ -183,7 +183,7 @@ namespace QjySDK
         /// 处理K线包含关系，生成合并后的K线序列
         /// 缠论规则：向上时取高高低高，向下时取低低高低
         /// </summary>
-        private void ProcessContainRelation(State state, List<SkQuote> quotes)
+        internal void ProcessContainRelation(State state, List<SkQuote> quotes)
         {
             if (state.MergedBars == null)
                 state.MergedBars = new List<MergedBar>();
@@ -299,7 +299,7 @@ namespace QjySDK
         /// 顶分型：中间K线高点最高且低点最高
         /// 底分型：中间K线低点最低且高点最低
         /// </summary>
-        private FractalType IdentifyFractal(List<MergedBar> mergedBars, int index)
+        internal FractalType IdentifyFractal(List<MergedBar> mergedBars, int index)
         {
             if (index < 1 || index >= mergedBars.Count - 1)
                 return FractalType.None;
@@ -308,16 +308,14 @@ namespace QjySDK
             var curr = mergedBars[index];
             var next = mergedBars[index + 1];
 
-            // 顶分型：中间K线的高点和低点都是最高的
-            if (curr.High > prev.High && curr.High > next.High &&
-                curr.Low > prev.Low && curr.Low > next.Low)
+            // 顶分型：中间K线的高点最高（缠论标准定义）
+            if (curr.High > prev.High && curr.High > next.High)
             {
                 return FractalType.Top;
             }
 
-            // 底分型：中间K线的高点和低点都是最低的
-            if (curr.Low < prev.Low && curr.Low < next.Low &&
-                curr.High < prev.High && curr.High < next.High)
+            // 底分型：中间K线的低点最低（缠论标准定义）
+            if (curr.Low < prev.Low && curr.Low < next.Low)
             {
                 return FractalType.Bottom;
             }
@@ -328,7 +326,7 @@ namespace QjySDK
         /// <summary>
         /// 更新分型列表（基于合并后的K线）
         /// </summary>
-        private void UpdateFractals(State state)
+        internal void UpdateFractals(State state)
         {
             if (state.Fractals == null)
                 state.Fractals = new List<Fractal>();
@@ -397,15 +395,13 @@ namespace QjySDK
         /// 更新笔列表
         /// 缠论规则：笔至少包含5根独立K线（处理后）
         /// </summary>
-        private void UpdateStrokes(State state, List<SkQuote> quotes)
+        internal void UpdateStrokes(State state, List<SkQuote> quotes, int strokeMinBars = 5)
         {
             if (state.Strokes == null)
                 state.Strokes = new List<Stroke>();
 
             if (state.Fractals == null || state.Fractals.Count < 2)
                 return;
-
-            int strokeMinBars = (int)ArgDic["strokeMinBars"];
 
             // 重新构建笔列表（因为分型可能被更新）
             var newStrokes = new List<Stroke>();
@@ -436,9 +432,9 @@ namespace QjySDK
                         continue;
                     }
 
-                    // 检查笔的最少K线数（处理后的K线）
-                    int barCount = endFractal.Index - startFractal.Index;
-                    if (barCount < strokeMinBars)  // 标准笔定义：至少4个索引差（5根独立K线）
+                    // 检查笔的最少K线数（处理后的K线，包含两端）
+                    int barCount = endFractal.Index - startFractal.Index + 1;
+                    if (barCount < strokeMinBars)  // 标准笔定义：至少5根独立K线
                     {
                         continue;
                     }
@@ -455,16 +451,18 @@ namespace QjySDK
                     }
 
                     // 缠论要求：顶底分型之间不能存在包含关系
-                    // 向上笔：底分型高点 < 顶分型低点 或 有价格突破
-                    // 向下笔：顶分型低点 > 底分型高点 或 有价格突破
-                    if (isUp && startFractal.High >= endFractal.Low)
+                    // 向上笔：底分型高点 < 顶分型低点（严格无包含）
+                    // 向下笔：顶分型低点 > 底分型高点（严格无包含）
+                    // 放宽条件：只要价格方向正确即可（顶更高或底更低）
+                    if (isUp && startFractal.High >= endFractal.Low && endFractal.High <= startFractal.High)
                     {
-                        // 底分型高点 >= 顶分型低点，存在包含，但如果顶确实更高则允许
-                        // 这里放宽条件，只要顶分型高点确实高于底分型高点即可
+                        // 存在包含且顶分型高点未突破底分型高点，跳过
+                        continue;
                     }
-                    if (!isUp && startFractal.Low <= endFractal.High)
+                    if (!isUp && startFractal.Low <= endFractal.High && endFractal.Low >= startFractal.Low)
                     {
-                        // 顶分型低点 <= 底分型高点，存在包含，但如果底确实更低则允许
+                        // 存在包含且底分型低点未突破顶分型低点，跳过
+                        continue;
                     }
 
                     // 创建笔
@@ -554,7 +552,7 @@ namespace QjySDK
         /// <summary>
         /// 检查两笔是否重叠
         /// </summary>
-        private bool IsStrokesOverlap(Stroke stroke1, Stroke stroke2)
+        internal bool IsStrokesOverlap(Stroke stroke1, Stroke stroke2)
         {
             return stroke1.High > stroke2.Low && stroke1.Low < stroke2.High;
         }
@@ -672,7 +670,7 @@ namespace QjySDK
         /// 判断两笔是否存在背驰
         /// 背驰定义：同向的两笔，后一笔的MACD面积小于前一笔
         /// </summary>
-        private bool IsDivergence(Stroke stroke1, Stroke stroke2)
+        internal bool IsDivergence(Stroke stroke1, Stroke stroke2)
         {
             if (stroke1 == null || stroke2 == null)
                 return false;
