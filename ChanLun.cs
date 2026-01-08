@@ -126,9 +126,9 @@ namespace QjySDK
             sd.ArgDic["sendMode"] = 0;
 
             // 手数控制
-            sd.ArgDic["lotsMode"] = 0;
+            sd.ArgDic["lotsMode"] = 1;
             sd.ArgDic["lots"] = 1.0m;
-            sd.ArgDic["money"] = 100000m;
+            sd.ArgDic["money"] = 10000m;
 
             //sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0 标准 1 仅做多 2 仅做空" };
             //sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
@@ -955,17 +955,16 @@ namespace QjySDK
             var lotsMode = (int)ArgDic["lotsMode"];
             if (lotsMode == 1)
             {
-                //TODO:
-                //var s2 = GetSymbol(tu.MktSymbol);
-                //num = ((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio));
-                //if (s2.symbol_type == (int)SymbolType.COIN)
-                //{
-                //    num = (int)(num * 1000) / 1000.0m;
-                //}
-                //else
-                //{
-                //    num = (int)num;
-                //}
+                var s2 = GetSymbol(tu.MktSymbol);
+                num = ((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio));
+                if (s2.symbol_type == (int)SymbolType.COIN)
+                {
+                    num = (int)(num * 1000) / 1000.0m;
+                }
+                else
+                {
+                    num = (int)num;
+                }
             }
 
             // 交易逻辑：基于买卖点和笔方向变化

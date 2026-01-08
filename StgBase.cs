@@ -75,6 +75,21 @@ namespace QjySDK
             _pr.Add(pr);
         }
 
+        public async Task<Symbol> GetSymbolAsync(string mktSymbol)
+        {
+            var tcs = _stc.RegisterGetSymbol(mktSymbol);
+            var dic = new Dictionary<string, object>();
+            dic["oper"] = "getSymbol";
+            dic["mktSymbol"] = mktSymbol;
+            await _stc.SendMessageAsync(dic.ToJson());
+            return await tcs.Task;
+        }
+
+        public Symbol GetSymbol(string mktSymbol)
+        {
+            return GetSymbolAsync(mktSymbol).GetAwaiter().GetResult();
+        }
+
         public async Task Run()
         {
             var sd=GetStgDesc();
