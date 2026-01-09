@@ -47,8 +47,25 @@ namespace QjySDK
             public decimal Price { get; set; }      // 顶分型取High，底分型取Low
             public decimal High { get; set; }       // 分型最高点
             public decimal Low { get; set; }        // 分型最低点
+            public decimal Open { get; set; }       // 分型中间K线开盘价
+            public decimal Close { get; set; }      // 分型中间K线收盘价
             public DateTime Date { get; set; }
             public bool IsConfirmed { get; set; }   // 是否已确认
+            
+            /// <summary>
+            /// 计算实体大小（|Close - Open|）
+            /// </summary>
+            public decimal BodySize => Math.Abs(Close - Open);
+            
+            /// <summary>
+            /// 计算上影线长度
+            /// </summary>
+            public decimal UpperShadow => High - Math.Max(Open, Close);
+            
+            /// <summary>
+            /// 计算下影线长度
+            /// </summary>
+            public decimal LowerShadow => Math.Min(Open, Close) - Low;
         }
 
         // 笔结构
@@ -170,13 +187,66 @@ namespace QjySDK
 		#region K线包含关系处理
 
 		/// <summary>
-		/// 判断两根K线是否存在包含关系
-		/// 包含关系：一根K线的高低点完全在另一根K线的高低点范围内
-		/// </summary>
-		internal bool HasContainRelation(decimal high1, decimal low1, decimal high2, decimal low2)
+        /// 判断两根K线是否存在包含关系
+        /// </summary>
+        internal bool HasContainRelation(decimal high1, decimal low1, decimal high2, decimal low2)
         {
-            // bar1包含bar2 或 bar2包含bar1
             return (high1 >= high2 && low1 <= low2) || (high2 >= high1 && low2 <= low1);
+        }
+
+        /// <summary>
+        /// 比较两根K线的方向：返回1=向上，-1=向下，0=无法判断（完全相等）
+        /// </summary>
+        internal int CompareDirection(decimal high1, decimal low1, decimal high2, decimal low2)
+        {
+            if (high2 > high1)
+                return 1;
+            else if (high2 < high1)
+                return -1;
+            else if (low2 > low1)
+                return 1;
+            else if (low2 < low1)
+                return -1;
+            else
+                return 0;  // 完全相等
+        }
+
+        /// <summary>
+        /// 判断两根K线是否存在包含关系，并返回合并方向
+        /// </summary>
+        /// <param name="mergedBars">合并K线列表</param>
+        /// <param name="lastIndex">上一根合并K线的索引</param>
+        /// <param name="currHigh">当前K线的高点</param>
+        /// <param name="currLow">当前K线的低点</param>
+        /// <returns>0=不存在包含关系，1=向上合并，-1=向下合并</returns>
+        internal int GetContainDirection(List<MergedBar> mergedBars, int lastIndex, decimal currHigh, decimal currLow)
+        {
+            if (lastIndex < 0 || lastIndex >= mergedBars.Count)
+                return 0;
+
+            var last = mergedBars[lastIndex];
+
+            // 判断是否存在包含关系
+            if (!HasContainRelation(last.High, last.Low, currHigh, currLow))
+                return 0;
+
+            // 确定合并方向：优先使用上一根K线的方向
+            if (last.Direction != 0)
+                return last.Direction;
+
+            // 向前查找方向
+            for (int i = lastIndex - 1; i >= 0; i--)
+            {
+                var prev = mergedBars[i];
+                var curr = mergedBars[i + 1];
+                int dir = CompareDirection(prev.High, prev.Low, curr.High, curr.Low);
+                if (dir != 0)
+                    return dir;
+            }
+
+            // 所有历史K线都完全相等，用当前K线与上一根比较
+            int fallbackDir = CompareDirection(last.High, last.Low, currHigh, currLow);
+            return fallbackDir;  // 最终兆底允许direction为0，后续确认方向时再修改
         }
 
         /// <summary>
@@ -214,41 +284,12 @@ namespace QjySDK
             for (int i = startIndex; i < quotes.Count; i++)
             {
                 var curr = quotes[i];
-                
-                if (state.MergedBars.Count == 0)
-                {
-                    state.MergedBars.Add(new MergedBar
-                    {
-                        OriginalIndex = i,
-                        LastOriginalIndex = i,
-                        MergedCount = 1,
-                        High = curr.High,
-                        Low = curr.Low,
-                        Open = curr.Open,
-                        Close = curr.Close,
-                        Date = curr.Date,
-                        Direction = 0
-                    });
-                    continue;
-                }
-
                 var last = state.MergedBars[state.MergedBars.Count - 1];
 
-                // 判断是否存在包含关系
-                if (HasContainRelation(last.High, last.Low, curr.High, curr.Low))
+                // 判断包含关系并获取合并方向
+                int direction = GetContainDirection(state.MergedBars, state.MergedBars.Count - 1, curr.High, curr.Low);
+                if (direction != 0)
                 {
-                    // 确定合并方向
-                    int direction = last.Direction;
-                    if (direction == 0 && state.MergedBars.Count >= 2)
-                    {
-                        var prev = state.MergedBars[state.MergedBars.Count - 2];
-                        direction = last.High > prev.High ? 1 : -1;
-                    }
-                    if (direction == 0)
-                    {
-                        direction = curr.High > last.High ? 1 : -1;
-                    }
-
                     // 合并K线
                     if (direction > 0)
                     {
@@ -270,8 +311,27 @@ namespace QjySDK
                 else
                 {
                     // 不存在包含关系，确定新K线的方向
-                    int direction = curr.High > last.High ? 1 : -1;
+                    int newDirection;
+                    if (curr.High > last.High)
+                        newDirection = 1;
+                    else if (curr.Low < last.Low)
+                        newDirection = -1;
+                    else
+                        newDirection = 0;  // High相等时用Low判断
+
+                    if(newDirection!=0)
+                    {
+                        // 回填之前direction为0的K线
+                        for (int j = state.MergedBars.Count - 1; j >= 0; j--)
+                        {
+                            if (state.MergedBars[j].Direction == 0)
+                                state.MergedBars[j].Direction = newDirection;
+                            else
+                                break;
+                        }
+                    }
                     
+
                     state.MergedBars.Add(new MergedBar
                     {
                         OriginalIndex = i,
@@ -282,7 +342,7 @@ namespace QjySDK
                         Open = curr.Open,
                         Close = curr.Close,
                         Date = curr.Date,
-                        Direction = direction
+                        Direction = newDirection
                     });
                 }
             }
@@ -308,14 +368,16 @@ namespace QjySDK
             var curr = mergedBars[index];
             var next = mergedBars[index + 1];
 
-            // 顶分型：中间K线的高点最高（缠论标准定义）
-            if (curr.High > prev.High && curr.High > next.High)
+            // 顶分型：中间K线的高点最高且低点最高（缠论标准定义）
+            if (curr.High > prev.High && curr.High > next.High
+                && curr.Low >= prev.Low && curr.Low >= next.Low)
             {
                 return FractalType.Top;
             }
 
-            // 底分型：中间K线的低点最低（缠论标准定义）
-            if (curr.Low < prev.Low && curr.Low < next.Low)
+            // 底分型：中间K线的低点最低且高点最低（缠论标准定义）
+            if (curr.Low < prev.Low && curr.Low < next.Low
+                && curr.High <= prev.High && curr.High <= next.High)
             {
                 return FractalType.Bottom;
             }
@@ -352,8 +414,10 @@ namespace QjySDK
                         Price = fractalType == FractalType.Top ? bar.High : bar.Low,
                         High = bar.High,
                         Low = bar.Low,
+                        Open = bar.Open,
+                        Close = bar.Close,
                         Date = bar.Date,
-                        IsConfirmed = i < state.MergedBars.Count - 1
+                        IsConfirmed = i < state.MergedBars.Count - 2
                     };
 
                     // 处理连续同类型分型：保留更极端的
@@ -382,7 +446,71 @@ namespace QjySDK
                             {
                                 newFractals.Add(fractal);
                             }
-                            // 如果共用K线，跳过这个分型（保留之前的分型）
+                            else
+                            {
+                                // 共用K线时，综合比较极值、影线和实体决定保留哪个分型
+                                bool replaceWithNew = false;
+                                if (lastFractal.Type == FractalType.Top && fractalType == FractalType.Bottom)
+                                {
+                                    // 顶后底共用K线：综合评估
+                                    // 1. 极值比较：底分型低点是否突破顶分型低点
+                                    bool priceBreak = fractal.Price < lastFractal.Low;
+                                    // 2. 影线比较：底分型下影线越长越有效（表示下方有支撑）
+                                    bool betterShadow = fractal.LowerShadow > lastFractal.LowerShadow;
+                                    // 3. 实体比较：底分型实体越大越有效（表示反转力度强）
+                                    bool betterBody = fractal.BodySize > lastFractal.BodySize;
+                                    // 4. 收盘位置：底分型收盘价越高越好（阳线收盘）
+                                    bool betterClose = fractal.Close > fractal.Open;
+                                    
+                                    // 综合判断：极值突破优先，否则看影线和实体
+                                    if (priceBreak)
+                                    {
+                                        replaceWithNew = true;
+                                    }
+                                    else
+                                    {
+                                        // 极值相近时，综合影线和实体判断
+                                        int score = 0;
+                                        if (betterShadow) score++;
+                                        if (betterBody) score++;
+                                        if (betterClose) score++;
+                                        replaceWithNew = score >= 2;
+                                    }
+                                }
+                                else if (lastFractal.Type == FractalType.Bottom && fractalType == FractalType.Top)
+                                {
+                                    // 底后顶共用K线：综合评估
+                                    // 1. 极值比较：顶分型高点是否突破底分型高点
+                                    bool priceBreak = fractal.Price > lastFractal.High;
+                                    // 2. 影线比较：顶分型上影线越长越有效（表示上方有压力）
+                                    bool betterShadow = fractal.UpperShadow > lastFractal.UpperShadow;
+                                    // 3. 实体比较：顶分型实体越大越有效（表示反转力度强）
+                                    bool betterBody = fractal.BodySize > lastFractal.BodySize;
+                                    // 4. 收盘位置：顶分型收盘价越低越好（阴线收盘）
+                                    bool betterClose = fractal.Close < fractal.Open;
+                                    
+                                    // 综合判断：极值突破优先，否则看影线和实体
+                                    if (priceBreak)
+                                    {
+                                        replaceWithNew = true;
+                                    }
+                                    else
+                                    {
+                                        // 极值相近时，综合影线和实体判断
+                                        int score = 0;
+                                        if (betterShadow) score++;
+                                        if (betterBody) score++;
+                                        if (betterClose) score++;
+                                        replaceWithNew = score >= 2;
+                                    }
+                                }
+                                
+                                if (replaceWithNew)
+                                {
+                                    newFractals[newFractals.Count - 1] = fractal;
+                                }
+                                // 否则保留之前的分型
+                            }
                         }
                     }
                     else
