@@ -359,49 +359,6 @@ namespace QjySDK.Tests
 
         #region IsStrokesOverlap 笔重叠测试
 
-        [Fact]
-        public void IsStrokesOverlap_Overlapping_ReturnsTrue()
-        {
-            // 两笔重叠
-            var stroke1 = new ChanLun.Stroke { High = 110m, Low = 100m };
-            var stroke2 = new ChanLun.Stroke { High = 115m, Low = 105m };
-
-            var result = _chanLun.IsStrokesOverlap(stroke1, stroke2);
-            Assert.True(result);
-        }
-
-        [Fact]
-        public void IsStrokesOverlap_NotOverlapping_ReturnsFalse()
-        {
-            // 两笔不重叠
-            var stroke1 = new ChanLun.Stroke { High = 100m, Low = 90m };
-            var stroke2 = new ChanLun.Stroke { High = 120m, Low = 110m };
-
-            var result = _chanLun.IsStrokesOverlap(stroke1, stroke2);
-            Assert.False(result);
-        }
-
-        [Fact]
-        public void IsStrokesOverlap_TouchingButNotOverlapping_ReturnsFalse()
-        {
-            // 两笔刚好接触但不重叠（边界情况）
-            var stroke1 = new ChanLun.Stroke { High = 100m, Low = 90m };
-            var stroke2 = new ChanLun.Stroke { High = 110m, Low = 100m };
-
-            var result = _chanLun.IsStrokesOverlap(stroke1, stroke2);
-            Assert.False(result);
-        }
-
-        [Fact]
-        public void IsStrokesOverlap_OneContainsAnother_ReturnsTrue()
-        {
-            // 一笔完全包含另一笔
-            var stroke1 = new ChanLun.Stroke { High = 120m, Low = 80m };
-            var stroke2 = new ChanLun.Stroke { High = 110m, Low = 90m };
-
-            var result = _chanLun.IsStrokesOverlap(stroke1, stroke2);
-            Assert.True(result);
-        }
 
         #endregion
 
@@ -955,72 +912,6 @@ namespace QjySDK.Tests
             _chanLun.UpdateZhongShus(state, 3);
 
             Assert.Empty(state.ZhongShus);
-        }
-
-        [Fact]
-        public void UpdateZhongShus_ZhongShuContainsAllStrokes()
-        {
-            // 验证中枢包含所有参与的笔
-            var stroke1 = new ChanLun.Stroke { StartIndex = 0, EndIndex = 5, High = 120m, Low = 100m, IsUp = true };
-            var stroke2 = new ChanLun.Stroke { StartIndex = 5, EndIndex = 10, High = 115m, Low = 105m, IsUp = false };
-            var stroke3 = new ChanLun.Stroke { StartIndex = 10, EndIndex = 15, High = 118m, Low = 108m, IsUp = true };
-
-            var state = new ChanLun.State
-            {
-                Strokes = new List<ChanLun.Stroke> { stroke1, stroke2, stroke3 },
-                ZhongShus = new List<ChanLun.ZhongShu>()
-            };
-
-            _chanLun.UpdateZhongShus(state, 3);
-
-            Assert.Single(state.ZhongShus);
-            Assert.Equal(3, state.ZhongShus[0].Strokes.Count);
-        }
-
-        [Fact]
-        public void UpdateZhongShus_StartAndEndIndex_Correct()
-        {
-            // 验证中枢的起止索引正确
-            var state = new ChanLun.State
-            {
-                Strokes = new List<ChanLun.Stroke>
-                {
-                    new ChanLun.Stroke { StartIndex = 5, EndIndex = 10, High = 120m, Low = 100m, IsUp = true },
-                    new ChanLun.Stroke { StartIndex = 10, EndIndex = 15, High = 115m, Low = 105m, IsUp = false },
-                    new ChanLun.Stroke { StartIndex = 15, EndIndex = 25, High = 118m, Low = 108m, IsUp = true }
-                },
-                ZhongShus = new List<ChanLun.ZhongShu>()
-            };
-
-            _chanLun.UpdateZhongShus(state, 3);
-
-            Assert.Single(state.ZhongShus);
-            // 起始索引 = 第一笔的起始索引
-            Assert.Equal(5, state.ZhongShus[0].StartIndex);
-            // 结束索引 = 最后一笔的结束索引
-            Assert.Equal(25, state.ZhongShus[0].EndIndex);
-        }
-
-        [Fact]
-        public void UpdateZhongShus_FourOverlappingStrokes_ExtendedZhongShu()
-        {
-            // 4笔都重叠，形成一个扩展的中枢
-            var state = new ChanLun.State
-            {
-                Strokes = new List<ChanLun.Stroke>
-                {
-                    new ChanLun.Stroke { StartIndex = 0, EndIndex = 5, High = 120m, Low = 100m, IsUp = true },
-                    new ChanLun.Stroke { StartIndex = 5, EndIndex = 10, High = 118m, Low = 102m, IsUp = false },
-                    new ChanLun.Stroke { StartIndex = 10, EndIndex = 15, High = 116m, Low = 104m, IsUp = true },
-                    new ChanLun.Stroke { StartIndex = 15, EndIndex = 20, High = 114m, Low = 106m, IsUp = false }
-                },
-                ZhongShus = new List<ChanLun.ZhongShu>()
-            };
-
-            _chanLun.UpdateZhongShus(state, 3);
-
-            Assert.Single(state.ZhongShus);
-            Assert.Equal(4, state.ZhongShus[0].Strokes.Count);
         }
 
         [Fact]

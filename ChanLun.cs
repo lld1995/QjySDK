@@ -97,18 +97,51 @@ namespace QjySDK
 			public decimal Low { get; set; }
 		}
 
-		// 中枢结构
+		// 中枢状态枚举
+		internal enum ZhongShuStatus
+		{
+			Forming = 0,    // 形成中（未满3段）
+			Confirmed = 1,  // 已确认（满3段，ZG > ZD）
+			Extending = 2,  // 延伸中（后续段在区间内）
+			Left = 3,       // 已离开（有段突破边界）
+			Ended = 4,      // 已结束（回抽确认离开）
+			Upgraded = 5    // 已升级（9段升级或扩展升级）
+		}
+
+		// 走势类型枚举
+		internal enum TrendType
+		{
+			Unknown = 0,    // 未知
+			Consolidation = 1,  // 盘整（只有一个中枢）
+			UpTrend = 2,    // 上涨趋势（至少两个向上中枢，中枢间无重叠）
+			DownTrend = 3   // 下跌趋势（至少两个向下中枢，中枢间无重叠）
+		}
+
+		// 中枢结构（严格按照缠论定义）
+		// 中枢 = 至少三个连续次级别走势类型的共同重叠价格区间
+		// ZD = max(L₁, L₂, L₃) 中枢下沿
+		// ZG = min(H₁, H₂, H₃) 中枢上沿
+		// 中枢成立充要条件：ZG > ZD
 		internal class ZhongShu
 		{
+			public int Id { get; set; }             // 中枢唯一标识
 			public int StartIndex { get; set; }     // 起始K线索引
 			public int EndIndex { get; set; }       // 结束K线索引
-			public decimal ZG { get; set; }         // 中枢高点 = min(各笔高点)
-			public decimal ZD { get; set; }         // 中枢低点 = max(各笔低点)
-			public decimal GG { get; set; }         // 中枢区间最高点
-			public decimal DD { get; set; }         // 中枢区间最低点
-			public List<Stroke> Strokes { get; set; }  // 构成中枢的笔（至少3笔）
-			public int Level { get; set; }          // 中枢级别
-			public bool IsValid => ZD < ZG;         // 中枢有效性：ZD < ZG
+			public decimal ZG { get; set; }         // 中枢上沿 = min(各段高点)
+			public decimal ZD { get; set; }         // 中枢下沿 = max(各段低点)
+			public decimal GG { get; set; }         // 中枢波动区间最高点
+			public decimal DD { get; set; }         // 中枢波动区间最低点
+			public List<Segment>? Segments { get; set; }  // 构成中枢的线段（至少3段）
+			public int Level { get; set; }          // 中枢级别（0=当前级别，1=升级后）
+			public ZhongShuStatus Status { get; set; }  // 中枢状态
+			public int SegmentCount => Segments?.Count ?? 0;  // 段数
+			public bool IsValid => ZG > ZD;         // 中枢有效性：ZG > ZD（重叠区间有宽度）
+			public DateTime FormTime { get; set; }  // 中枢形成时间（第三段完成时）
+			public int? LeaveDirection { get; set; } // 离开方向：1=向上，-1=向下，null=未离开
+			public Segment? LeaveSegment { get; set; } // 离开段
+			public Segment? PullbackSegment { get; set; } // 回抽段
+			public bool IsPullbackConfirmed { get; set; } // 回抽是否确认（第三类买卖点）
+			public int Direction { get; set; }      // 中枢方向：1=向上中枢（进入段向上），-1=向下中枢（进入段向下）
 		}
 
 		// 买卖点类型
@@ -173,6 +206,7 @@ namespace QjySDK
 			public List<Segment> Segments { get; set; }      // 线段列表
 			public List<ZhongShu> ZhongShus { get; set; }    // 中枢列表
 			public ZhongShu CurrentZhongShu { get; set; }    // 当前中枢
+			public TrendType CurrentTrendType { get; set; }  // 当前走势类型
 			public List<BSPoint> BSPoints { get; set; }      // 买卖点列表
 			public int LastProcessedIndex { get; set; }      // 最后处理的原始K线索引
 			public List<MacdResult> MacdResults { get; set; } // MACD结果缓存
@@ -748,118 +782,407 @@ namespace QjySDK
 
 		#endregion
 
-		#region 中枢识别
+		#region 线段构建
 
 		/// <summary>
-		/// 检查两笔是否重叠
+		/// 更新线段列表
+		/// 缠论定义：线段由至少3笔构成，通过特征序列分型确定线段终点
+		/// 线段是连续不重叠的次级别走势类型
 		/// </summary>
-		internal bool IsStrokesOverlap(Stroke stroke1, Stroke stroke2)
+		internal void UpdateSegments(State state)
 		{
-			return stroke1.High > stroke2.Low && stroke1.Low < stroke2.High;
-		}
+			if (state.Segments == null)
+				state.Segments = new List<Segment>();
 
-		/// <summary>
-		/// 识别中枢：寻找至少3笔连续重叠的区域
-		/// 缠论定义：中枢由至少3笔重叠构成，ZG=min(各笔高点)，ZD=max(各笔低点)
-		/// </summary>
-		internal void UpdateZhongShus(State state, int minStrokes = 3)
-		{
-			if (state.Strokes == null)
+			if (state.Strokes == null || state.Strokes.Count < 3)
 				return;
 
-			if (state.Strokes.Count < minStrokes)
-				return;
-
-			if (state.ZhongShus == null)
-				state.ZhongShus = new List<ZhongShu>();
-
-			// 从第一笔开始，寻找连续重叠的笔构成中枢
-			var newZhongShus = new List<ZhongShu>();
+			var newSegments = new List<Segment>();
 			int i = 0;
 
-			while (i <= state.Strokes.Count - minStrokes)
+			while (i + 2 < state.Strokes.Count)
 			{
-				// 尝试从第i笔开始构建中枢
-				var candidateStrokes = new List<Stroke> { state.Strokes[i] };
-				decimal zg = state.Strokes[i].High;  // min(各笔高点)
-				decimal zd = state.Strokes[i].Low;   // max(各笔低点)
-				decimal gg = state.Strokes[i].High;  // 最高点
-				decimal dd = state.Strokes[i].Low;   // 最低点
-
-				for (int j = i + 1; j < state.Strokes.Count; j++)
+				var startStroke = state.Strokes[i];
+				bool isUp = startStroke.IsUp;
+				
+				// 收集构成当前线段的所有笔（至少3笔）
+				var segmentStrokes = new List<Stroke> { startStroke };
+				decimal segmentHigh = startStroke.High;
+				decimal segmentLow = startStroke.Low;
+				int j = i + 1;
+				
+				// 寻找线段终点：通过特征序列分型判断
+				while (j < state.Strokes.Count)
 				{
-					var stroke = state.Strokes[j];
-					decimal newZg = Math.Min(zg, stroke.High);
-					decimal newZd = Math.Max(zd, stroke.Low);
-
-					// 检查是否仍然有重叠区间
-					if (newZd < newZg)
+					var currentStroke = state.Strokes[j];
+					segmentStrokes.Add(currentStroke);
+					segmentHigh = Math.Max(segmentHigh, currentStroke.High);
+					segmentLow = Math.Min(segmentLow, currentStroke.Low);
+					
+					// 至少需要3笔才能形成线段
+					if (segmentStrokes.Count >= 3)
 					{
-						// 有重叠，加入中枢
-						candidateStrokes.Add(stroke);
-						zg = newZg;
-						zd = newZd;
-						gg = Math.Max(gg, stroke.High);
-						dd = Math.Min(dd, stroke.Low);
+						// 检查是否形成线段终点（特征序列分型）
+						if (j >= 2)
+						{
+							var prevSameDir = FindPreviousSameDirectionStrokeInList(segmentStrokes, segmentStrokes.Count - 1);
+							if (prevSameDir != null)
+							{
+								bool isSegmentEnd = false;
+								if (isUp && !currentStroke.IsUp && currentStroke.Low < prevSameDir.Low)
+								{
+									isSegmentEnd = true;
+								}
+								else if (!isUp && currentStroke.IsUp && currentStroke.High > prevSameDir.High)
+								{
+									isSegmentEnd = true;
+								}
+								
+								if (isSegmentEnd)
+								{
+									segmentStrokes.RemoveAt(segmentStrokes.Count - 1);
+									segmentHigh = segmentStrokes.Max(s => s.High);
+									segmentLow = segmentStrokes.Min(s => s.Low);
+									break;
+								}
+							}
+						}
 					}
-					else
-					{
-						// 无重叠，中枢结束
-						break;
-					}
+					j++;
 				}
-
-				// 检查是否满足最少笔数要求
-				if (candidateStrokes.Count >= minStrokes)
+				
+				// 如果收集到至少3笔，创建线段
+				if (segmentStrokes.Count >= 3)
 				{
-					var zhongshu = new ZhongShu
+					var endStroke = segmentStrokes[segmentStrokes.Count - 1];
+					var segment = new Segment
 					{
-						StartIndex = candidateStrokes[0].StartIndex,
-						EndIndex = candidateStrokes[candidateStrokes.Count - 1].EndIndex,
-						ZG = zg,
-						ZD = zd,
-						GG = gg,
-						DD = dd,
-						Strokes = new List<Stroke>(candidateStrokes),
-						Level = 0
+						StartIndex = startStroke.StartIndex,
+						EndIndex = endStroke.EndIndex,
+						StartStroke = startStroke,
+						EndStroke = endStroke,
+						Strokes = segmentStrokes,
+						IsUp = isUp,
+						High = segmentHigh,
+						Low = segmentLow
 					};
-
-					// 检查是否与上一个中枢重叠（中枢扩展）
-					if (newZhongShus.Count > 0)
-					{
-						var lastZs = newZhongShus[newZhongShus.Count - 1];
-						// 如果新中枢与上一个中枢有重叠，可以合并（中枢扩展）
-						if (zhongshu.ZD < lastZs.ZG && zhongshu.ZG > lastZs.ZD)
-						{
-							// 扩展上一个中枢
-							lastZs.EndIndex = zhongshu.EndIndex;
-							lastZs.ZG = Math.Min(lastZs.ZG, zhongshu.ZG);
-							lastZs.ZD = Math.Max(lastZs.ZD, zhongshu.ZD);
-							lastZs.GG = Math.Max(lastZs.GG, zhongshu.GG);
-							lastZs.DD = Math.Min(lastZs.DD, zhongshu.DD);
-							lastZs.Strokes.AddRange(candidateStrokes.Skip(1));
-						}
-						else
-						{
-							newZhongShus.Add(zhongshu);
-						}
-					}
-					else
-					{
-						newZhongShus.Add(zhongshu);
-					}
-
-					// 跳过已处理的笔
-					i += candidateStrokes.Count - 1;
+					newSegments.Add(segment);
+					i += segmentStrokes.Count - 1;
 				}
 				else
 				{
 					i++;
 				}
 			}
+			state.Segments = newSegments;
+		}
 
+		/// <summary>
+		/// 在笔列表中查找同向的前一笔
+		/// </summary>
+		private Stroke FindPreviousSameDirectionStrokeInList(List<Stroke> strokes, int currentIndex)
+		{
+			if (currentIndex < 2)
+				return null;
+			var current = strokes[currentIndex];
+			for (int k = currentIndex - 2; k >= 0; k -= 2)
+			{
+				if (strokes[k].IsUp == current.IsUp)
+					return strokes[k];
+			}
+			return null;
+		}
+
+		#endregion
+
+		#region 中枢识别（严格按照缠论定义）
+
+		private int _zhongShuIdCounter = 0;
+
+		/// <summary>
+		/// 计算三段的共同重叠区间
+		/// ZD = max(L₁, L₂, L₃) 中枢下沿
+		/// ZG = min(H₁, H₂, H₃) 中枢上沿
+		/// </summary>
+		internal (decimal ZD, decimal ZG, bool IsValid) CalculateThreeSegmentOverlap(Segment s1, Segment s2, Segment s3)
+		{
+			decimal zd = Math.Max(Math.Max(s1.Low, s2.Low), s3.Low);
+			decimal zg = Math.Min(Math.Min(s1.High, s2.High), s3.High);
+			return (zd, zg, zg > zd);
+		}
+
+		/// <summary>
+		/// 检查段是否与中枢区间有重叠（延伸判定）
+		/// 缠论定义：后续段与中枢区间[ZD, ZG]有交集即为延伸
+		/// 包括触及边界的情况
+		/// </summary>
+		internal bool IsSegmentOverlapWithZhongShu(Segment segment, ZhongShu zs)
+		{
+			// 段与中枢区间有重叠：段的高点 >= 中枢下沿 且 段的低点 <= 中枢上沿
+			// 使用 >= 和 <= 确保触及边界也算有交集
+			return segment.High >= zs.ZD && segment.Low <= zs.ZG;
+		}
+
+		/// <summary>
+		/// 检查段是否触及中枢边界（震荡）
+		/// </summary>
+		internal bool IsSegmentTouchingBoundary(Segment segment, ZhongShu zs)
+		{
+			bool hasOverlap = segment.High > zs.ZD && segment.Low < zs.ZG;
+			bool notFullyInside = segment.High > zs.ZG || segment.Low < zs.ZD;
+			return hasOverlap && notFullyInside;
+		}
+
+		/// <summary>
+		/// 检查段是否离开中枢
+		/// </summary>
+		internal (bool IsLeft, int Direction) CheckSegmentLeave(Segment segment, ZhongShu zs)
+		{
+			if (segment.Low >= zs.ZG) return (true, 1);   // 向上离开
+			if (segment.High <= zs.ZD) return (true, -1); // 向下离开
+			return (false, 0);
+		}
+
+		/// <summary>
+		/// 检查回抽是否确认离开（第三类买卖点）
+		/// </summary>
+		internal bool CheckPullbackConfirm(Segment pullbackSegment, ZhongShu zs)
+		{
+			if (zs.LeaveDirection == null) return false;
+			if (zs.LeaveDirection == 1) return pullbackSegment.Low >= zs.ZG;
+			return pullbackSegment.High <= zs.ZD;
+		}
+
+		/// <summary>
+		/// 检查两个中枢是否可以扩展合并
+		/// </summary>
+		internal bool CanZhongShuExpand(ZhongShu zs1, ZhongShu zs2)
+		{
+			decimal overlapHigh = Math.Min(zs1.GG, zs2.GG);
+			decimal overlapLow = Math.Max(zs1.DD, zs2.DD);
+			return overlapHigh > overlapLow;
+		}
+
+		/// <summary>
+		/// 合并两个中枢（扩展升级）
+		/// 缠论定义：两个中枢波动区间有重叠时，合并为更高级别中枢
+		/// 合并后的中枢区间基于所有段重新计算
+		/// </summary>
+		internal ZhongShu MergeZhongShus(ZhongShu zs1, ZhongShu zs2)
+		{
+			var mergedSegments = new List<Segment>();
+			if (zs1.Segments != null) mergedSegments.AddRange(zs1.Segments);
+			if (zs2.Segments != null) mergedSegments.AddRange(zs2.Segments);
+
+			// 合并后的中枢区间：基于所有段重新计算
+			// ZG = min(所有段的High)，ZD = max(所有段的Low)
+			decimal newZG = mergedSegments.Count > 0 ? mergedSegments.Min(s => s.High) : Math.Min(zs1.ZG, zs2.ZG);
+			decimal newZD = mergedSegments.Count > 0 ? mergedSegments.Max(s => s.Low) : Math.Max(zs1.ZD, zs2.ZD);
+			decimal newGG = mergedSegments.Count > 0 ? mergedSegments.Max(s => s.High) : Math.Max(zs1.GG, zs2.GG);
+			decimal newDD = mergedSegments.Count > 0 ? mergedSegments.Min(s => s.Low) : Math.Min(zs1.DD, zs2.DD);
+
+			return new ZhongShu
+			{
+				Id = ++_zhongShuIdCounter,
+				StartIndex = Math.Min(zs1.StartIndex, zs2.StartIndex),
+				EndIndex = Math.Max(zs1.EndIndex, zs2.EndIndex),
+				ZG = newZG,
+				ZD = newZD,
+				GG = newGG,
+				DD = newDD,
+				Segments = mergedSegments,
+				Level = zs1.Level + 1,
+				Status = ZhongShuStatus.Upgraded,
+				FormTime = zs2.FormTime,
+				Direction = zs1.Direction  // 继承第一个中枢的方向
+			};
+		}
+
+		/// <summary>
+		/// 中枢识别主方法（严格按照缠论定义的五步法）
+		/// </summary>
+		internal void UpdateZhongShus(State state, int minSegments = 3)
+		{
+			if (state.Segments == null || state.Segments.Count < minSegments)
+			{
+				if (state.ZhongShus == null)
+					state.ZhongShus = new List<ZhongShu>();
+				return;
+			}
+
+			if (state.ZhongShus == null)
+				state.ZhongShus = new List<ZhongShu>();
+
+			var newZhongShus = new List<ZhongShu>();
+			int segmentIndex = 0;
+
+			while (segmentIndex <= state.Segments.Count - minSegments)
+			{
+				var s1 = state.Segments[segmentIndex];
+				var s2 = state.Segments[segmentIndex + 1];
+				var s3 = state.Segments[segmentIndex + 2];
+
+				var (zd, zg, isValid) = CalculateThreeSegmentOverlap(s1, s2, s3);
+
+				if (!isValid)
+				{
+					segmentIndex++;
+					continue;
+				}
+
+				var zhongshu = new ZhongShu
+				{
+					Id = ++_zhongShuIdCounter,
+					StartIndex = s1.StartIndex,
+					EndIndex = s3.EndIndex,
+					ZG = zg,
+					ZD = zd,
+					GG = Math.Max(Math.Max(s1.High, s2.High), s3.High),
+					DD = Math.Min(Math.Min(s1.Low, s2.Low), s3.Low),
+					Segments = new List<Segment> { s1, s2, s3 },
+					Level = 0,
+					Status = ZhongShuStatus.Confirmed,
+					FormTime = DateTime.Now,
+					Direction = s1.IsUp ? 1 : -1  // 中枢方向由进入段（第一段）决定
+				};
+
+				int nextIndex = segmentIndex + 3;
+				while (nextIndex < state.Segments.Count)
+				{
+					var nextSegment = state.Segments[nextIndex];
+					var (isLeft, direction) = CheckSegmentLeave(nextSegment, zhongshu);
+
+					if (isLeft)
+					{
+						zhongshu.Status = ZhongShuStatus.Left;
+						zhongshu.LeaveDirection = direction;
+						zhongshu.LeaveSegment = nextSegment;
+
+						if (nextIndex + 1 < state.Segments.Count)
+						{
+							var pullbackSegment = state.Segments[nextIndex + 1];
+							zhongshu.PullbackSegment = pullbackSegment;
+							if (CheckPullbackConfirm(pullbackSegment, zhongshu))
+							{
+								zhongshu.Status = ZhongShuStatus.Ended;
+								zhongshu.IsPullbackConfirmed = true;
+							}
+						}
+						break;
+					}
+
+					if (IsSegmentOverlapWithZhongShu(nextSegment, zhongshu))
+					{
+						zhongshu.Segments.Add(nextSegment);
+						zhongshu.EndIndex = nextSegment.EndIndex;
+						zhongshu.GG = Math.Max(zhongshu.GG, nextSegment.High);
+						zhongshu.DD = Math.Min(zhongshu.DD, nextSegment.Low);
+						zhongshu.Status = ZhongShuStatus.Extending;
+
+						if (zhongshu.SegmentCount >= 9)
+						{
+							zhongshu.Level++;
+							zhongshu.Status = ZhongShuStatus.Upgraded;
+						}
+						nextIndex++;
+					}
+					else
+					{
+						// 段不与中枢重叠且未离开，可能是新中枢的开始
+						// 结束当前中枢的延伸判定，让后续段尝试形成新中枢
+						break;
+					}
+				}
+
+				// 将当前中枢加入列表，检查是否可以与前一个中枢扩展合并
+				if (newZhongShus.Count > 0)
+				{
+					var lastZs = newZhongShus[newZhongShus.Count - 1];
+					if (CanZhongShuExpand(lastZs, zhongshu))
+					{
+						// 两个中枢波动区间有重叠，合并为更高级别中枢
+						var mergedZs = MergeZhongShus(lastZs, zhongshu);
+						newZhongShus[newZhongShus.Count - 1] = mergedZs;
+					}
+					else
+					{
+						// 两个中枢无重叠，形成新中枢（中枢新生）
+						zhongshu.Status = ZhongShuStatus.Confirmed;
+						newZhongShus.Add(zhongshu);
+					}
+				}
+				else
+				{
+					newZhongShus.Add(zhongshu);
+				}
+
+				// 更新段索引：从当前中枢结束后的下一段开始
+				// 如果中枢已离开，从离开段开始尝试新中枢
+				if (zhongshu.LeaveSegment != null)
+				{
+					// 找到离开段在Segments中的索引
+					int leaveIndex = state.Segments.IndexOf(zhongshu.LeaveSegment);
+					segmentIndex = leaveIndex >= 0 ? leaveIndex : nextIndex;
+				}
+				else
+				{
+					segmentIndex = nextIndex > segmentIndex + minSegments ? nextIndex : segmentIndex + zhongshu.SegmentCount;
+				}
+			}
 			state.ZhongShus = newZhongShus;
 			state.CurrentZhongShu = newZhongShus.Count > 0 ? newZhongShus[newZhongShus.Count - 1] : null;
+		}
+
+		/// <summary>
+		/// 获取中枢的第三类买卖点
+		/// </summary>
+		internal BSPointType GetThirdBSPoint(ZhongShu zs)
+		{
+			if (zs == null || !zs.IsPullbackConfirmed) return BSPointType.None;
+			if (zs.LeaveDirection == 1) return BSPointType.Buy3;
+			if (zs.LeaveDirection == -1) return BSPointType.Sell3;
+			return BSPointType.None;
+		}
+
+		/// <summary>
+		/// 判断当前走势类型（趋势/盘整）
+		/// 缠论定义：
+		/// - 盘整：只有一个中枢的走势
+		/// - 上涨趋势：至少两个中枢，后一个中枢DD > 前一个中枢GG（中枢间无重叠，向上排列）
+		/// - 下跌趋势：至少两个中枢，后一个中枢GG < 前一个中枢DD（中枢间无重叠，向下排列）
+		/// </summary>
+		internal TrendType DetermineTrendType(List<ZhongShu> zhongShus)
+		{
+			if (zhongShus == null || zhongShus.Count == 0)
+				return TrendType.Unknown;
+
+			if (zhongShus.Count == 1)
+				return TrendType.Consolidation;
+
+			// 检查最近两个中枢的关系
+			var lastZs = zhongShus[zhongShus.Count - 1];
+			var prevZs = zhongShus[zhongShus.Count - 2];
+
+			// 上涨趋势：后一个中枢完全在前一个中枢上方（中枢间无重叠）
+			// 判定条件：后一个中枢的波动区间最低点 > 前一个中枢的波动区间最高点
+			if (lastZs.DD > prevZs.GG)
+				return TrendType.UpTrend;
+
+			// 下跌趋势：后一个中枢完全在前一个中枢下方（中枢间无重叠）
+			// 判定条件：后一个中枢的波动区间最高点 < 前一个中枢的波动区间最低点
+			if (lastZs.GG < prevZs.DD)
+				return TrendType.DownTrend;
+
+			// 中枢有重叠，仍为盘整
+			return TrendType.Consolidation;
+		}
+
+		/// <summary>
+		/// 更新当前走势类型
+		/// </summary>
+		internal void UpdateTrendType(State state)
+		{
+			state.CurrentTrendType = DetermineTrendType(state.ZhongShus);
 		}
 
 		#endregion
@@ -1100,10 +1423,16 @@ namespace QjySDK
 			// 步骤3：笔构建
 			UpdateStrokes(s, tu.QuoteList);
 
-			// 步骤4：中枢识别
+			// 步骤4：线段构建
+			UpdateSegments(s);
+
+			// 步骤5：中枢识别（基于线段）
 			UpdateZhongShus(s);
 
-			// 步骤5：买卖点识别
+			// 步骤6：趋势/盘整判定
+			UpdateTrendType(s);
+
+			// 步骤7：买卖点识别
 			UpdateBSPoints(s, tu.QuoteList);
 
 			// 绘制最近的分型
