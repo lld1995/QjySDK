@@ -953,8 +953,8 @@ namespace QjySDK.Stg
 		/// </summary>
 		internal (bool IsLeft, int Direction) CheckSegmentLeave(Segment segment, ZhongShu zs)
 		{
-			if (segment.Low >= zs.ZG) return (true, 1);   // 向上离开
-			if (segment.High <= zs.ZD) return (true, -1); // 向下离开
+			if (segment.Low > zs.ZG) return (true, 1);   // 向上离开
+			if (segment.High < zs.ZD) return (true, -1); // 向下离开
 			return (false, 0);
 		}
 
@@ -973,8 +973,8 @@ namespace QjySDK.Stg
 		/// </summary>
 		internal bool CanZhongShuExpand(ZhongShu zs1, ZhongShu zs2)
 		{
-			decimal overlapHigh = Math.Min(zs1.GG, zs2.GG);
-			decimal overlapLow = Math.Max(zs1.DD, zs2.DD);
+			decimal overlapHigh = Math.Min(zs1.ZG, zs2.ZG);
+			decimal overlapLow = Math.Max(zs1.ZD, zs2.ZD);
 			return overlapHigh > overlapLow;
 		}
 
@@ -1131,18 +1131,27 @@ namespace QjySDK.Stg
 					newZhongShus.Add(zhongshu);
 				}
 
-				// 更新段索引：从当前中枢结束后的下一段开始
+				// 更新段索引：从当前中枢结束后的下一段开始尝试新中枢
 				// 如果中枢已离开，从离开段开始尝试新中枢
+				int prevStartIndex = segmentIndex;
+				int candidateStartIndex;
+
 				if (zhongshu.LeaveSegment != null)
 				{
-					// 找到离开段在Segments中的索引
+					// 找到离开段在Segments中的索引，从离开段开始尝试新中枢
 					int leaveIndex = state.Segments.IndexOf(zhongshu.LeaveSegment);
-					segmentIndex = leaveIndex >= 0 ? leaveIndex : nextIndex;
+					candidateStartIndex = leaveIndex >= 0 ? leaveIndex : nextIndex;
 				}
 				else
 				{
-					segmentIndex = nextIndex > segmentIndex + minSegments ? nextIndex : segmentIndex + zhongshu.SegmentCount;
+					// 中枢未离开时，从中枢最后一段的下一段开始尝试新中枢
+					var lastSegmentInZhongShu = zhongshu.Segments[zhongshu.Segments.Count - 1];
+					int lastSegmentIndex = state.Segments.IndexOf(lastSegmentInZhongShu);
+					candidateStartIndex = lastSegmentIndex >= 0 ? lastSegmentIndex + 1 : nextIndex;
 				}
+
+				// 确保一定前进，避免死循环
+				segmentIndex = Math.Max(prevStartIndex + 1, candidateStartIndex);
 			}
 			state.ZhongShus = newZhongShus;
 			state.CurrentZhongShu = newZhongShus.Count > 0 ? newZhongShus[newZhongShus.Count - 1] : null;
