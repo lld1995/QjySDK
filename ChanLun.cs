@@ -723,7 +723,7 @@ namespace QjySDK
 					}
 
 					// 计算MACD面积（用于背驰判断）
-					stroke.MACDArea = CalculateMACDArea(state, startFractal.OriginalIndex, endFractal.OriginalIndex, quotes);
+					stroke.MACDArea = CalculateMACDArea(state, startFractal.OriginalIndex, endFractal.OriginalIndex, quotes, isUp);
 
 					newStrokes.Add(stroke);
 					startIdx = j;  // 下一笔从当前笔的终点开始
@@ -753,7 +753,8 @@ namespace QjySDK
 		/// <summary>
 		/// 计算指定范围内的MACD面积（用于背驰判断）
 		/// </summary>
-		private decimal CalculateMACDArea(State state, int startIndex, int endIndex, List<SkQuote> quotes)
+		/// <param name="isUp">笔的方向：true为向上笔，false为向下笔</param>
+		private decimal CalculateMACDArea(State state, int startIndex, int endIndex, List<SkQuote> quotes, bool isUp)
 		{
 			if (state.MacdResults == null || state.MacdResults.Count == 0)
 			{
@@ -774,7 +775,12 @@ namespace QjySDK
 				var macd = state.MacdResults[i];
 				if (macd.Histogram.HasValue)
 				{
-					area += Math.Abs((decimal)macd.Histogram.Value);
+					var value = (decimal)macd.Histogram.Value;
+					// 向上笔只累加正值（红柱），向下笔只累加负值的绝对值（绿柱）
+					if (isUp && value > 0)
+						area += value;
+					else if (!isUp && value < 0)
+						area += Math.Abs(value);
 				}
 			}
 			return area;
@@ -1190,7 +1196,7 @@ namespace QjySDK
 		#region 背驰判断
 
 		/// <summary>
-		/// 判断两笔是否存在背驰
+		/// 判断两笔是否存在背驰（笔级别背驰）
 		/// 背驰定义：同向的两笔，后一笔的MACD面积小于前一笔
 		/// </summary>
 		internal bool IsDivergence(Stroke stroke1, Stroke stroke2)
@@ -1213,6 +1219,59 @@ namespace QjySDK
 				// 向下笔：后一笔创新低但MACD面积减小
 				return stroke2.Low <= stroke1.Low && stroke2.MACDArea < stroke1.MACDArea;
 			}
+		}
+
+		/// <summary>
+		/// 判断两段是否存在背驰（线段级别背驰）
+		/// 缠论定义：同向的两段，后一段的MACD面积小于前一段
+		/// </summary>
+		internal bool IsSegmentDivergence(Segment seg1, Segment seg2)
+		{
+			if (seg1 == null || seg2 == null)
+				return false;
+
+			// 必须是同向的段
+			if (seg1.IsUp != seg2.IsUp)
+				return false;
+
+			// 计算段的MACD面积（累加所有笔的MACD面积）
+			decimal area1 = seg1.Strokes?.Sum(s => s.MACDArea) ?? 0;
+			decimal area2 = seg2.Strokes?.Sum(s => s.MACDArea) ?? 0;
+
+			if (seg1.IsUp)
+			{
+				// 向上段：后一段创新高但MACD面积减小
+				return seg2.High >= seg1.High && area2 < area1;
+			}
+			else
+			{
+				// 向下段：后一段创新低但MACD面积减小
+				return seg2.Low <= seg1.Low && area2 < area1;
+			}
+		}
+
+		/// <summary>
+		/// 趋势背驰判断：比较离开中枢的走势与进入中枢的走势
+		/// 缠论定义：在趋势中，离开最后一个中枢的走势与进入该中枢的走势比较
+		/// </summary>
+		internal bool IsTrendDivergence(ZhongShu zs)
+		{
+			if (zs == null || zs.Segments == null || zs.Segments.Count < 3)
+				return false;
+
+			if (zs.LeaveSegment == null)
+				return false;
+
+			// 进入段（第一段）
+			var entrySegment = zs.Segments[0];
+			// 离开段
+			var leaveSegment = zs.LeaveSegment;
+
+			// 必须同向
+			if (entrySegment.IsUp != leaveSegment.IsUp)
+				return false;
+
+			return IsSegmentDivergence(entrySegment, leaveSegment);
 		}
 
 		/// <summary>
@@ -1253,51 +1312,83 @@ namespace QjySDK
 			var prevStroke = state.Strokes.Count >= 2 ? state.Strokes[state.Strokes.Count - 2] : null;
 			var currentPrice = quotes.Last().Close;
 
-			// 一买：向下趋势背驰后的第一个买点
-			if (!lastStroke.IsUp && prevStroke != null && !prevStroke.IsUp)
+			// 一买：下跌趋势中，离开最后一个中枢的向下走势与进入该中枢的向下走势发生背驰
+			// 优先使用趋势背驰（中枢级别），否则使用笔级别背驰
+			if (!lastStroke.IsUp)
 			{
-				var prevSameDir = FindPreviousSameDirectionStroke(state.Strokes, state.Strokes.Count - 1);
-				if (prevSameDir != null)
+				bool isDivergence = false;
+				
+				// 优先检查趋势背驰（基于中枢）
+				if (state.CurrentZhongShu != null && state.CurrentZhongShu.LeaveDirection == -1)
 				{
-					bool isDivergence = !useDivergence || IsDivergence(prevSameDir, lastStroke);
-					if (isDivergence && lastStroke.Low <= prevSameDir.Low)
+					isDivergence = !useDivergence || IsTrendDivergence(state.CurrentZhongShu);
+				}
+				
+				// 如果没有中枢或中枢未离开，使用笔级别背驰
+				if (!isDivergence)
+				{
+					var prevSameDir = FindPreviousSameDirectionStroke(state.Strokes, state.Strokes.Count - 1);
+					if (prevSameDir != null)
 					{
-						// 确认一买：向下笔结束，形成底分型
-						var buy1 = new BSPoint
-						{
-							Type = BSPointType.Buy1,
-							Index = lastStroke.EndIndex,
-							Price = lastStroke.Low,
-							Date = lastStroke.EndFractal.Date,
-							IsDivergence = isDivergence
-						};
-						state.LastBuy1 = buy1;
-						state.BSPoints.Add(buy1);
+						isDivergence = !useDivergence || IsDivergence(prevSameDir, lastStroke);
+						if (!isDivergence || lastStroke.Low > prevSameDir.Low)
+							isDivergence = false;
 					}
+				}
+				
+				if (isDivergence)
+				{
+					// 确认一买：向下笔结束，形成底分型，且存在背驰
+					var buy1 = new BSPoint
+					{
+						Type = BSPointType.Buy1,
+						Index = lastStroke.EndIndex,
+						Price = lastStroke.Low,
+						Date = lastStroke.EndFractal.Date,
+						IsDivergence = isDivergence
+					};
+					state.LastBuy1 = buy1;
+					state.BSPoints.Add(buy1);
 				}
 			}
 
-			// 一卖：向上趋势背驰后的第一个卖点
-			if (lastStroke.IsUp && prevStroke != null && prevStroke.IsUp)
+			// 一卖：上涨趋势中，离开最后一个中枢的向上走势与进入该中枢的向上走势发生背驰
+			// 优先使用趋势背驰（中枢级别），否则使用笔级别背驰
+			if (lastStroke.IsUp)
 			{
-				var prevSameDir = FindPreviousSameDirectionStroke(state.Strokes, state.Strokes.Count - 1);
-				if (prevSameDir != null)
+				bool isDivergence = false;
+				
+				// 优先检查趋势背驰（基于中枢）
+				if (state.CurrentZhongShu != null && state.CurrentZhongShu.LeaveDirection == 1)
 				{
-					bool isDivergence = !useDivergence || IsDivergence(prevSameDir, lastStroke);
-					if (isDivergence && lastStroke.High >= prevSameDir.High)
+					isDivergence = !useDivergence || IsTrendDivergence(state.CurrentZhongShu);
+				}
+				
+				// 如果没有中枢或中枢未离开，使用笔级别背驰
+				if (!isDivergence)
+				{
+					var prevSameDir = FindPreviousSameDirectionStroke(state.Strokes, state.Strokes.Count - 1);
+					if (prevSameDir != null)
 					{
-						// 确认一卖：向上笔结束，形成顶分型
-						var sell1 = new BSPoint
-						{
-							Type = BSPointType.Sell1,
-							Index = lastStroke.EndIndex,
-							Price = lastStroke.High,
-							Date = lastStroke.EndFractal.Date,
-							IsDivergence = isDivergence
-						};
-						state.LastSell1 = sell1;
-						state.BSPoints.Add(sell1);
+						isDivergence = !useDivergence || IsDivergence(prevSameDir, lastStroke);
+						if (!isDivergence || lastStroke.High < prevSameDir.High)
+							isDivergence = false;
 					}
+				}
+				
+				if (isDivergence)
+				{
+					// 确认一卖：向上笔结束，形成顶分型，且存在背驰
+					var sell1 = new BSPoint
+					{
+						Type = BSPointType.Sell1,
+						Index = lastStroke.EndIndex,
+						Price = lastStroke.High,
+						Date = lastStroke.EndFractal.Date,
+						IsDivergence = isDivergence
+					};
+					state.LastSell1 = sell1;
+					state.BSPoints.Add(sell1);
 				}
 			}
 
