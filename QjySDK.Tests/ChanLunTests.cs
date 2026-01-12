@@ -1,5 +1,5 @@
 using Common;
-using QjySDK;
+using QjySDK.Stg;
 using System;
 using System.Collections.Generic;
 using Xunit;

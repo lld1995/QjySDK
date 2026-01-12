@@ -1,6 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Common;
-using QjySDK;
+using QjySDK.Stg;
 
 GlobalDef.Init();
 
