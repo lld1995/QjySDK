@@ -7,7 +7,7 @@ using System.Linq;
 using static Model.EnumDef;
 using System.Collections.Generic;
 
-namespace QjySDK
+namespace QjySDK.Stg
 {
 	/// <summary>
 	/// 缠论交易策略
@@ -1504,23 +1504,43 @@ namespace QjySDK
 		/// 判断标准：
 		/// 1. 位置必须高于第一类买点
 		/// 2. 回调不能重新回到前下跌趋势最后一个中枢内（即不破中枢下沿ZD）
-		/// 修正：二买应在回调完成后、新的向上笔开始时确认
+		/// 优化：在回调笔形成底分型确认时就识别，不需要等待新笔完全形成
 		/// </summary>
-		internal BSPoint IdentifyBuy2(State state, Stroke currentStroke, Stroke prevStroke)
+		internal BSPoint IdentifyBuy2(State state, Stroke pullbackStroke, Fractal latestFractal)
 		{
-			// 当前笔必须是向上笔（回调完成后的新笔）
-			if (currentStroke == null || !currentStroke.IsUp)
-				return null;
-			
-			// 前一笔必须是向下的回调笔
-			if (prevStroke == null || prevStroke.IsUp)
+			// 回调笔必须是向下笔
+			if (pullbackStroke == null || pullbackStroke.IsUp)
 				return null;
 			
 			if (state.LastBuy1 == null)
 				return null;
 			
+			// 检查是否有底分型确认（提前识别的关键）
+			bool hasFractalConfirm = latestFractal != null && 
+									  latestFractal.Type == FractalType.Bottom && 
+									  latestFractal.IsConfirmed;
+			
+			// 检查次级别背驰（回调笔与前一个同向笔比较）
+			bool hasSubDivergence = false;
+			if (state.Strokes != null && state.Strokes.Count >= 3)
+			{
+				int pullbackIdx = state.Strokes.IndexOf(pullbackStroke);
+				if (pullbackIdx >= 2)
+				{
+					var prevSameDir = state.Strokes[pullbackIdx - 2];
+					if (!prevSameDir.IsUp && pullbackStroke.MACDArea < prevSameDir.MACDArea)
+					{
+						hasSubDivergence = true;
+					}
+				}
+			}
+			
+			// 必须有底分型确认或次级别背驰
+			if (!hasFractalConfirm && !hasSubDivergence)
+				return null;
+			
 			// 使用回调笔的低点作为二买价格
-			decimal pullbackLow = prevStroke.Low;
+			decimal pullbackLow = pullbackStroke.Low;
 			
 			// 条件1：回调低点必须高于第一类买点
 			if (pullbackLow <= state.LastBuy1.Price)
@@ -1534,10 +1554,10 @@ namespace QjySDK
 			return new BSPoint
 			{
 				Type = BSPointType.Buy2,
-				Index = prevStroke.EndIndex,
+				Index = pullbackStroke.EndIndex,
 				Price = pullbackLow,
-				Date = prevStroke.EndFractal?.Date ?? DateTime.Now,
-				IsDivergence = false
+				Date = pullbackStroke.EndFractal?.Date ?? DateTime.Now,
+				IsDivergence = hasSubDivergence
 			};
 		}
 
@@ -1547,23 +1567,43 @@ namespace QjySDK
 		/// 判断标准：
 		/// 1. 位置必须低于第一类卖点
 		/// 2. 反弹不能重新回到前上涨趋势最后一个中枢内（即不过中枢上沿ZG）
-		/// 修正：二卖应在反弹完成后、新的向下笔开始时确认
+		/// 优化：在反弹笔形成顶分型确认时就识别，不需要等待新笔完全形成
 		/// </summary>
-		internal BSPoint IdentifySell2(State state, Stroke currentStroke, Stroke prevStroke)
+		internal BSPoint IdentifySell2(State state, Stroke pullbackStroke, Fractal latestFractal)
 		{
-			// 当前笔必须是向下笔（反弹完成后的新笔）
-			if (currentStroke == null || currentStroke.IsUp)
-				return null;
-			
-			// 前一笔必须是向上的反弹笔
-			if (prevStroke == null || !prevStroke.IsUp)
+			// 反弹笔必须是向上笔
+			if (pullbackStroke == null || !pullbackStroke.IsUp)
 				return null;
 			
 			if (state.LastSell1 == null)
 				return null;
 			
+			// 检查是否有顶分型确认（提前识别的关键）
+			bool hasFractalConfirm = latestFractal != null && 
+									  latestFractal.Type == FractalType.Top && 
+									  latestFractal.IsConfirmed;
+			
+			// 检查次级别背驰（反弹笔与前一个同向笔比较）
+			bool hasSubDivergence = false;
+			if (state.Strokes != null && state.Strokes.Count >= 3)
+			{
+				int pullbackIdx = state.Strokes.IndexOf(pullbackStroke);
+				if (pullbackIdx >= 2)
+				{
+					var prevSameDir = state.Strokes[pullbackIdx - 2];
+					if (prevSameDir.IsUp && pullbackStroke.MACDArea < prevSameDir.MACDArea)
+					{
+						hasSubDivergence = true;
+					}
+				}
+			}
+			
+			// 必须有顶分型确认或次级别背驰
+			if (!hasFractalConfirm && !hasSubDivergence)
+				return null;
+			
 			// 使用反弹笔的高点作为二卖价格
-			decimal pullbackHigh = prevStroke.High;
+			decimal pullbackHigh = pullbackStroke.High;
 			
 			// 条件1：反弹高点必须低于第一类卖点
 			if (pullbackHigh >= state.LastSell1.Price)
@@ -1577,89 +1617,85 @@ namespace QjySDK
 			return new BSPoint
 			{
 				Type = BSPointType.Sell2,
-				Index = prevStroke.EndIndex,
+				Index = pullbackStroke.EndIndex,
 				Price = pullbackHigh,
-				Date = prevStroke.EndFractal?.Date ?? DateTime.Now,
-				IsDivergence = false
+				Date = pullbackStroke.EndFractal?.Date ?? DateTime.Now,
+				IsDivergence = hasSubDivergence
 			};
 		}
 
 		/// <summary>
-		/// 识别第三类买点（3B）
-		/// 定义：某级别上涨趋势中，次级别走势向上离开中枢，随后次级别回调低点不重返中枢（高于中枢上沿ZG），形成趋势加速的起点
-		/// 判断标准：
-		/// 1. 必须已形成上涨趋势或盘整中枢
-		/// 2. 回调时价格站稳中枢上沿ZG之上
-		/// 修正：三买应在回调完成后、新的向上笔开始时确认
+		/// 识别第三类买点（3B）- 在回调笔形成底分型确认或次级别背驰时提前介入
 		/// </summary>
-		internal BSPoint IdentifyBuy3(State state, Stroke currentStroke, ZhongShu zhongShu)
+		internal BSPoint IdentifyBuy3(State state, Stroke pullbackStroke, ZhongShu zhongShu, Fractal latestFractal)
 		{
-			if (currentStroke == null || currentStroke.IsUp)
+			if (pullbackStroke == null || pullbackStroke.IsUp)
 				return null;
-			
 			if (zhongShu == null || !zhongShu.IsValid)
 				return null;
-			
-			// 检查中枢是否已向上离开
 			if (zhongShu.LeaveDirection != 1)
 				return null;
 			
-			// 当前笔是向下的回调笔
-			decimal pullbackLow = currentStroke.Low;
-			
-			// 条件：回调低点不重返中枢（高于中枢上沿ZG）
-			if (pullbackLow < zhongShu.ZG)
+			bool hasFractalConfirm = latestFractal != null && 
+				latestFractal.Type == FractalType.Bottom && latestFractal.IsConfirmed;
+			bool hasSubDivergence = false;
+			if (state.Strokes != null && state.Strokes.Count >= 3)
+			{
+				int idx = state.Strokes.IndexOf(pullbackStroke);
+				if (idx >= 2 && !state.Strokes[idx - 2].IsUp && pullbackStroke.MACDArea < state.Strokes[idx - 2].MACDArea)
+					hasSubDivergence = true;
+			}
+			if (!hasFractalConfirm && !hasSubDivergence)
 				return null;
-			
-			// 确认三买点
+			if (pullbackStroke.Low < zhongShu.ZG)
+				return null;
 			return new BSPoint
 			{
 				Type = BSPointType.Buy3,
-				Index = currentStroke.EndIndex,
-				Price = pullbackLow,
-				Date = currentStroke.EndFractal?.Date ?? DateTime.Now,
-				IsDivergence = false
+				Index = pullbackStroke.EndIndex,
+				Price = pullbackStroke.Low,
+				Date = pullbackStroke.EndFractal?.Date ?? DateTime.Now,
+				IsDivergence = hasSubDivergence
 			};
 		}
 
 		/// <summary>
-		/// 识别第三类卖点（3S）
-		/// 定义：某级别下跌趋势中，次级别走势向下离开中枢，随后次级别反弹高点不重返中枢（低于中枢下沿ZD），形成主跌浪起点
-		/// 判断标准：
-		/// 1. 反弹时价格受制于中枢下沿ZD之下
+		/// 识别第三类卖点（3S）- 在反弹笔形成顶分型确认或次级别背驰时提前介入
 		/// </summary>
-		internal BSPoint IdentifySell3(State state, Stroke currentStroke, ZhongShu zhongShu)
+		internal BSPoint IdentifySell3(State state, Stroke pullbackStroke, ZhongShu zhongShu, Fractal latestFractal)
 		{
-			if (currentStroke == null || !currentStroke.IsUp)
+			if (pullbackStroke == null || !pullbackStroke.IsUp)
 				return null;
-			
 			if (zhongShu == null || !zhongShu.IsValid)
 				return null;
-			
-			// 检查中枢是否已向下离开
 			if (zhongShu.LeaveDirection != -1)
 				return null;
 			
-			// 当前笔是向上的反弹笔
-			decimal pullbackHigh = currentStroke.High;
-			
-			// 条件：反弹高点不重返中枢（低于中枢下沿ZD）
-			if (pullbackHigh > zhongShu.ZD)
+			bool hasFractalConfirm = latestFractal != null && 
+				latestFractal.Type == FractalType.Top && latestFractal.IsConfirmed;
+			bool hasSubDivergence = false;
+			if (state.Strokes != null && state.Strokes.Count >= 3)
+			{
+				int idx = state.Strokes.IndexOf(pullbackStroke);
+				if (idx >= 2 && state.Strokes[idx - 2].IsUp && pullbackStroke.MACDArea < state.Strokes[idx - 2].MACDArea)
+					hasSubDivergence = true;
+			}
+			if (!hasFractalConfirm && !hasSubDivergence)
 				return null;
-			
-			// 确认三卖点
+			if (pullbackStroke.High > zhongShu.ZD)
+				return null;
 			return new BSPoint
 			{
 				Type = BSPointType.Sell3,
-				Index = currentStroke.EndIndex,
-				Price = pullbackHigh,
-				Date = currentStroke.EndFractal?.Date ?? DateTime.Now,
-				IsDivergence = false
+				Index = pullbackStroke.EndIndex,
+				Price = pullbackStroke.High,
+				Date = pullbackStroke.EndFractal?.Date ?? DateTime.Now,
+				IsDivergence = hasSubDivergence
 			};
 		}
 
 		/// <summary>
-		/// 识别买卖点主方法（严格按照缠论定义）
+		/// 识别买卖点主方法
 		/// </summary>
 		private void UpdateBSPoints(State state, List<SkQuote> quotes)
 		{
@@ -1710,13 +1746,20 @@ namespace QjySDK
 			}
 
 			// ========== 第二类买卖点识别 ==========
-			// 二买：一买后回调完成，新的向上笔开始时确认
-			if (state.LastBuy1 != null && currentStroke.IsUp && prevStroke != null)
+			// 获取最新分型用于提前识别
+			Fractal latestFractal = null;
+			if (state.Fractals != null && state.Fractals.Count > 0)
 			{
-				// 确保当前笔在一买之后
-				if (currentStroke.EndIndex > state.LastBuy1.Index)
+				latestFractal = state.Fractals[state.Fractals.Count - 1];
+			}
+
+			// 二买：一买后回调笔形成底分型确认时识别（提前介入）
+			if (state.LastBuy1 != null && prevStroke != null && !prevStroke.IsUp)
+			{
+				// 确保回调笔在一买之后
+				if (prevStroke.EndIndex > state.LastBuy1.Index)
 				{
-					var buy2 = IdentifyBuy2(state, currentStroke, prevStroke);
+					var buy2 = IdentifyBuy2(state, prevStroke, latestFractal);
 					if (buy2 != null && !BSPointExists(state, BSPointType.Buy2, buy2.Index))
 					{
 						state.BSPoints.Add(buy2);
@@ -1724,13 +1767,13 @@ namespace QjySDK
 				}
 			}
 
-			// 二卖：一卖后反弹完成，新的向下笔开始时确认
-			if (state.LastSell1 != null && !currentStroke.IsUp && prevStroke != null)
+			// 二卖：一卖后反弹笔形成顶分型确认时识别（提前介入）
+			if (state.LastSell1 != null && prevStroke != null && prevStroke.IsUp)
 			{
-				// 确保当前笔在一卖之后
-				if (currentStroke.EndIndex > state.LastSell1.Index)
+				// 确保反弹笔在一卖之后
+				if (prevStroke.EndIndex > state.LastSell1.Index)
 				{
-					var sell2 = IdentifySell2(state, currentStroke, prevStroke);
+					var sell2 = IdentifySell2(state, prevStroke, latestFractal);
 					if (sell2 != null && !BSPointExists(state, BSPointType.Sell2, sell2.Index))
 					{
 						state.BSPoints.Add(sell2);
@@ -1742,7 +1785,7 @@ namespace QjySDK
 			// 三买：中枢向上离开后回调不进中枢
 			if (state.CurrentZhongShu != null && !currentStroke.IsUp)
 			{
-				var buy3 = IdentifyBuy3(state, currentStroke, state.CurrentZhongShu);
+				var buy3 = IdentifyBuy3(state, currentStroke, state.CurrentZhongShu, latestFractal);
 				if (buy3 != null && !BSPointExists(state, BSPointType.Buy3, buy3.Index))
 				{
 					state.BSPoints.Add(buy3);
@@ -1752,7 +1795,7 @@ namespace QjySDK
 			// 三卖：中枢向下离开后反弹不进中枢
 			if (state.CurrentZhongShu != null && currentStroke.IsUp)
 			{
-				var sell3 = IdentifySell3(state, currentStroke, state.CurrentZhongShu);
+				var sell3 = IdentifySell3(state, currentStroke, state.CurrentZhongShu, latestFractal);
 				if (sell3 != null && !BSPointExists(state, BSPointType.Sell3, sell3.Index))
 				{
 					state.BSPoints.Add(sell3);
