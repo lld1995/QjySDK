@@ -182,6 +182,10 @@ namespace QjySDK.Stg
 			sd.ArgDic["lots"] = 1.0m;
 			sd.ArgDic["money"] = 10000m;
 
+			// 止损设置
+			sd.ArgDic["useStopLoss"] = 1;        // 是否使用止损（0否 1是）
+			sd.ArgDic["stopLossPercent"] = 3.0m; // 止损比例（百分比，如3表示3%）
+
 			//sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0 标准 1 仅做多 2 仅做空" };
 			//sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
 			//sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
@@ -200,6 +204,7 @@ namespace QjySDK.Stg
 		{
 			public int Status { get; set; }              // 0:无持仓 1:多仓 2:空仓
 			public decimal Num { get; set; }
+			public decimal EntryPrice { get; set; }      // 入场价格（用于止损计算）
 			public List<MergedBar> MergedBars { get; set; }  // 处理后的K线
 			public List<Fractal> Fractals { get; set; }      // 分型列表
 			public List<Stroke> Strokes { get; set; }        // 笔列表
@@ -588,7 +593,7 @@ namespace QjySDK.Stg
 
 		/// <summary>
 		/// 更新笔列表
-		/// 缠论规则：笔至少包含5根独立K线（处理后）
+		/// 缠论规则：笔至少包含5根独立K线（处理后的K线，包含两端）
 		/// </summary>
 		internal void UpdateStrokes(State state, List<SkQuote> quotes, int strokeMinBars = 5)
 		{
@@ -892,7 +897,9 @@ namespace QjySDK.Stg
 		{
 			if (currentIndex < 2)
 				return null;
+
 			var current = strokes[currentIndex];
+			// 向前查找同向的笔（跳过一笔）
 			for (int k = currentIndex - 2; k >= 0; k -= 2)
 			{
 				if (strokes[k].IsUp == current.IsUp)
@@ -1517,8 +1524,7 @@ namespace QjySDK.Stg
 			
 			// 检查是否有底分型确认（提前识别的关键）
 			bool hasFractalConfirm = latestFractal != null && 
-									  latestFractal.Type == FractalType.Bottom && 
-									  latestFractal.IsConfirmed;
+									  latestFractal.Type == FractalType.Bottom && latestFractal.IsConfirmed;
 			
 			// 检查次级别背驰（回调笔与前一个同向笔比较）
 			bool hasSubDivergence = false;
@@ -1539,15 +1545,12 @@ namespace QjySDK.Stg
 			if (!hasFractalConfirm && !hasSubDivergence)
 				return null;
 			
-			// 使用回调笔的低点作为二买价格
-			decimal pullbackLow = pullbackStroke.Low;
-			
 			// 条件1：回调低点必须高于第一类买点
-			if (pullbackLow <= state.LastBuy1.Price)
+			if (pullbackStroke.Low <= state.LastBuy1.Price)
 				return null;
 			
 			// 条件2：回调不能重新回到前下跌趋势最后一个中枢内（即不破中枢下沿ZD）
-			if (state.LastBuy1ZhongShu != null && pullbackLow <= state.LastBuy1ZhongShu.ZD)
+			if (state.LastBuy1ZhongShu != null && pullbackStroke.Low <= state.LastBuy1ZhongShu.ZD)
 				return null;
 			
 			// 确认二买点（价格为回调笔低点，索引为回调笔结束位置）
@@ -1555,7 +1558,7 @@ namespace QjySDK.Stg
 			{
 				Type = BSPointType.Buy2,
 				Index = pullbackStroke.EndIndex,
-				Price = pullbackLow,
+				Price = pullbackStroke.Low,
 				Date = pullbackStroke.EndFractal?.Date ?? DateTime.Now,
 				IsDivergence = hasSubDivergence
 			};
@@ -1580,8 +1583,7 @@ namespace QjySDK.Stg
 			
 			// 检查是否有顶分型确认（提前识别的关键）
 			bool hasFractalConfirm = latestFractal != null && 
-									  latestFractal.Type == FractalType.Top && 
-									  latestFractal.IsConfirmed;
+									  latestFractal.Type == FractalType.Top && latestFractal.IsConfirmed;
 			
 			// 检查次级别背驰（反弹笔与前一个同向笔比较）
 			bool hasSubDivergence = false;
@@ -1602,15 +1604,12 @@ namespace QjySDK.Stg
 			if (!hasFractalConfirm && !hasSubDivergence)
 				return null;
 			
-			// 使用反弹笔的高点作为二卖价格
-			decimal pullbackHigh = pullbackStroke.High;
-			
 			// 条件1：反弹高点必须低于第一类卖点
-			if (pullbackHigh >= state.LastSell1.Price)
+			if (pullbackStroke.High >= state.LastSell1.Price)
 				return null;
 			
 			// 条件2：反弹不能重新回到前上涨趋势最后一个中枢内（即不过中枢上沿ZG）
-			if (state.LastSell1ZhongShu != null && pullbackHigh >= state.LastSell1ZhongShu.ZG)
+			if (state.LastSell1ZhongShu != null && pullbackStroke.High >= state.LastSell1ZhongShu.ZG)
 				return null;
 			
 			// 确认二卖点（价格为反弹笔高点，索引为反弹笔结束位置）
@@ -1618,7 +1617,7 @@ namespace QjySDK.Stg
 			{
 				Type = BSPointType.Sell2,
 				Index = pullbackStroke.EndIndex,
-				Price = pullbackHigh,
+				Price = pullbackStroke.High,
 				Date = pullbackStroke.EndFractal?.Date ?? DateTime.Now,
 				IsDivergence = hasSubDivergence
 			};
@@ -1782,7 +1781,7 @@ namespace QjySDK.Stg
 			}
 
 			// ========== 第三类买卖点识别 ==========
-			// 三买：中枢向上离开后回调不进中枢
+			// 三买：中枢向上离开后回踩不进中枢
 			if (state.CurrentZhongShu != null && !currentStroke.IsUp)
 			{
 				var buy3 = IdentifyBuy3(state, currentStroke, state.CurrentZhongShu, latestFractal);
@@ -1924,6 +1923,8 @@ namespace QjySDK.Stg
 
 			// 交易逻辑：基于买卖点和笔方向变化
 			bool useZhongShu = (int)ArgDic["useZhongShu"] == 1;
+			bool useStopLoss = (int)ArgDic["useStopLoss"] == 1;
+			decimal stopLossPercent = (decimal)ArgDic["stopLossPercent"];
 			var currentPrice = q.Close;
 
 			if (s.Strokes == null || s.Strokes.Count < 2)
@@ -1932,11 +1933,38 @@ namespace QjySDK.Stg
 			var lastStroke = s.Strokes[s.Strokes.Count - 1];
 			var prevStroke = s.Strokes[s.Strokes.Count - 2];
 
-			// 检查最新的买卖点
-			BSPoint latestBSPoint = null;
-			if (s.BSPoints != null && s.BSPoints.Count > 0)
+			// 止损检查（优先于其他交易逻辑）
+			if (useStopLoss && s.Status != 0 && s.EntryPrice > 0)
 			{
-				latestBSPoint = s.BSPoints[s.BSPoints.Count - 1];
+				bool stopLossTriggered = false;
+				if (s.Status == 1)  // 多仓止损
+				{
+					decimal stopLossPrice = s.EntryPrice * (1 - stopLossPercent / 100);
+					if (currentPrice <= stopLossPrice)
+					{
+						stopLossTriggered = true;
+						var oriNum = s.Num;
+						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oriNum, period, sendMode);
+						s.Status = 0;
+						s.Num = 0;
+						s.EntryPrice = 0;
+					}
+				}
+				else if (s.Status == 2)  // 空仓止损
+				{
+					decimal stopLossPrice = s.EntryPrice * (1 + stopLossPercent / 100);
+					if (currentPrice >= stopLossPrice)
+					{
+						stopLossTriggered = true;
+						var oriNum = s.Num;
+						Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oriNum, period, sendMode);
+						s.Status = 0;
+						s.Num = 0;
+						s.EntryPrice = 0;
+					}
+				}
+				if (stopLossTriggered)
+					return;  // 止损后本周期不再进行其他交易
 			}
 
 			if (useZhongShu && s.CurrentZhongShu != null && s.CurrentZhongShu.IsValid)
@@ -1953,6 +1981,7 @@ namespace QjySDK.Stg
 					{
 						s.Status = 1;
 						s.Num = num;
+						s.EntryPrice = q.Close;
 						Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
 					}
 					// 三卖：向下突破中枢后回抽不破中枢低点
@@ -1962,6 +1991,7 @@ namespace QjySDK.Stg
 					{
 						s.Status = 2;
 						s.Num = num;
+						s.EntryPrice = q.Close;
 						Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
 					}
 					// 一买：向下笔结束，形成底分型，且底分型低点在中枢下方
@@ -1969,13 +1999,14 @@ namespace QjySDK.Stg
 							 prevStroke.Low < zs.ZD && mode != 2)
 					{
 						// 检查是否有背驰
-						bool hasDivergence = latestBSPoint != null &&
-											latestBSPoint.Type == BSPointType.Buy1 &&
-											latestBSPoint.IsDivergence;
+						bool hasDivergence = s.LastBuy1 != null &&
+											s.LastBuy1.Type == BSPointType.Buy1 &&
+											s.LastBuy1.IsDivergence;
 						if (hasDivergence || (int)ArgDic["useDivergence"] == 0)
 						{
 							s.Status = 1;
 							s.Num = num;
+							s.EntryPrice = q.Close;
 							Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
 						}
 					}
@@ -1984,13 +2015,14 @@ namespace QjySDK.Stg
 							 prevStroke.High > zs.ZG && mode != 1)
 					{
 						// 检查是否有背驰
-						bool hasDivergence = latestBSPoint != null &&
-											latestBSPoint.Type == BSPointType.Sell1 &&
-											latestBSPoint.IsDivergence;
+						bool hasDivergence = s.LastSell1 != null &&
+											s.LastSell1.Type == BSPointType.Sell1 &&
+											s.LastSell1.IsDivergence;
 						if (hasDivergence || (int)ArgDic["useDivergence"] == 0)
 						{
 							s.Status = 2;
 							s.Num = num;
+							s.EntryPrice = q.Close;
 							Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
 						}
 					}
@@ -2008,12 +2040,14 @@ namespace QjySDK.Stg
 						{
 							s.Status = 2;
 							s.Num = num;
+							s.EntryPrice = q.Close;
 							Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
 						}
 						else
 						{
 							s.Status = 0;
 							s.Num = 0;
+							s.EntryPrice = 0;
 						}
 					}
 				}
@@ -2030,12 +2064,14 @@ namespace QjySDK.Stg
 						{
 							s.Status = 1;
 							s.Num = num;
+							s.EntryPrice = q.Close;
 							Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
 						}
 						else
 						{
 							s.Status = 0;
 							s.Num = 0;
+							s.EntryPrice = 0;
 						}
 					}
 				}
@@ -2050,6 +2086,7 @@ namespace QjySDK.Stg
 					{
 						s.Status = 1;
 						s.Num = num;
+						s.EntryPrice = q.Close;
 						Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
 					}
 					// 向上笔转为向下笔，卖出信号
@@ -2057,6 +2094,7 @@ namespace QjySDK.Stg
 					{
 						s.Status = 2;
 						s.Num = num;
+						s.EntryPrice = q.Close;
 						Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
 					}
 				}
@@ -2072,12 +2110,14 @@ namespace QjySDK.Stg
 						{
 							s.Status = 2;
 							s.Num = num;
+							s.EntryPrice = q.Close;
 							Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
 						}
 						else
 						{
 							s.Status = 0;
 							s.Num = 0;
+							s.EntryPrice = 0;
 						}
 					}
 				}
@@ -2093,12 +2133,14 @@ namespace QjySDK.Stg
 						{
 							s.Status = 1;
 							s.Num = num;
+							s.EntryPrice = q.Close;
 							Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
 						}
 						else
 						{
 							s.Status = 0;
 							s.Num = 0;
+							s.EntryPrice = 0;
 						}
 					}
 				}
