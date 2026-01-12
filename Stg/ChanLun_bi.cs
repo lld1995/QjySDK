@@ -194,6 +194,10 @@ namespace QjySDK.Stg
 			//sd.ArgDescDic["zhongshuMinStrokes"] = new ArgDesc() { Text = "中枢最少笔数", Explain = "形成中枢所需的最少笔数，默认3" };
 			//sd.ArgDescDic["strokeMinBars"] = new ArgDesc() { Text = "笔最少K线", Explain = "笔的最少独立K线数，缠论标准为5" };
 
+			sd.ColorDic["macd-macd"] = "#BA55D3";
+			sd.ColorDic["macd-signal"] = "";
+			sd.ColorDic["macd-histogram"] = "#F6465D;#0ECB81";
+			sd.MidValDic["macd"] = 0;
 			sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;
 			sd.SubChartNum = 1;
@@ -220,6 +224,7 @@ namespace QjySDK.Stg
 			public int LastDrawOriIndex { get; set; }
 			public ZhongShu? LastBuy1ZhongShu { get; set; }    // 产生一买时的中枢（用于二买判断）
 			public ZhongShu? LastSell1ZhongShu { get; set; }   // 产生一卖时的中枢（用于二卖判断）
+			public int LastTradedBSPointIndex { get; set; } = -1;  // 最后交易的买卖点索引（防止重复触发）
 		}
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -763,19 +768,10 @@ namespace QjySDK.Stg
 		/// <param name="isUp">笔的方向：true为向上笔，false为向下笔</param>
 		private decimal CalculateMACDArea(State state, int startIndex, int endIndex, List<SkQuote> quotes, bool isUp)
 		{
-			if (state.MacdResults == null || state.MacdResults.Count == 0)
+			if (state.MacdResults == null)
 			{
-				// 计算MACD
-				try
-				{
-					state.MacdResults = quotes.GetMacd(12, 26, 9).ToList();
-				}
-				catch
-				{
-					return 0;
-				}
+				return 0;
 			}
-
 			decimal area = 0;
 			for (int i = startIndex; i <= endIndex && i < state.MacdResults.Count; i++)
 			{
@@ -982,8 +978,8 @@ namespace QjySDK.Stg
 
 		/// <summary>
 		/// 合并两个中枢（扩展升级）
-		/// 缠论定义：两个中枢波动区间有重叠时，合并为更高级别中枢
-		/// 合并后的中枢区间基于所有笔重新计算
+		/// 缠论定义：两个中枢区间[ZD, ZG]有重叠时，合并为更高级别中枢
+		/// 合并后的中枢区间是两个中枢区间的交集
 		/// </summary>
 		internal ZhongShu MergeZhongShus(ZhongShu zs1, ZhongShu zs2)
 		{
@@ -991,12 +987,14 @@ namespace QjySDK.Stg
 			if (zs1.Strokes != null) mergedStrokes.AddRange(zs1.Strokes);
 			if (zs2.Strokes != null) mergedStrokes.AddRange(zs2.Strokes);
 
-			// 合并后的中枢区间：基于所有笔重新计算
-			// ZG = min(所有笔的High)，ZD = max(所有笔的Low)
-			decimal newZG = mergedStrokes.Count > 0 ? mergedStrokes.Min(s => s.High) : Math.Min(zs1.ZG, zs2.ZG);
-			decimal newZD = mergedStrokes.Count > 0 ? mergedStrokes.Max(s => s.Low) : Math.Max(zs1.ZD, zs2.ZD);
-			decimal newGG = mergedStrokes.Count > 0 ? mergedStrokes.Max(s => s.High) : Math.Max(zs1.GG, zs2.GG);
-			decimal newDD = mergedStrokes.Count > 0 ? mergedStrokes.Min(s => s.Low) : Math.Min(zs1.DD, zs2.DD);
+			// 合并后的中枢区间：两个中枢区间[ZD, ZG]的交集
+			// ZG = min(zs1.ZG, zs2.ZG) 取较小的上沿
+			// ZD = max(zs1.ZD, zs2.ZD) 取较大的下沿
+			decimal newZG = Math.Min(zs1.ZG, zs2.ZG);
+			decimal newZD = Math.Max(zs1.ZD, zs2.ZD);
+			// 波动区间GG/DD取两个中枢的并集
+			decimal newGG = Math.Max(zs1.GG, zs2.GG);
+			decimal newDD = Math.Min(zs1.DD, zs2.DD);
 
 			return new ZhongShu
 			{
@@ -1844,6 +1842,22 @@ namespace QjySDK.Stg
 			// 步骤2：分型识别（基于合并后的K线）
 			UpdateFractals(s);
 
+			// 计算MACD（用于背驰判断）
+			try
+			{
+				var macd = tu.QuoteList.GetMacd(12, 26, 9).ToList();
+				s.MacdResults = macd;
+				var macd1 = macd[macd.Count - 1];
+
+				Plot("macd", "histogram", PlotType.RECTANGLE, (double)macd1.Histogram);
+				Plot("macd", "macd", PlotType.LINE, (double)macd1.Macd);
+				Plot("macd", "signal", PlotType.LINE, (double)macd1.Signal);
+			}
+			catch
+			{
+				s.MacdResults = null;
+			}
+
 			// 步骤3：笔构建
 			UpdateStrokes(s, tu.QuoteList);
 
@@ -1920,17 +1934,10 @@ namespace QjySDK.Stg
 				}
 			}
 
-			// 交易逻辑：基于买卖点和笔方向变化
-			bool useZhongShu = (int)ArgDic["useZhongShu"] == 1;
+			// 止损检查（优先于其他交易逻辑）
 			bool useStopLoss = (int)ArgDic["useStopLoss"] == 1;
 			decimal stopLossPercent = (decimal)ArgDic["stopLossPercent"];
 			var currentPrice = q.Close;
-
-			if (s.Strokes == null || s.Strokes.Count < 2)
-				return;
-
-			var lastStroke = s.Strokes[s.Strokes.Count - 1];
-			var prevStroke = s.Strokes[s.Strokes.Count - 2];
 
 			// 止损检查（优先于其他交易逻辑）
 			if (useStopLoss && s.Status != 0 && s.EntryPrice > 0)
@@ -1966,183 +1973,62 @@ namespace QjySDK.Stg
 					return;  // 止损后本周期不再进行其他交易
 			}
 
-			if (useZhongShu && s.CurrentZhongShu != null && s.CurrentZhongShu.IsValid)
+			// 基于买卖点的交易逻辑
+			if (s.BSPoints == null || s.BSPoints.Count == 0)
+				return;
+
+			// 获取最新的买卖点
+			var latestBSPoint = s.BSPoints[s.BSPoints.Count - 1];
+			
+			// 检查是否已经交易过这个买卖点（防止重复触发）
+			if (latestBSPoint.Index <= s.LastTradedBSPointIndex)
+				return;
+
+			// 判断买卖点类型并执行交易
+			bool isBuyPoint = latestBSPoint.Type == BSPointType.Buy1 || 
+							  latestBSPoint.Type == BSPointType.Buy2 || 
+							  latestBSPoint.Type == BSPointType.Buy3;
+			bool isSellPoint = latestBSPoint.Type == BSPointType.Sell1 || 
+							   latestBSPoint.Type == BSPointType.Sell2 || 
+							   latestBSPoint.Type == BSPointType.Sell3;
+
+			if (isBuyPoint && mode != 2)  // 买点且不是仅做空模式
 			{
-				// 基于中枢和买卖点的交易逻辑
-				var zs = s.CurrentZhongShu;
-
-				if (s.Status == 0)  // 无持仓状态
+				if (s.Status == 2)  // 有空仓，先平空
 				{
-					// 三买：向上突破中枢后回踩不破中枢高点
-					if (prevStroke.IsUp && !lastStroke.IsUp &&
-						prevStroke.High > zs.ZG && lastStroke.Low >= zs.ZG &&
-						mode != 2)
-					{
-						s.Status = 1;
-						s.Num = num;
-						s.EntryPrice = q.Close;
-						Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
-					}
-					// 三卖：向下突破中枢后回抽不破中枢低点
-					else if (!prevStroke.IsUp && lastStroke.IsUp &&
-							 prevStroke.Low < zs.ZD && lastStroke.High <= zs.ZD &&
-							 mode != 1)
-					{
-						s.Status = 2;
-						s.Num = num;
-						s.EntryPrice = q.Close;
-						Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
-					}
-					// 一买：向下笔结束，形成底分型，且底分型低点在中枢下方
-					else if (!prevStroke.IsUp && lastStroke.IsUp &&
-							 prevStroke.Low < zs.ZD && mode != 2)
-					{
-						// 检查是否有背驰
-						bool hasDivergence = s.LastBuy1 != null &&
-											s.LastBuy1.Type == BSPointType.Buy1 &&
-											s.LastBuy1.IsDivergence;
-						if (hasDivergence || (int)ArgDic["useDivergence"] == 0)
-						{
-							s.Status = 1;
-							s.Num = num;
-							s.EntryPrice = q.Close;
-							Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
-						}
-					}
-					// 一卖：向上笔结束，形成顶分型，且顶分型高点在中枢上方
-					else if (prevStroke.IsUp && !lastStroke.IsUp &&
-							 prevStroke.High > zs.ZG && mode != 1)
-					{
-						// 检查是否有背驰
-						bool hasDivergence = s.LastSell1 != null &&
-											s.LastSell1.Type == BSPointType.Sell1 &&
-											s.LastSell1.IsDivergence;
-						if (hasDivergence || (int)ArgDic["useDivergence"] == 0)
-						{
-							s.Status = 2;
-							s.Num = num;
-							s.EntryPrice = q.Close;
-							Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
-						}
-					}
+					var oriNum = s.Num;
+					Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oriNum, period, sendMode);
 				}
-				else if (s.Status == 1)  // 多仓状态
+				
+				if (s.Status != 1)  // 没有多仓，开多
 				{
-					// 向上笔转为向下笔，平多
-					if (prevStroke.IsUp && !lastStroke.IsUp)
-					{
-						var oriNum = s.Num;
-						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oriNum, period, sendMode);
-
-						// 如果价格跌破中枢低点，可以考虑开空
-						if (currentPrice < zs.ZD && mode != 1)
-						{
-							s.Status = 2;
-							s.Num = num;
-							s.EntryPrice = q.Close;
-							Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
-						}
-						else
-						{
-							s.Status = 0;
-							s.Num = 0;
-							s.EntryPrice = 0;
-						}
-					}
+					s.Status = 1;
+					s.Num = num;
+					s.EntryPrice = q.Close;
+					Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
 				}
-				else if (s.Status == 2)  // 空仓（做空）状态
-				{
-					// 向下笔转为向上笔，平空
-					if (!prevStroke.IsUp && lastStroke.IsUp)
-					{
-						var oriNum = s.Num;
-						Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oriNum, period, sendMode);
-
-						// 如果价格突破中枢高点，可以考虑开多
-						if (currentPrice > zs.ZG && mode != 2)
-						{
-							s.Status = 1;
-							s.Num = num;
-							s.EntryPrice = q.Close;
-							Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
-						}
-						else
-						{
-							s.Status = 0;
-							s.Num = 0;
-							s.EntryPrice = 0;
-						}
-					}
-				}
+				
+				// 标记此买卖点已交易
+				s.LastTradedBSPointIndex = latestBSPoint.Index;
 			}
-			else
+			else if (isSellPoint && mode != 1)  // 卖点且不是仅做多模式
 			{
-				// 基于笔的方向变化的交易逻辑（不使用中枢）
-				if (s.Status == 0)  // 无持仓状态
+				if (s.Status == 1)  // 有多仓，先平多
 				{
-					// 向下笔转为向上笔，买入信号
-					if (!prevStroke.IsUp && lastStroke.IsUp && mode != 2)
-					{
-						s.Status = 1;
-						s.Num = num;
-						s.EntryPrice = q.Close;
-						Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
-					}
-					// 向上笔转为向下笔，卖出信号
-					else if (prevStroke.IsUp && !lastStroke.IsUp && mode != 1)
-					{
-						s.Status = 2;
-						s.Num = num;
-						s.EntryPrice = q.Close;
-						Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
-					}
+					var oriNum = s.Num;
+					Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oriNum, period, sendMode);
 				}
-				else if (s.Status == 1)  // 多仓状态
+				
+				if (s.Status != 2)  // 没有空仓，开空
 				{
-					// 向上笔转为向下笔，平多开空
-					if (prevStroke.IsUp && !lastStroke.IsUp)
-					{
-						var oriNum = s.Num;
-						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oriNum, period, sendMode);
-
-						if (mode != 1)
-						{
-							s.Status = 2;
-							s.Num = num;
-							s.EntryPrice = q.Close;
-							Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
-						}
-						else
-						{
-							s.Status = 0;
-							s.Num = 0;
-							s.EntryPrice = 0;
-						}
-					}
+					s.Status = 2;
+					s.Num = num;
+					s.EntryPrice = q.Close;
+					Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
 				}
-				else if (s.Status == 2)  // 空仓（做空）状态
-				{
-					// 向下笔转为向上笔，平空开多
-					if (!prevStroke.IsUp && lastStroke.IsUp)
-					{
-						var oriNum = s.Num;
-						Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oriNum, period, sendMode);
-
-						if (mode != 2)
-						{
-							s.Status = 1;
-							s.Num = num;
-							s.EntryPrice = q.Close;
-							Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
-						}
-						else
-						{
-							s.Status = 0;
-							s.Num = 0;
-							s.EntryPrice = 0;
-						}
-					}
-				}
+				
+				// 标记此买卖点已交易
+				s.LastTradedBSPointIndex = latestBSPoint.Index;
 			}
 		}
 	}
