@@ -213,6 +213,8 @@ namespace QjySDK
 			public BSPoint LastBuy1 { get; set; }            // 最近的一买点
 			public BSPoint LastSell1 { get; set; }           // 最近的一卖点
 			public int LastDrawOriIndex { get; set; }
+			public ZhongShu? LastBuy1ZhongShu { get; set; }    // 产生一买时的中枢（用于二买判断）
+			public ZhongShu? LastSell1ZhongShu { get; set; }   // 产生一卖时的中枢（用于二卖判断）
 		}
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -1294,176 +1296,466 @@ namespace QjySDK
 
 		#endregion
 
-		#region 买卖点识别
+		#region 买卖点识别（严格按照缠论定义）
 
 		/// <summary>
-		/// 识别买卖点
+		/// 判断是否存在下跌趋势（至少两个向下中枢，中枢间无重叠）
+		/// </summary>
+		internal bool HasDownTrend(List<ZhongShu> zhongShus, out ZhongShu lastZhongShu, out ZhongShu prevZhongShu)
+		{
+			lastZhongShu = null;
+			prevZhongShu = null;
+			
+			if (zhongShus == null || zhongShus.Count < 2)
+				return false;
+			
+			// 从后往前找两个向下排列的中枢
+			for (int i = zhongShus.Count - 1; i >= 1; i--)
+			{
+				var curr = zhongShus[i];
+				var prev = zhongShus[i - 1];
+				
+				// 下跌趋势：后一个中枢完全在前一个中枢下方（中枢间无重叠）
+				// 判定条件：后一个中枢的波动区间最高点 < 前一个中枢的波动区间最低点
+				if (curr.GG < prev.DD)
+				{
+					lastZhongShu = curr;
+					prevZhongShu = prev;
+					return true;
+				}
+			}
+			return false;
+		}
+
+		/// <summary>
+		/// 判断是否存在上涨趋势（至少两个向上中枢，中枢间无重叠）
+		/// </summary>
+		internal bool HasUpTrend(List<ZhongShu> zhongShus, out ZhongShu lastZhongShu, out ZhongShu prevZhongShu)
+		{
+			lastZhongShu = null;
+			prevZhongShu = null;
+			
+			if (zhongShus == null || zhongShus.Count < 2)
+				return false;
+			
+			// 从后往前找两个向上排列的中枢
+			for (int i = zhongShus.Count - 1; i >= 1; i--)
+			{
+				var curr = zhongShus[i];
+				var prev = zhongShus[i - 1];
+				
+				// 上涨趋势：后一个中枢完全在前一个中枢上方（中枢间无重叠）
+				// 判定条件：后一个中枢的波动区间最低点 > 前一个中枢的波动区间最高点
+				if (curr.DD > prev.GG)
+				{
+					lastZhongShu = curr;
+					prevZhongShu = prev;
+					return true;
+				}
+			}
+			return false;
+		}
+
+		/// <summary>
+		/// 获取中枢的进入段（a段）- 第一段
+		/// </summary>
+		internal Segment GetEntrySegment(ZhongShu zs)
+		{
+			if (zs == null || zs.Segments == null || zs.Segments.Count == 0)
+				return null;
+			return zs.Segments[0];
+		}
+
+		/// <summary>
+		/// 计算段的MACD面积（用于背驰判断）
+		/// </summary>
+		internal decimal CalculateSegmentMACDArea(Segment segment)
+		{
+			if (segment == null || segment.Strokes == null)
+				return 0;
+			return segment.Strokes.Sum(s => s.MACDArea);
+		}
+
+		/// <summary>
+		/// 判断离开段与进入段是否存在趋势背驰（严格定义）
+		/// 缠论定义：离开段（c段）与进入段（a段）相比，力度减弱
+		/// 力度判断：MACD面积/高度缩小
+		/// </summary>
+		internal bool IsTrendDivergenceStrict(ZhongShu zs)
+		{
+			var entrySegment = GetEntrySegment(zs);
+			var leaveSegment = zs?.LeaveSegment;
+			
+			if (entrySegment == null || leaveSegment == null)
+				return false;
+			
+			// 必须同向
+			if (entrySegment.IsUp != leaveSegment.IsUp)
+				return false;
+			
+			// 计算MACD面积
+			decimal entryArea = CalculateSegmentMACDArea(entrySegment);
+			decimal leaveArea = CalculateSegmentMACDArea(leaveSegment);
+			
+			// 背驰条件：离开段MACD面积小于进入段
+			if (leaveArea >= entryArea)
+				return false;
+			
+			// 价格创新高/新低
+			if (leaveSegment.IsUp)
+			{
+				// 向上：离开段高点应该创新高
+				return leaveSegment.High >= entrySegment.High;
+			}
+			else
+			{
+				// 向下：离开段低点应该创新低
+				return leaveSegment.Low <= entrySegment.Low;
+			}
+		}
+
+		/// <summary>
+		/// 检查买卖点是否已存在（避免重复添加）
+		/// </summary>
+		private bool BSPointExists(State state, BSPointType type, int index)
+		{
+			if (state.BSPoints == null)
+				return false;
+			return state.BSPoints.Any(p => p.Type == type && p.Index == index);
+		}
+
+		/// <summary>
+		/// 识别第一类买点（1B）
+		/// 定义：某级别下跌趋势中，最后一个中枢后次级别走势类型向下离开中枢，创出新低且发生背驰的转折点
+		/// 判断标准：
+		/// 1. 必须存在两个以上同向中枢构成的下跌趋势
+		/// 2. 离开段（c段）与进入段（a段）相比出现趋势背驰（力度减弱）
+		/// </summary>
+		internal BSPoint IdentifyBuy1(State state)
+		{
+			// 检查是否存在下跌趋势（至少两个向下中枢）
+			if (!HasDownTrend(state.ZhongShus, out var lastZs, out var prevZs))
+				return null;
+			
+			// 检查最后一个中枢是否已向下离开
+			if (lastZs.LeaveDirection != -1)
+				return null;
+			
+			// 检查是否创新低（低于中枢下沿）
+			var leaveSegment = lastZs.LeaveSegment;
+			if (leaveSegment == null || leaveSegment.Low >= lastZs.ZD)
+				return null;
+			
+			// 检查趋势背驰
+			if (!IsTrendDivergenceStrict(lastZs))
+				return null;
+			
+			// 确认一买点
+			return new BSPoint
+			{
+				Type = BSPointType.Buy1,
+				Index = leaveSegment.EndIndex,
+				Price = leaveSegment.Low,
+				Date = leaveSegment.EndStroke?.EndFractal?.Date ?? DateTime.Now,
+				IsDivergence = true
+			};
+		}
+
+		/// <summary>
+		/// 识别第一类卖点（1S）
+		/// 定义：某级别上涨趋势中，最后一个中枢后次级别走势类型向上离开中枢，创出新高且发生背驰的转折点
+		/// 判断标准：
+		/// 1. 必须存在两个以上同向中枢构成的上涨趋势
+		/// 2. 离开段（c段）与进入段（a段）相比出现趋势背驰（力度减弱）
+		/// </summary>
+		internal BSPoint IdentifySell1(State state)
+		{
+			// 检查是否存在上涨趋势（至少两个向上中枢）
+			if (!HasUpTrend(state.ZhongShus, out var lastZs, out var prevZs))
+				return null;
+			
+			// 检查最后一个中枢是否已向上离开
+			if (lastZs.LeaveDirection != 1)
+				return null;
+			
+			// 检查是否创新高（高于中枢上沿）
+			var leaveSegment = lastZs.LeaveSegment;
+			if (leaveSegment == null || leaveSegment.High <= lastZs.ZG)
+				return null;
+			
+			// 检查趋势背驰
+			if (!IsTrendDivergenceStrict(lastZs))
+				return null;
+			
+			// 确认一卖点
+			return new BSPoint
+			{
+				Type = BSPointType.Sell1,
+				Index = leaveSegment.EndIndex,
+				Price = leaveSegment.High,
+				Date = leaveSegment.EndStroke?.EndFractal?.Date ?? DateTime.Now,
+				IsDivergence = true
+			};
+		}
+
+		/// <summary>
+		/// 识别第二类买点（2B）
+		/// 定义：第一类买点出现后，次级别走势向上完成，随后次级别回调不破第一类买点低点（或略破但形成盘整背驰），再次上行的起点
+		/// 判断标准：
+		/// 1. 位置必须高于第一类买点
+		/// 2. 回调不能重新回到前下跌趋势最后一个中枢内（即不破中枢下沿ZD）
+		/// 修正：二买应在回调完成后、新的向上笔开始时确认
+		/// </summary>
+		internal BSPoint IdentifyBuy2(State state, Stroke currentStroke, Stroke prevStroke)
+		{
+			// 当前笔必须是向上笔（回调完成后的新笔）
+			if (currentStroke == null || !currentStroke.IsUp)
+				return null;
+			
+			// 前一笔必须是向下的回调笔
+			if (prevStroke == null || prevStroke.IsUp)
+				return null;
+			
+			if (state.LastBuy1 == null)
+				return null;
+			
+			// 使用回调笔的低点作为二买价格
+			decimal pullbackLow = prevStroke.Low;
+			
+			// 条件1：回调低点必须高于第一类买点
+			if (pullbackLow <= state.LastBuy1.Price)
+				return null;
+			
+			// 条件2：回调不能重新回到前下跌趋势最后一个中枢内（即不破中枢下沿ZD）
+			if (state.LastBuy1ZhongShu != null && pullbackLow <= state.LastBuy1ZhongShu.ZD)
+				return null;
+			
+			// 确认二买点（价格为回调笔低点，索引为回调笔结束位置）
+			return new BSPoint
+			{
+				Type = BSPointType.Buy2,
+				Index = prevStroke.EndIndex,
+				Price = pullbackLow,
+				Date = prevStroke.EndFractal?.Date ?? DateTime.Now,
+				IsDivergence = false
+			};
+		}
+
+		/// <summary>
+		/// 识别第二类卖点（2S）
+		/// 定义：第一类卖点出现后，次级别走势向下完成，随后次级别反弹不突破第一类卖点高点（或略过但形成盘整背驰），再次下行的起点
+		/// 判断标准：
+		/// 1. 位置必须低于第一类卖点
+		/// 2. 反弹不能重新回到前上涨趋势最后一个中枢内（即不过中枢上沿ZG）
+		/// 修正：二卖应在反弹完成后、新的向下笔开始时确认
+		/// </summary>
+		internal BSPoint IdentifySell2(State state, Stroke currentStroke, Stroke prevStroke)
+		{
+			// 当前笔必须是向下笔（反弹完成后的新笔）
+			if (currentStroke == null || currentStroke.IsUp)
+				return null;
+			
+			// 前一笔必须是向上的反弹笔
+			if (prevStroke == null || !prevStroke.IsUp)
+				return null;
+			
+			if (state.LastSell1 == null)
+				return null;
+			
+			// 使用反弹笔的高点作为二卖价格
+			decimal pullbackHigh = prevStroke.High;
+			
+			// 条件1：反弹高点必须低于第一类卖点
+			if (pullbackHigh >= state.LastSell1.Price)
+				return null;
+			
+			// 条件2：反弹不能重新回到前上涨趋势最后一个中枢内（即不过中枢上沿ZG）
+			if (state.LastSell1ZhongShu != null && pullbackHigh >= state.LastSell1ZhongShu.ZG)
+				return null;
+			
+			// 确认二卖点（价格为反弹笔高点，索引为反弹笔结束位置）
+			return new BSPoint
+			{
+				Type = BSPointType.Sell2,
+				Index = prevStroke.EndIndex,
+				Price = pullbackHigh,
+				Date = prevStroke.EndFractal?.Date ?? DateTime.Now,
+				IsDivergence = false
+			};
+		}
+
+		/// <summary>
+		/// 识别第三类买点（3B）
+		/// 定义：某级别上涨趋势中，次级别走势向上离开中枢，随后次级别回调低点不重返中枢（高于中枢上沿ZG），形成趋势加速的起点
+		/// 判断标准：
+		/// 1. 必须已形成上涨趋势或盘整中枢
+		/// 2. 回调时价格站稳中枢上沿ZG之上
+		/// 修正：三买应在回调完成后、新的向上笔开始时确认
+		/// </summary>
+		internal BSPoint IdentifyBuy3(State state, Stroke currentStroke, ZhongShu zhongShu)
+		{
+			if (currentStroke == null || currentStroke.IsUp)
+				return null;
+			
+			if (zhongShu == null || !zhongShu.IsValid)
+				return null;
+			
+			// 检查中枢是否已向上离开
+			if (zhongShu.LeaveDirection != 1)
+				return null;
+			
+			// 当前笔是向下的回调笔
+			decimal pullbackLow = currentStroke.Low;
+			
+			// 条件：回调低点不重返中枢（高于中枢上沿ZG）
+			if (pullbackLow < zhongShu.ZG)
+				return null;
+			
+			// 确认三买点
+			return new BSPoint
+			{
+				Type = BSPointType.Buy3,
+				Index = currentStroke.EndIndex,
+				Price = pullbackLow,
+				Date = currentStroke.EndFractal?.Date ?? DateTime.Now,
+				IsDivergence = false
+			};
+		}
+
+		/// <summary>
+		/// 识别第三类卖点（3S）
+		/// 定义：某级别下跌趋势中，次级别走势向下离开中枢，随后次级别反弹高点不重返中枢（低于中枢下沿ZD），形成主跌浪起点
+		/// 判断标准：
+		/// 1. 反弹时价格受制于中枢下沿ZD之下
+		/// </summary>
+		internal BSPoint IdentifySell3(State state, Stroke currentStroke, ZhongShu zhongShu)
+		{
+			if (currentStroke == null || !currentStroke.IsUp)
+				return null;
+			
+			if (zhongShu == null || !zhongShu.IsValid)
+				return null;
+			
+			// 检查中枢是否已向下离开
+			if (zhongShu.LeaveDirection != -1)
+				return null;
+			
+			// 当前笔是向上的反弹笔
+			decimal pullbackHigh = currentStroke.High;
+			
+			// 条件：反弹高点不重返中枢（低于中枢下沿ZD）
+			if (pullbackHigh > zhongShu.ZD)
+				return null;
+			
+			// 确认三卖点
+			return new BSPoint
+			{
+				Type = BSPointType.Sell3,
+				Index = currentStroke.EndIndex,
+				Price = pullbackHigh,
+				Date = currentStroke.EndFractal?.Date ?? DateTime.Now,
+				IsDivergence = false
+			};
+		}
+
+		/// <summary>
+		/// 识别买卖点主方法（严格按照缠论定义）
 		/// </summary>
 		private void UpdateBSPoints(State state, List<SkQuote> quotes)
 		{
 			if (state.BSPoints == null)
 				state.BSPoints = new List<BSPoint>();
 
-			if (state.Strokes == null || state.Strokes.Count < 3)
+			// 获取当前笔
+			Stroke currentStroke = null;
+			Stroke prevStroke = null;
+			if (state.Strokes != null && state.Strokes.Count > 0)
+			{
+				currentStroke = state.Strokes[state.Strokes.Count - 1];
+				if (state.Strokes.Count > 1)
+					prevStroke = state.Strokes[state.Strokes.Count - 2];
+			}
+
+			if (currentStroke == null)
 				return;
 
-			bool useDivergence = (int)ArgDic["useDivergence"] == 1;
-			var lastStroke = state.Strokes[state.Strokes.Count - 1];
-			var prevStroke = state.Strokes.Count >= 2 ? state.Strokes[state.Strokes.Count - 2] : null;
-			var currentPrice = quotes.Last().Close;
+			// 获取趋势中枢信息
+			ZhongShu lastDownTrendZs = null;
+			ZhongShu lastUpTrendZs = null;
+			ZhongShu prevDownTrendZs = null;
+			ZhongShu prevUpTrendZs = null;
+			
+			HasDownTrend(state.ZhongShus, out lastDownTrendZs, out prevDownTrendZs);
+			HasUpTrend(state.ZhongShus, out lastUpTrendZs, out prevUpTrendZs);
 
-			// 一买：下跌趋势中，离开最后一个中枢的向下走势与进入该中枢的向下走势发生背驰
-			// 优先使用趋势背驰（中枢级别），否则使用笔级别背驰
-			if (!lastStroke.IsUp)
+			// ========== 第一类买卖点识别 ==========
+			// 一买：下跌趋势背驰点
+			var buy1 = IdentifyBuy1(state);
+			if (buy1 != null && !BSPointExists(state, BSPointType.Buy1, buy1.Index))
 			{
-				bool isDivergence = false;
-				
-				// 优先检查趋势背驰（基于中枢）
-				if (state.CurrentZhongShu != null && state.CurrentZhongShu.LeaveDirection == -1)
+				state.BSPoints.Add(buy1);
+				state.LastBuy1 = buy1;
+				// 记录产生一买时的中枢，用于二买判断
+				state.LastBuy1ZhongShu = lastDownTrendZs;
+			}
+
+			// 一卖：上涨趋势背驰点
+			var sell1 = IdentifySell1(state);
+			if (sell1 != null && !BSPointExists(state, BSPointType.Sell1, sell1.Index))
+			{
+				state.BSPoints.Add(sell1);
+				state.LastSell1 = sell1;
+				// 记录产生一卖时的中枢，用于二卖判断
+				state.LastSell1ZhongShu = lastUpTrendZs;
+			}
+
+			// ========== 第二类买卖点识别 ==========
+			// 二买：一买后回调完成，新的向上笔开始时确认
+			if (state.LastBuy1 != null && currentStroke.IsUp && prevStroke != null)
+			{
+				// 确保当前笔在一买之后
+				if (currentStroke.EndIndex > state.LastBuy1.Index)
 				{
-					isDivergence = !useDivergence || IsTrendDivergence(state.CurrentZhongShu);
-				}
-				
-				// 如果没有中枢或中枢未离开，使用笔级别背驰
-				if (!isDivergence)
-				{
-					var prevSameDir = FindPreviousSameDirectionStroke(state.Strokes, state.Strokes.Count - 1);
-					if (prevSameDir != null)
+					var buy2 = IdentifyBuy2(state, currentStroke, prevStroke);
+					if (buy2 != null && !BSPointExists(state, BSPointType.Buy2, buy2.Index))
 					{
-						isDivergence = !useDivergence || IsDivergence(prevSameDir, lastStroke);
-						if (!isDivergence || lastStroke.Low > prevSameDir.Low)
-							isDivergence = false;
+						state.BSPoints.Add(buy2);
 					}
-				}
-				
-				if (isDivergence)
-				{
-					// 确认一买：向下笔结束，形成底分型，且存在背驰
-					var buy1 = new BSPoint
-					{
-						Type = BSPointType.Buy1,
-						Index = lastStroke.EndIndex,
-						Price = lastStroke.Low,
-						Date = lastStroke.EndFractal.Date,
-						IsDivergence = isDivergence
-					};
-					state.LastBuy1 = buy1;
-					state.BSPoints.Add(buy1);
 				}
 			}
 
-			// 一卖：上涨趋势中，离开最后一个中枢的向上走势与进入该中枢的向上走势发生背驰
-			// 优先使用趋势背驰（中枢级别），否则使用笔级别背驰
-			if (lastStroke.IsUp)
+			// 二卖：一卖后反弹完成，新的向下笔开始时确认
+			if (state.LastSell1 != null && !currentStroke.IsUp && prevStroke != null)
 			{
-				bool isDivergence = false;
-				
-				// 优先检查趋势背驰（基于中枢）
-				if (state.CurrentZhongShu != null && state.CurrentZhongShu.LeaveDirection == 1)
+				// 确保当前笔在一卖之后
+				if (currentStroke.EndIndex > state.LastSell1.Index)
 				{
-					isDivergence = !useDivergence || IsTrendDivergence(state.CurrentZhongShu);
-				}
-				
-				// 如果没有中枢或中枢未离开，使用笔级别背驰
-				if (!isDivergence)
-				{
-					var prevSameDir = FindPreviousSameDirectionStroke(state.Strokes, state.Strokes.Count - 1);
-					if (prevSameDir != null)
+					var sell2 = IdentifySell2(state, currentStroke, prevStroke);
+					if (sell2 != null && !BSPointExists(state, BSPointType.Sell2, sell2.Index))
 					{
-						isDivergence = !useDivergence || IsDivergence(prevSameDir, lastStroke);
-						if (!isDivergence || lastStroke.High < prevSameDir.High)
-							isDivergence = false;
+						state.BSPoints.Add(sell2);
 					}
-				}
-				
-				if (isDivergence)
-				{
-					// 确认一卖：向上笔结束，形成顶分型，且存在背驰
-					var sell1 = new BSPoint
-					{
-						Type = BSPointType.Sell1,
-						Index = lastStroke.EndIndex,
-						Price = lastStroke.High,
-						Date = lastStroke.EndFractal.Date,
-						IsDivergence = isDivergence
-					};
-					state.LastSell1 = sell1;
-					state.BSPoints.Add(sell1);
 				}
 			}
 
-			// 二买：一买后回调不破一买低点
-			if (state.LastBuy1 != null && !lastStroke.IsUp && prevStroke != null && prevStroke.IsUp)
+			// ========== 第三类买卖点识别 ==========
+			// 三买：中枢向上离开后回调不进中枢
+			if (state.CurrentZhongShu != null && !currentStroke.IsUp)
 			{
-				if (lastStroke.Low > state.LastBuy1.Price)
+				var buy3 = IdentifyBuy3(state, currentStroke, state.CurrentZhongShu);
+				if (buy3 != null && !BSPointExists(state, BSPointType.Buy3, buy3.Index))
 				{
-					var buy2 = new BSPoint
-					{
-						Type = BSPointType.Buy2,
-						Index = lastStroke.EndIndex,
-						Price = lastStroke.Low,
-						Date = lastStroke.EndFractal.Date,
-						IsDivergence = false
-					};
-					state.BSPoints.Add(buy2);
+					state.BSPoints.Add(buy3);
 				}
 			}
 
-			// 二卖：一卖后反弹不破一卖高点
-			if (state.LastSell1 != null && lastStroke.IsUp && prevStroke != null && !prevStroke.IsUp)
+			// 三卖：中枢向下离开后反弹不进中枢
+			if (state.CurrentZhongShu != null && currentStroke.IsUp)
 			{
-				if (lastStroke.High < state.LastSell1.Price)
+				var sell3 = IdentifySell3(state, currentStroke, state.CurrentZhongShu);
+				if (sell3 != null && !BSPointExists(state, BSPointType.Sell3, sell3.Index))
 				{
-					var sell2 = new BSPoint
-					{
-						Type = BSPointType.Sell2,
-						Index = lastStroke.EndIndex,
-						Price = lastStroke.High,
-						Date = lastStroke.EndFractal.Date,
-						IsDivergence = false
-					};
-					state.BSPoints.Add(sell2);
-				}
-			}
-
-			// 三买：离开中枢向上后回踩不进中枢
-			if (state.CurrentZhongShu != null && state.CurrentZhongShu.IsValid)
-			{
-				var zs = state.CurrentZhongShu;
-				// 向上离开中枢后回踩
-				if (prevStroke != null && prevStroke.IsUp && !lastStroke.IsUp)
-				{
-					// 前一笔向上突破中枢，当前笔向下回踩不进中枢
-					if (prevStroke.High > zs.ZG && lastStroke.Low >= zs.ZG)
-					{
-						var buy3 = new BSPoint
-						{
-							Type = BSPointType.Buy3,
-							Index = lastStroke.EndIndex,
-							Price = lastStroke.Low,
-							Date = lastStroke.EndFractal.Date,
-							IsDivergence = false
-						};
-						state.BSPoints.Add(buy3);
-					}
-				}
-
-				// 三卖：离开中枢向下后回抽不进中枢
-				if (prevStroke != null && !prevStroke.IsUp && lastStroke.IsUp)
-				{
-					// 前一笔向下突破中枢，当前笔向上回抽不进中枢
-					if (prevStroke.Low < zs.ZD && lastStroke.High <= zs.ZD)
-					{
-						var sell3 = new BSPoint
-						{
-							Type = BSPointType.Sell3,
-							Index = lastStroke.EndIndex,
-							Price = lastStroke.High,
-							Date = lastStroke.EndFractal.Date,
-							IsDivergence = false
-						};
-						state.BSPoints.Add(sell3);
-					}
+					state.BSPoints.Add(sell3);
 				}
 			}
 		}
@@ -1629,9 +1921,9 @@ namespace QjySDK
 						s.Num = num;
 						Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
 					}
-					// 一买：向下笔结束，形成底分型，且在中枢下方
+					// 一买：向下笔结束，形成底分型，且底分型低点在中枢下方
 					else if (!prevStroke.IsUp && lastStroke.IsUp &&
-							 currentPrice < zs.ZD && mode != 2)
+							 prevStroke.Low < zs.ZD && mode != 2)
 					{
 						// 检查是否有背驰
 						bool hasDivergence = latestBSPoint != null &&
@@ -1644,9 +1936,9 @@ namespace QjySDK
 							Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
 						}
 					}
-					// 一卖：向上笔结束，形成顶分型，且在中枢上方
+					// 一卖：向上笔结束，形成顶分型，且顶分型高点在中枢上方
 					else if (prevStroke.IsUp && !lastStroke.IsUp &&
-							 currentPrice > zs.ZG && mode != 1)
+							 prevStroke.High > zs.ZG && mode != 1)
 					{
 						// 检查是否有背驰
 						bool hasDivergence = latestBSPoint != null &&
