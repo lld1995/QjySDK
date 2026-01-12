@@ -953,8 +953,8 @@ namespace QjySDK.Stg
 		/// </summary>
 		internal (bool IsLeft, int Direction) CheckStrokeLeave(Stroke stroke, ZhongShu zs)
 		{
-			if (stroke.Low >= zs.ZG) return (true, 1);   // 向上离开
-			if (stroke.High <= zs.ZD) return (true, -1); // 向下离开
+			if (stroke.Low > zs.ZG) return (true, 1);   // 向上离开
+			if (stroke.High < zs.ZD) return (true, -1); // 向下离开
 			return (false, 0);
 		}
 
@@ -970,11 +970,13 @@ namespace QjySDK.Stg
 
 		/// <summary>
 		/// 检查两个中枢是否可以扩展合并
+		/// 缠论定义：两个中枢的中枢区间[ZD, ZG]有重叠才合并，而非波动区间[DD, GG]
 		/// </summary>
 		internal bool CanZhongShuExpand(ZhongShu zs1, ZhongShu zs2)
 		{
-			decimal overlapHigh = Math.Min(zs1.GG, zs2.GG);
-			decimal overlapLow = Math.Max(zs1.DD, zs2.DD);
+			// 使用中枢区间[ZD, ZG]判断，而非波动区间[DD, GG]
+			decimal overlapHigh = Math.Min(zs1.ZG, zs2.ZG);
+			decimal overlapLow = Math.Max(zs1.ZD, zs2.ZD);
 			return overlapHigh > overlapLow;
 		}
 
@@ -1131,17 +1133,28 @@ namespace QjySDK.Stg
 					newZhongShus.Add(zhongshu);
 				}
 
-				// 更新笔索引：从当前中枢结束后的下一笔开始
+				// 更新笔索引：从当前中枢结束后的下一笔开始尝试新中枢
 				// 如果中枢已离开，从离开笔开始尝试新中枢
-				if (zhongshu.LeaveStroke != null)
 				{
-					// 找到离开笔在Strokes中的索引
-					int leaveIndex = state.Strokes.IndexOf(zhongshu.LeaveStroke);
-					strokeIndex = leaveIndex >= 0 ? leaveIndex : nextIndex;
-				}
-				else
-				{
-					strokeIndex = nextIndex > strokeIndex + minStrokes ? nextIndex : strokeIndex + zhongshu.StrokeCount;
+					int prevStartIndex = strokeIndex;
+					int candidateStartIndex;
+
+					if (zhongshu.LeaveStroke != null)
+					{
+						// 找到离开笔在Strokes中的索引，从离开笔开始尝试新中枢
+						int leaveIndex = state.Strokes.IndexOf(zhongshu.LeaveStroke);
+						candidateStartIndex = leaveIndex >= 0 ? leaveIndex : nextIndex;
+					}
+					else
+					{
+						// 中枢未离开时，从中枢最后一笔的下一笔开始尝试新中枢
+						var lastStrokeInZhongShu = zhongshu.Strokes[zhongshu.Strokes.Count - 1];
+						int lastStrokeIndex = state.Strokes.IndexOf(lastStrokeInZhongShu);
+						candidateStartIndex = lastStrokeIndex >= 0 ? lastStrokeIndex + 1 : nextIndex;
+					}
+
+					// 确保一定前进，避免死循环
+					strokeIndex = Math.Max(prevStartIndex + 1, candidateStartIndex);
 				}
 			}
 			state.ZhongShus = newZhongShus;
