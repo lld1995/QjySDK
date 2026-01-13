@@ -77,7 +77,7 @@ namespace QjySDK
                 }
                 else if (prevFastAbove && !currFastAbove)
                 {
-                    Trade(tu.MktSymbol, OrderType.SELL, tq.Close, 1, period, 0);
+                    Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, tq.Close, 1, period, 0);
                 }
             }
 

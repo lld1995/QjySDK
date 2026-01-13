@@ -168,7 +168,7 @@ namespace QjySDK.Stg
 					// 止损平仓
 					if (state.Position > 0)
 					{
-						Trade(tu.MktSymbol, OrderType.SELL, currentPrice, state.Num, period, sendMode);
+						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, currentPrice, state.Num, period, sendMode);
 					}
 					else
 					{
@@ -213,7 +213,7 @@ namespace QjySDK.Stg
 					// 如果有多仓，先平仓
 					if (state.Position > 0)
 					{
-						Trade(tu.MktSymbol, OrderType.SELL, currentPrice, state.Num, period, sendMode);
+						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, currentPrice, state.Num, period, sendMode);
 						state.Position = 0;
 						state.Num = 0;
 					}
@@ -221,7 +221,7 @@ namespace QjySDK.Stg
 					// 开空仓（双向模式）
 					if (state.Position == 0 && mode == 0)
 					{
-						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, currentPrice, lots, period, sendMode);
+						Trade(tu.MktSymbol, OrderType.SELL, currentPrice, lots, period, sendMode);
 						state.Position = -1;
 						state.Num = lots;
 						state.EntryPrice = currentPrice;
