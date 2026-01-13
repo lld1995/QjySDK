@@ -36,6 +36,13 @@ namespace QjySDK.Stg
 			sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;
 			sd.SubChartNum = 1;
+
+			sd.ColorDic["main-up"] = "#F6465D";
+			sd.ColorDic["main-mid"] = "#F0B90B";
+			sd.ColorDic["main-low"] = "#0ECB81";
+			sd.ColorDic["vol-vol"] = "#2196F3";
+			sd.ColorDic["main-shadow-down"] = "#0ECB81";
+			sd.ColorDic["main-shadow-up"] = "#F6465D";
 			return sd;
 		}
 

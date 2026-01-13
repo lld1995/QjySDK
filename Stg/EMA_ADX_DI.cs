@@ -132,15 +132,15 @@ namespace QjySDK
 
             // 颜色配置
             sd.ColorDic["main-EMA"] = "#2196F3";
-            sd.ColorDic["sub1-ADX"] = "#FF9800";
-            sd.ColorDic["sub1-PDI"] = "#4CAF50";
-            sd.ColorDic["sub1-MDI"] = "#F44336";
+            sd.ColorDic["sub0-ADX"] = "#FF9800";
+            sd.ColorDic["sub0-PDI"] = "#4CAF50";
+            sd.ColorDic["sub0-MDI"] = "#F44336";
             sd.ColorDic["main-StopLoss"] = "#E91E63";
             sd.ColorDic["main-TakeProfit"] = "#8BC34A";
-            sd.ColorDic["sub1-DiDiff"] = "#9C27B0";
+            sd.ColorDic["sub0-DiDiff"] = "#9C27B0";
 
             // 副图中线
-            sd.MidValDic["sub1"] = 20;
+            sd.MidValDic["sub0"] = 20;
 
             return sd;
         }
@@ -226,9 +226,9 @@ namespace QjySDK
 
             // 绘制指标
             Plot("main", "EMA", PlotType.CURVE, emaCurr);
-            Plot("sub1", "ADX", PlotType.CURVE, adxValue);
-            Plot("sub1", "PDI", PlotType.CURVE, pdiCurr);
-            Plot("sub1", "MDI", PlotType.CURVE, mdiCurr);
+            Plot("sub0", "ADX", PlotType.CURVE, adxValue);
+            Plot("sub0", "PDI", PlotType.CURVE, pdiCurr);
+            Plot("sub0", "MDI", PlotType.CURVE, mdiCurr);
 
             // 绘制止损止盈线
             if (state.HasPosition)

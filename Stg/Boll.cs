@@ -50,9 +50,9 @@ namespace QjySDK.Stg
             sd.SubChartNum = 0;
             
             // 布林带颜色配置
-            sd.ColorDic["boll-upper"] = "#F6465D";
-            sd.ColorDic["boll-middle"] = "#F0B90B";
-            sd.ColorDic["boll-lower"] = "#0ECB81";
+            sd.ColorDic["main-upper"] = "#F6465D";
+            sd.ColorDic["main-middle"] = "#F0B90B";
+            sd.ColorDic["main-lower"] = "#0ECB81";
 
             return sd;
         }

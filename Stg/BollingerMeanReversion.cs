@@ -96,7 +96,7 @@ namespace QjySDK.Stg
             sd.ColorDic["main-upper"] = "#F6465D";      // 上轨红色
             sd.ColorDic["main-middle"] = "#F0B90B";     // 中轨黄色
             sd.ColorDic["main-lower"] = "#0ECB81";      // 下轨绿色
-            sd.ColorDic["sub1-rsi"] = "#9B59B6";             // RSI紫色
+            sd.ColorDic["sub0-rsi"] = "#9B59B6";             // RSI紫色
             sd.ColorDic["main-stopLoss"] = "#E74C3C";        // 止损线红色
 
             // 中值线配置
@@ -170,7 +170,7 @@ namespace QjySDK.Stg
             Plot("main", "lower", PlotType.LINE, boll.LowerBand);
 
             // 绘制RSI
-            Plot("sub1", "rsi", PlotType.LINE, rsi.Rsi);
+            Plot("sub0", "rsi", PlotType.LINE, rsi.Rsi);
 
             // 数据有效性检查
             if (boll.UpperBand == null || boll.LowerBand == null || boll.Sma == null) return;

@@ -86,7 +86,7 @@ namespace QjySDK
             sd.ColorDic["main-middleBand"] = "#9E9E9E";
             sd.ColorDic["main-exitUpper"] = "#FFAB91";
             sd.ColorDic["main-exitLower"] = "#90CAF9";
-            sd.ColorDic["sub1-atr"] = "#4CAF50";
+            sd.ColorDic["sub0-atr"] = "#4CAF50";
             sd.ColorDic["main-stopLoss"] = "#F44336";
 
             return sd;
@@ -140,7 +140,7 @@ namespace QjySDK
             Plot("main", "middleBand", PlotType.LINE, (double)middleBand);
             Plot("main", "exitUpper", PlotType.LINE, (double)exitUpper);
             Plot("main", "exitLower", PlotType.LINE, (double)exitLower);
-            Plot("sub1", "atr", PlotType.LINE, (double)atr);
+            Plot("sub0", "atr", PlotType.LINE, (double)atr);
 
             if (posInfo.Direction != 0 && posInfo.StopLoss > 0)
             {

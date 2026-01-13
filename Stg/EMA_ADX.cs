@@ -105,13 +105,13 @@ namespace QjySDK
 
             sd.ColorDic["main-EMA_Fast"] = "#FF6B6B";
             sd.ColorDic["main-EMA_Slow"] = "#4ECDC4";
-            sd.ColorDic["sub1-ADX"] = "#FFE66D";
-            sd.ColorDic["sub1-PDI"] = "#4CAF50";
-            sd.ColorDic["sub1-MDI"] = "#F44336";
+            sd.ColorDic["sub0-ADX"] = "#FFE66D";
+            sd.ColorDic["sub0-PDI"] = "#4CAF50";
+            sd.ColorDic["sub0-MDI"] = "#F44336";
             sd.ColorDic["main-StopLoss"] = "#FF5722";
             sd.ColorDic["main-TakeProfit"] = "#8BC34A";
 
-            sd.MidValDic["sub1"] = 25;
+            sd.MidValDic["sub0"] = 25;
 
             return sd;
         }
@@ -182,9 +182,9 @@ namespace QjySDK
 
             Plot("main", "EMA_Fast", PlotType.CURVE, emaFastCurr);
             Plot("main", "EMA_Slow", PlotType.CURVE, emaSlowCurr);
-            Plot("sub1", "ADX", PlotType.CURVE, adxValue);
-            Plot("sub1", "PDI", PlotType.CURVE, pdi);
-            Plot("sub1", "MDI", PlotType.CURVE, mdi);
+            Plot("sub0", "ADX", PlotType.CURVE, adxValue);
+            Plot("sub0", "PDI", PlotType.CURVE, pdi);
+            Plot("sub0", "MDI", PlotType.CURVE, mdi);
 
             if (state.HasPosition)
             {
