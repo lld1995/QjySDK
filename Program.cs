@@ -5,7 +5,7 @@ using QjySDK.Stg;
 GlobalDef.Init();
 
 {
-    var sd = new ChanLun("3acd2ec2870243cb850012c1b1bfc74f");
+    var sd = new ChanLunBi("b7d3b9120668497fb8fc1d83262d1e70");
     await sd.Run();
     
     Console.ReadLine();

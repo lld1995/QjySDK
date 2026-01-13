@@ -13,6 +13,7 @@ namespace QjySDK
 {
     public abstract class StgBase
     {
+        public event Action OnInit;
         public StgBase(string id)
         {
             Id = id;
@@ -25,6 +26,12 @@ namespace QjySDK
 
         private List<RemoteTradeRecord> _rtr = new List<RemoteTradeRecord>();
         private List<PlotRecord> _pr = new List<PlotRecord>();
+
+        public virtual void OnSendOrder(TableUnit tu, decimal price)
+        {
+
+        }
+
         public virtual void OnPeriodEnd(Period p, SkQuote q, string mktSymbol)
         {
 
@@ -64,7 +71,7 @@ namespace QjySDK
             _rtr.Add(rtr);
         }
 
-        public void Plot(string chartName, string name, PlotType pt, double val, object extra = null)
+        public void Plot(string chartName, string name, PlotType pt, double? val, object extra = null)
         {
             var pr = new PlotRecord();
             pr.ChartName = chartName;
@@ -101,6 +108,7 @@ namespace QjySDK
             {
                 ArgDic = sd.ArgDic;
             }
+            OnInit?.Invoke();
             _stc = new SimpleTcpClient(this);
             await _stc.ConnectAsync("127.0.0.1", 30898);
 

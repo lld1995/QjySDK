@@ -7,6 +7,9 @@ namespace Model
         private Dictionary<string, object> _argDic = new Dictionary<string, object>();
         public Dictionary<string, object> ArgDic { get => _argDic; set => _argDic = value; }
 
+        private Dictionary<string, ArgDesc> _argDescDic = new Dictionary<string, ArgDesc>();
+        public Dictionary<string, ArgDesc> ArgDescDic { get => _argDescDic; set => _argDescDic = value; }
+
         public int MaxSymbolNum { get; set; }
 
         public int UseGlobalCalc { get; set; }

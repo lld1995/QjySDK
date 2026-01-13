@@ -112,6 +112,19 @@ namespace QjySDK
                                         var q = ((JsonElement)rc.ArgList[2]).ToJsonObj<SkQuote>();
                                         _sb.OnPeriodEnd(period, q, mktSymbol);
                                     }
+                                    else if (rc.Name == "OnSendOrder")
+                                    {
+                                        var mktSymbol = rc.ArgList[0].ToString();
+                                        var period = Enum.Parse<EnumDef.Period>(rc.ArgList[1].ToString());
+                                        var price = ((JsonElement)rc.ArgList[2]).GetDecimal();
+                                        var tableName = Tools.GetTableName(Tools.GetSP(mktSymbol, period));
+                                        TableUnit tu = null;
+                                        if (_tuDic.ContainsKey(tableName))
+                                        {
+                                            tu = _tuDic[tableName];
+                                            _sb.OnSendOrder(tu,price);
+                                        }
+                                    }
                                 }
                                 await _sb.PushAndClear();
                             });
