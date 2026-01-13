@@ -100,9 +100,9 @@ namespace QjySDK.Stg
             sd.SubChartNum = 0;
 
             // 通道颜色配置
-            sd.ColorDic["dualthrust-upper"] = "#F6465D";   // 上轨红色
-            sd.ColorDic["dualthrust-lower"] = "#0ECB81";   // 下轨绿色
-            sd.ColorDic["dualthrust-open"] = "#F0B90B";    // 开盘价黄色
+            sd.ColorDic["main-upper"] = "#F6465D";   // 上轨红色
+            sd.ColorDic["main-lower"] = "#0ECB81";   // 下轨绿色
+            sd.ColorDic["main-open"] = "#F0B90B";    // 开盘价黄色
 
             return sd;
         }

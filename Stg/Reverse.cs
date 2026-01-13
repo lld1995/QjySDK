@@ -43,6 +43,8 @@ namespace QjySDK.Stg
 			sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;
 			sd.SubChartNum = 1;
+
+			sd.ColorDic["main-ema"] = "#2196F3";
 			return sd;
 		}
 

@@ -99,12 +99,12 @@ namespace QjySDK.Stg
             sd.SubChartNum = 1;
 
             // 通道颜色配置
-            sd.ColorDic["turtle-upper"] = "#F6465D";      // 入场上轨红色
-            sd.ColorDic["turtle-lower"] = "#0ECB81";      // 入场下轨绿色
-            sd.ColorDic["turtle-exit-upper"] = "#FF9800"; // 出场上轨橙色
-            sd.ColorDic["turtle-exit-lower"] = "#2196F3"; // 出场下轨蓝色
-            sd.ColorDic["turtle-atr"] = "#9C27B0";        // ATR紫色
-            sd.ColorDic["turtle-stop"] = "#E91E63";       // 止损线粉色
+            sd.ColorDic["main-entryUpper"] = "#F6465D";      // 入场上轨红色
+            sd.ColorDic["main-entryLower"] = "#0ECB81";      // 入场下轨绿色
+            sd.ColorDic["main-exitUpper"] = "#FF9800"; // 出场上轨橙色
+            sd.ColorDic["main-exitLower"] = "#2196F3"; // 出场下轨蓝色
+            sd.ColorDic["sub0-ATR"] = "#9C27B0";        // ATR紫色
+            sd.ColorDic["main-stopLoss"] = "#E91E63";       // 止损线粉色
 
             return sd;
         }

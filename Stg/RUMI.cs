@@ -113,15 +113,15 @@ namespace QjySDK.Stg
             sd.SubChartNum = 2;
 
             // 颜色配置
-            sd.ColorDic["rumi-line"] = "#2196F3";         // RUMI线蓝色
-            sd.ColorDic["rumi-signal"] = "#FF9800";       // 信号线橙色
-            sd.ColorDic["rumi-histogram"] = "#4CAF50";    // 柱状图绿色
-            sd.ColorDic["fast-ema"] = "#E91E63";          // 快速EMA粉色
-            sd.ColorDic["slow-ema"] = "#9C27B0";          // 慢速EMA紫色
-            sd.ColorDic["trend-ema"] = "#607D8B";         // 趋势EMA灰色
-            sd.ColorDic["atr"] = "#795548";               // ATR棕色
-            sd.ColorDic["stop-loss"] = "#F44336";         // 止损线红色
-            sd.ColorDic["take-profit"] = "#4CAF50";       // 止盈线绿色
+            sd.ColorDic["sub0-RUMI"] = "#2196F3";         // RUMI线蓝色
+            sd.ColorDic["sub0-Signal"] = "#FF9800";       // 信号线橙色
+            sd.ColorDic["sub0-Histogram"] = "#4CAF50";    // 柱状图绿色
+            sd.ColorDic["main-FastEMA"] = "#E91E63";          // 快速EMA粉色
+            sd.ColorDic["main-SlowEMA"] = "#9C27B0";          // 慢速EMA紫色
+            sd.ColorDic["main-TrendEMA"] = "#607D8B";         // 趋势EMA灰色
+            sd.ColorDic["sub1-ATR"] = "#795548";               // ATR棕色
+            sd.ColorDic["main-StopLoss"] = "#F44336";         // 止损线红色
+            sd.ColorDic["main-TakeProfit"] = "#4CAF50";       // 止盈线绿色
 
             return sd;
         }

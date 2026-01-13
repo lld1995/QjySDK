@@ -120,14 +120,13 @@ namespace QjySDK.Stg
             sd.SubChartNum = 2;
 
             // 颜色配置
-            sd.ColorDic["ema-fast"] = "#FF6B6B";      // 快速EMA红色
-            sd.ColorDic["ema-mid"] = "#4ECDC4";       // 中速EMA青色
-            sd.ColorDic["ema-slow"] = "#45B7D1";      // 慢速EMA蓝色
-            sd.ColorDic["roc"] = "#9B59B6";           // ROC紫色
-            sd.ColorDic["atr"] = "#F39C12";           // ATR橙色
-            sd.ColorDic["stop"] = "#E74C3C";          // 止损线红色
-            sd.ColorDic["signal-long"] = "#27AE60";   // 做多信号绿色
-            sd.ColorDic["signal-short"] = "#C0392B";  // 做空信号深红色
+            sd.ColorDic["main-FastEMA"] = "#FF6B6B";      // 快速EMA红色
+            sd.ColorDic["main-MidEMA"] = "#4ECDC4";       // 中速EMA青色
+            sd.ColorDic["main-SlowEMA"] = "#45B7D1";      // 慢速EMA蓝色
+            sd.ColorDic["sub0-ROC"] = "#9B59B6";           // ROC紫色
+            sd.ColorDic["sub1-ATR"] = "#F39C12";           // ATR橙色
+            sd.ColorDic["sub1-AvgATR"] = "#E67E22";        // 平均ATR橙色
+            sd.ColorDic["main-StopLoss"] = "#E74C3C";          // 止损线红色
 
             return sd;
         }

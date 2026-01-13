@@ -39,7 +39,13 @@ namespace QjySDK.Stg
 			sd.UseGlobalCalc = 0;
 			sd.SubChartNum = 1;
 
-			sd.MidValDic["rsi"] = 50;
+			sd.ColorDic["macd-histogram"] = "#F6465D;#0ECB81";
+			sd.ColorDic["macd-macd"] = "#2196F3";
+			sd.ColorDic["macd-signal"] = "#FF9800";
+			sd.ColorDic["main-up"] = "#F6465D";
+			sd.ColorDic["main-mid"] = "#F0B90B";
+			sd.ColorDic["main-low"] = "#0ECB81";
+			sd.MidValDic["macd"] = 0;
 			return sd;
 		}
 
