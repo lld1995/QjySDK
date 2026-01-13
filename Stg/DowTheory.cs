@@ -597,11 +597,11 @@ namespace QjySDK.Stg
             double trendValue = trend == TrendState.Uptrend ? 1 : (trend == TrendState.Downtrend ? -1 : 0);
             Plot("trend", "Trend", PlotType.LINE, trendValue);
             
-            // 绘制波峰波谷
+            // 绘制波峰波谷（价格水平，绘制在主图）
             if (s.LastSwingHigh > 0)
-                Plot("trend", "SwingHigh", PlotType.LINE, (double)s.LastSwingHigh);
+                Plot("main", "SwingHigh", PlotType.LINE, (double)s.LastSwingHigh);
             if (s.LastSwingLow > 0)
-                Plot("trend", "SwingLow", PlotType.LINE, (double)s.LastSwingLow);
+                Plot("main", "SwingLow", PlotType.LINE, (double)s.LastSwingLow);
         }
     }
 }
