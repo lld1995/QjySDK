@@ -93,11 +93,11 @@ namespace QjySDK.Stg
             sd.SubChartNum = 1;
 
             // 颜色配置
-            sd.ColorDic["boll-upper"] = "#F6465D";      // 上轨红色
-            sd.ColorDic["boll-middle"] = "#F0B90B";     // 中轨黄色
-            sd.ColorDic["boll-lower"] = "#0ECB81";      // 下轨绿色
-            sd.ColorDic["rsi"] = "#9B59B6";             // RSI紫色
-            sd.ColorDic["stopLoss"] = "#E74C3C";        // 止损线红色
+            sd.ColorDic["main-upper"] = "#F6465D";      // 上轨红色
+            sd.ColorDic["main-middle"] = "#F0B90B";     // 中轨黄色
+            sd.ColorDic["main-lower"] = "#0ECB81";      // 下轨绿色
+            sd.ColorDic["sub1-rsi"] = "#9B59B6";             // RSI紫色
+            sd.ColorDic["main-stopLoss"] = "#E74C3C";        // 止损线红色
 
             // 中值线配置
             sd.MidValDic["rsi"] = 50;

@@ -38,6 +38,8 @@ namespace QjySDK.Stg
             sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;
 			sd.SubChartNum = 1;
+
+			sd.ColorDic["vol-vol"] = "#2196F3";
 			return sd;
         }
 

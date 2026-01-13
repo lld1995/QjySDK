@@ -38,9 +38,8 @@ namespace QjySDK.Stg
 			sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;
             sd.SubChartNum = 1;
-            sd.ColorDic["macd-macd"] = "#BA55D3";
-            sd.ColorDic["macd-signal"] = "";
-            sd.ColorDic["macd-histogram"] = "#F6465D;#0ECB81";
+            sd.ColorDic["main-up"] = "#F6465D";
+            sd.ColorDic["main-low"] = "#0ECB81";
 			return sd;
         }
 

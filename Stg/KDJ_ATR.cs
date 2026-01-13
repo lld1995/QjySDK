@@ -42,8 +42,9 @@ namespace QjySDK.Stg
             sd.UseGlobalCalc = 0;
             sd.SubChartNum = 1;
             sd.MidValDic["kdj"] = 50;
-            sd.ColorDic["kdj-J"] = "#C562A6";
+            sd.ColorDic["kdj-K"] = "#F6465D";
             sd.ColorDic["kdj-D"] = "#E0A166";
+            sd.ColorDic["kdj-J"] = "#C562A6";
             return sd;
         }
 

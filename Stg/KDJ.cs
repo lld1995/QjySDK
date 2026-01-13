@@ -57,9 +57,9 @@ namespace QjySDK.Stg
             sd.SubChartNum = 1;
             
             // KDJ颜色配置
-            sd.ColorDic["kdj-k"] = "#F6465D";
-            sd.ColorDic["kdj-d"] = "#F0B90B";
-            sd.ColorDic["kdj-j"] = "#0ECB81";
+            sd.ColorDic["sub0-K"] = "#F6465D";
+            sd.ColorDic["sub0-D"] = "#F0B90B";
+            sd.ColorDic["sub0-J"] = "#0ECB81";
 
             // 中值线配置
             sd.MidValDic["sub0"] = 50;

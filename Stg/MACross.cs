@@ -29,8 +29,8 @@ namespace QjySDK
             sd.ArgDescDic["SlowPeriod"] = new ArgDesc { Text = "慢线周期", Explain = "慢速均线的计算周期" };
             sd.ArgDic["SlowPeriod"] = 20;
 
-            sd.ColorDic["FastMA"] = "#FF5722";
-            sd.ColorDic["SlowMA"] = "#2196F3";
+            sd.ColorDic["main-FastMA"] = "#FF5722";
+            sd.ColorDic["main-SlowMA"] = "#2196F3";
 
             return sd;
         }
