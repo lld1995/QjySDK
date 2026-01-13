@@ -672,23 +672,7 @@ namespace QjySDK.Stg
             decimal prevFastEma, decimal prevSlowEma, int sendMode,
             int useTrailingStop, double trailingATR)
         {
-            // 更新最高价
-            if (q.High > state.HighestSinceEntry)
-            {
-                state.HighestSinceEntry = q.High;
-
-                // 移动止损
-                if (useTrailingStop == 1)
-                {
-                    decimal newStop = state.HighestSinceEntry - (decimal)trailingATR * atr;
-                    if (newStop > state.StopPrice)
-                    {
-                        state.StopPrice = newStop;
-                    }
-                }
-            }
-
-            // 检查止损
+            // 先检查止损（使用当前止损价，避免移动止损更新后误触发）
             if (q.Low <= state.StopPrice)
             {
                 ClosePosition(tu, period, q, state, state.StopPrice, sendMode, "止损");
@@ -718,6 +702,22 @@ namespace QjySDK.Stg
                 return;
             }
 
+            // 更新最高价和移动止损（在所有平仓检查之后）
+            if (q.High > state.HighestSinceEntry)
+            {
+                state.HighestSinceEntry = q.High;
+
+                // 移动止损
+                if (useTrailingStop == 1)
+                {
+                    decimal newStop = state.HighestSinceEntry - (decimal)trailingATR * atr;
+                    if (newStop > state.StopPrice)
+                    {
+                        state.StopPrice = newStop;
+                    }
+                }
+            }
+
             // 绘制止损止盈线
             Plot("main", "StopLoss", PlotType.LINE, (double)state.StopPrice);
             Plot("main", "TakeProfit", PlotType.LINE, (double)state.TakeProfitPrice);
@@ -731,23 +731,7 @@ namespace QjySDK.Stg
             decimal prevFastEma, decimal prevSlowEma, int sendMode,
             int useTrailingStop, double trailingATR)
         {
-            // 更新最低价
-            if (q.Low < state.LowestSinceEntry)
-            {
-                state.LowestSinceEntry = q.Low;
-
-                // 移动止损
-                if (useTrailingStop == 1)
-                {
-                    decimal newStop = state.LowestSinceEntry + (decimal)trailingATR * atr;
-                    if (newStop < state.StopPrice)
-                    {
-                        state.StopPrice = newStop;
-                    }
-                }
-            }
-
-            // 检查止损
+            // 先检查止损（使用当前止损价，避免移动止损更新后误触发）
             if (q.High >= state.StopPrice)
             {
                 ClosePosition(tu, period, q, state, state.StopPrice, sendMode, "止损");
@@ -775,6 +759,22 @@ namespace QjySDK.Stg
             {
                 ClosePosition(tu, period, q, state, q.Close, sendMode, "均线金叉");
                 return;
+            }
+
+            // 更新最低价和移动止损（在所有平仓检查之后）
+            if (q.Low < state.LowestSinceEntry)
+            {
+                state.LowestSinceEntry = q.Low;
+
+                // 移动止损
+                if (useTrailingStop == 1)
+                {
+                    decimal newStop = state.LowestSinceEntry + (decimal)trailingATR * atr;
+                    if (newStop < state.StopPrice)
+                    {
+                        state.StopPrice = newStop;
+                    }
+                }
             }
 
             // 绘制止损止盈线
