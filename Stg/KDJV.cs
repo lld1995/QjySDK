@@ -132,20 +132,24 @@ namespace QjySDK.Stg
                         {
                             var oriNum = s.Num;
                             s.Status = 0;
-                            s.Num = num;
+                            s.Num = 0;
                             Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oriNum, period, sendMode);
                         }
 						else if (kdj2.J > kdj1.J && kdj2.J > kdj3.J && kdj2.J > highJ)
                         {
                             var oriNum = s.Num;
-                            s.Status = 0;
-                            s.Num = num;
                             Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oriNum, period, sendMode);
                             if (mode != 1)
                             {
                                 s.Status = 2;
+                                s.Num = num;
                                 s.LossPrice = (100 + lossRate) / 100 * q.Close;
                                 Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
+                            }
+                            else
+                            {
+                                s.Status = 0;
+                                s.Num = 0;
                             }
                         }
 					}
@@ -155,20 +159,24 @@ namespace QjySDK.Stg
                         {
                             var oriNum = s.Num;
                             s.Status = 0;
-                            s.Num = num;
+                            s.Num = 0;
                             Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oriNum, period, sendMode);
                         }
                         else if (kdj2.J < kdj1.J && kdj2.J < kdj3.J && kdj2.J < lowJ)
                         {
                             var oriNum = s.Num;
-                            s.Status = 0;
-                            s.Num = num;
                             Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oriNum, period, sendMode);
                             if (mode != 2)
                             {
                                 s.Status = 1;
+                                s.Num = num;
                                 s.LossPrice = (100 - lossRate) / 100 * q.Close;
                                 Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
+                            }
+                            else
+                            {
+                                s.Status = 0;
+                                s.Num = 0;
                             }
                         }
 					}
