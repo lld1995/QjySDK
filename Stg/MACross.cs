@@ -1,7 +1,9 @@
 using Common;
 using Model;
+using Skender.Stock.Indicators;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using static Model.EnumDef;
 
 namespace QjySDK
@@ -45,10 +47,17 @@ namespace QjySDK
 
             if (quotes.Count < slowPeriod) return;
 
-            double? fastMA = CalculateSMA(quotes, fastPeriod);
-            double? slowMA = CalculateSMA(quotes, slowPeriod);
+            // 使用 Skender.Stock.Indicators 计算 SMA
+            var fastSmaList = quotes.GetSma(fastPeriod).ToList();
+            var slowSmaList = quotes.GetSma(slowPeriod).ToList();
 
-            if (!fastMA.HasValue || !slowMA.HasValue) return;
+            var fastSma = fastSmaList[fastSmaList.Count - 1].Sma;
+            var slowSma = slowSmaList[slowSmaList.Count - 1].Sma;
+
+            if (!fastSma.HasValue || !slowSma.HasValue) return;
+
+            double? fastMA = fastSma.Value;
+            double? slowMA = slowSma.Value;
 
             Plot("main", "FastMA", PlotType.CURVE, fastMA);
             Plot("main", "SlowMA", PlotType.CURVE, slowMA);
@@ -76,16 +85,5 @@ namespace QjySDK
             _prevSlowMA[stateKey] = slowMA;
         }
 
-        private double? CalculateSMA(List<SkQuote> quotes, int period)
-        {
-            if (quotes.Count < period) return null;
-
-            double sum = 0;
-            for (int i = quotes.Count - period; i < quotes.Count; i++)
-            {
-                sum += (double)quotes[i].Close;
-            }
-            return sum / period;
-        }
     }
 }

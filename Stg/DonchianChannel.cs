@@ -1,5 +1,6 @@
 using Common;
 using Model;
+using Skender.Stock.Indicators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -83,15 +84,18 @@ namespace QjySDK
                 _positionState[stateKey] = 0;
             }
 
-            var entryChannel = CalculateDonchianChannel(quotes, _entryPeriod);
-            var exitChannel = CalculateDonchianChannel(quotes, _exitPeriod);
+            var entryDonchian = quotes.GetDonchian(_entryPeriod).ToList();
+            var exitDonchian = quotes.GetDonchian(_exitPeriod).ToList();
 
-            decimal upperBand = entryChannel.Upper;
-            decimal lowerBand = entryChannel.Lower;
-            decimal middleBand = entryChannel.Middle;
+            var entryChannel = entryDonchian[entryDonchian.Count - 1];
+            var exitChannel = exitDonchian[exitDonchian.Count - 1];
 
-            decimal exitUpper = exitChannel.Upper;
-            decimal exitLower = exitChannel.Lower;
+            decimal upperBand = (decimal)(entryChannel.UpperBand ?? 0);
+            decimal lowerBand = (decimal)(entryChannel.LowerBand ?? 0);
+            decimal middleBand = (decimal)(entryChannel.Centerline ?? 0);
+
+            decimal exitUpper = (decimal)(exitChannel.UpperBand ?? 0);
+            decimal exitLower = (decimal)(exitChannel.LowerBand ?? 0);
 
             decimal currentClose = tq.Close;
             decimal prevHigh = quotes[quotes.Count - 2].High;
@@ -161,40 +165,6 @@ namespace QjySDK
                     _positionState[stateKey] = 0;
                 }
             }
-        }
-
-        private DonchianResult CalculateDonchianChannel(List<SkQuote> quotes, int period)
-        {
-            int count = quotes.Count;
-            if (count < period + 1)
-            {
-                return new DonchianResult { Upper = 0, Lower = 0, Middle = 0 };
-            }
-
-            decimal highestHigh = decimal.MinValue;
-            decimal lowestLow = decimal.MaxValue;
-
-            for (int i = count - period - 1; i < count - 1; i++)
-            {
-                if (quotes[i].High > highestHigh)
-                    highestHigh = quotes[i].High;
-                if (quotes[i].Low < lowestLow)
-                    lowestLow = quotes[i].Low;
-            }
-
-            return new DonchianResult
-            {
-                Upper = highestHigh,
-                Lower = lowestLow,
-                Middle = (highestHigh + lowestLow) / 2
-            };
-        }
-
-        private struct DonchianResult
-        {
-            public decimal Upper;
-            public decimal Lower;
-            public decimal Middle;
         }
     }
 }
