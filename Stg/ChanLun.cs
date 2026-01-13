@@ -186,15 +186,25 @@ namespace QjySDK.Stg
 			sd.ArgDic["useStopLoss"] = 1;        // 是否使用止损（0否 1是）
 			sd.ArgDic["stopLossPercent"] = 3.0m; // 止损比例（百分比，如3表示3%）
 
-			//sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0 标准 1 仅做多 2 仅做空" };
-			//sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
-			//sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
-			//sd.ArgDescDic["useZhongShu"] = new ArgDesc() { Text = "使用中枢", Explain = "0 否 1 是" };
-			//sd.ArgDescDic["useDivergence"] = new ArgDesc() { Text = "使用背驰", Explain = "0 否 1 是" };
-			//sd.ArgDescDic["zhongshuMinStrokes"] = new ArgDesc() { Text = "中枢最少笔数", Explain = "形成中枢所需的最少笔数，默认3" };
-			//sd.ArgDescDic["strokeMinBars"] = new ArgDesc() { Text = "笔最少K线", Explain = "笔的最少独立K线数，缠论标准为5" };
+            //sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0 标准 1 仅做多 2 仅做空" };
+            //sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
+            //sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
+            //sd.ArgDescDic["useZhongShu"] = new ArgDesc() { Text = "使用中枢", Explain = "0 否 1 是" };
+            //sd.ArgDescDic["useDivergence"] = new ArgDesc() { Text = "使用背驰", Explain = "0 否 1 是" };
+            //sd.ArgDescDic["zhongshuMinStrokes"] = new ArgDesc() { Text = "中枢最少笔数", Explain = "形成中枢所需的最少笔数，默认3" };
+            //sd.ArgDescDic["strokeMinBars"] = new ArgDesc() { Text = "笔最少K线", Explain = "笔的最少独立K线数，缠论标准为5" };
 
-			sd.MaxSymbolNum = 1000;
+            sd.ColorDic["macd-macd"] = "#BA55D3";
+            sd.ColorDic["macd-signal"] = "";
+            sd.ColorDic["macd-histogram"] = "#F6465D;#0ECB81";
+            sd.ColorDic["main-fractal_top"] = "#F6465D";
+            sd.ColorDic["main-fractal_bottom"] = "#0ECB81";
+            sd.ColorDic["main-bi_up"] = "#F6465D";
+            sd.ColorDic["main-bi_down"] = "#0ECB81";
+            sd.ColorDic["main-zhongshu_zg"] = "#FF6347";
+            sd.ColorDic["main-zhongshu_zd"] = "#4169E1";
+            sd.MidValDic["macd"] = 0;
+            sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;
 			sd.SubChartNum = 1;
 			return sd;
@@ -1408,20 +1418,8 @@ namespace QjySDK.Stg
 			decimal leaveArea = CalculateSegmentMACDArea(leaveSegment);
 			
 			// 背驰条件：离开段MACD面积小于进入段
-			if (leaveArea >= entryArea)
-				return false;
-			
-			// 价格创新高/新低
-			if (leaveSegment.IsUp)
-			{
-				// 向上：离开段高点应该创新高
-				return leaveSegment.High >= entrySegment.High;
-			}
-			else
-			{
-				// 向下：离开段低点应该创新低
-				return leaveSegment.Low <= entrySegment.Low;
-			}
+			// 注意：创新高/新低的检查已在IdentifyBuy1/Sell1中完成（检查离开段是否突破中枢边界）
+			return leaveArea < entryArea;
 		}
 
 		/// <summary>
@@ -1649,6 +1647,7 @@ namespace QjySDK.Stg
 			}
 			if (!hasFractalConfirm && !hasSubDivergence)
 				return null;
+			// 三买条件：回调低点不进入中枢，即低点必须高于或等于中枢上沿ZG
 			if (pullbackStroke.Low < zhongShu.ZG)
 				return null;
 			return new BSPoint
@@ -1684,6 +1683,7 @@ namespace QjySDK.Stg
 			}
 			if (!hasFractalConfirm && !hasSubDivergence)
 				return null;
+			// 三卖条件：反弹高点不进入中枢，即高点必须低于或等于中枢下沿ZD
 			if (pullbackStroke.High > zhongShu.ZD)
 				return null;
 			return new BSPoint
@@ -1755,11 +1755,20 @@ namespace QjySDK.Stg
 				latestFractal = state.Fractals[state.Fractals.Count - 1];
 			}
 
-			// 二买：一买后回调笔形成底分型确认时识别（提前介入）
-			if (state.LastBuy1 != null && prevStroke != null && !prevStroke.IsUp)
+			// 二买：一买后回调笔形成底分型确认时识别
+			if (state.LastBuy1 != null)
 			{
-				// 确保回调笔在一买之后
-				if (prevStroke.EndIndex > state.LastBuy1.Index)
+				// 优先检查当前笔（如果是向下笔）
+				if (!currentStroke.IsUp && currentStroke.EndIndex > state.LastBuy1.Index)
+				{
+					var buy2 = IdentifyBuy2(state, currentStroke, latestFractal);
+					if (buy2 != null && !BSPointExists(state, BSPointType.Buy2, buy2.Index))
+					{
+						state.BSPoints.Add(buy2);
+					}
+				}
+				// 也检查前一笔（如果是向下笔且当前笔未产生二买）
+				else if (prevStroke != null && !prevStroke.IsUp && prevStroke.EndIndex > state.LastBuy1.Index)
 				{
 					var buy2 = IdentifyBuy2(state, prevStroke, latestFractal);
 					if (buy2 != null && !BSPointExists(state, BSPointType.Buy2, buy2.Index))
@@ -1769,11 +1778,20 @@ namespace QjySDK.Stg
 				}
 			}
 
-			// 二卖：一卖后反弹笔形成顶分型确认时识别（提前介入）
-			if (state.LastSell1 != null && prevStroke != null && prevStroke.IsUp)
+			// 二卖：一卖后反弹笔形成顶分型确认时识别
+			if (state.LastSell1 != null)
 			{
-				// 确保反弹笔在一卖之后
-				if (prevStroke.EndIndex > state.LastSell1.Index)
+				// 优先检查当前笔（如果是向上笔）
+				if (currentStroke.IsUp && currentStroke.EndIndex > state.LastSell1.Index)
+				{
+					var sell2 = IdentifySell2(state, currentStroke, latestFractal);
+					if (sell2 != null && !BSPointExists(state, BSPointType.Sell2, sell2.Index))
+					{
+						state.BSPoints.Add(sell2);
+					}
+				}
+				// 也检查前一笔（如果是向上笔且当前笔未产生二卖）
+				else if (prevStroke != null && prevStroke.IsUp && prevStroke.EndIndex > state.LastSell1.Index)
 				{
 					var sell2 = IdentifySell2(state, prevStroke, latestFractal);
 					if (sell2 != null && !BSPointExists(state, BSPointType.Sell2, sell2.Index))
@@ -1910,7 +1928,7 @@ namespace QjySDK.Stg
 						Val1 = stroke.StartFractal.Price,
 						Val2 = stroke.EndFractal.Price
 					};
-					Plot("main", "bi", PlotType.LINE_SEGMENT, (double)q.Close, extra);
+					Plot("main", stroke.IsUp ? "bi_up" : "bi_down", PlotType.LINE_SEGMENT, (double)q.Close, extra);
 					s.LastDrawOriIndex = stroke.EndFractal.LastOriginalIndex;
 				}
 			}
