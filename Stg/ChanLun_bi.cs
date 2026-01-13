@@ -197,6 +197,12 @@ namespace QjySDK.Stg
 			sd.ColorDic["macd-macd"] = "#BA55D3";
 			sd.ColorDic["macd-signal"] = "";
 			sd.ColorDic["macd-histogram"] = "#F6465D;#0ECB81";
+			sd.ColorDic["main-fractal_top"] = "#F6465D";
+			sd.ColorDic["main-fractal_bottom"] = "#0ECB81";
+			sd.ColorDic["main-bi_up"] = "#F6465D";
+			sd.ColorDic["main-bi_down"] = "#0ECB81";
+			sd.ColorDic["main-zhongshu_zg"] = "#FF6347";
+			sd.ColorDic["main-zhongshu_zd"] = "#4169E1";
 			sd.MidValDic["macd"] = 0;
 			sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;
@@ -1402,20 +1408,7 @@ namespace QjySDK.Stg
 				return false;
 			
 			// 背驰条件：离开笔MACD面积小于进入笔
-			if (leaveStroke.MACDArea >= entryStroke.MACDArea)
-				return false;
-			
-			// 价格创新高/新低
-			if (leaveStroke.IsUp)
-			{
-				// 向上：离开笔高点应该创新高
-				return leaveStroke.High >= entryStroke.High;
-			}
-			else
-			{
-				// 向下：离开笔低点应该创新低
-				return leaveStroke.Low <= entryStroke.Low;
-			}
+			return leaveStroke.MACDArea < entryStroke.MACDArea;
 		}
 
 		/// <summary>
@@ -1750,10 +1743,19 @@ namespace QjySDK.Stg
 			}
 
 			// 二买：一买后回调笔形成底分型确认时识别（提前介入）
-			if (state.LastBuy1 != null && prevStroke != null && !prevStroke.IsUp)
+			if (state.LastBuy1 != null)
 			{
-				// 确保回调笔在一买之后
-				if (prevStroke.EndIndex > state.LastBuy1.Index)
+				// 优先检查当前笔（如果是向下笔）
+				if (!currentStroke.IsUp && currentStroke.EndIndex > state.LastBuy1.Index)
+				{
+					var buy2 = IdentifyBuy2(state, currentStroke, latestFractal);
+					if (buy2 != null && !BSPointExists(state, BSPointType.Buy2, buy2.Index))
+					{
+						state.BSPoints.Add(buy2);
+					}
+				}
+				// 也检查前一笔（如果是向下笔且当前笔未产生二买）
+				else if (prevStroke != null && !prevStroke.IsUp && prevStroke.EndIndex > state.LastBuy1.Index)
 				{
 					var buy2 = IdentifyBuy2(state, prevStroke, latestFractal);
 					if (buy2 != null && !BSPointExists(state, BSPointType.Buy2, buy2.Index))
@@ -1764,10 +1766,19 @@ namespace QjySDK.Stg
 			}
 
 			// 二卖：一卖后反弹笔形成顶分型确认时识别（提前介入）
-			if (state.LastSell1 != null && prevStroke != null && prevStroke.IsUp)
+			if (state.LastSell1 != null)
 			{
-				// 确保反弹笔在一卖之后
-				if (prevStroke.EndIndex > state.LastSell1.Index)
+				// 优先检查当前笔（如果是向上笔）
+				if (currentStroke.IsUp && currentStroke.EndIndex > state.LastSell1.Index)
+				{
+					var sell2 = IdentifySell2(state, currentStroke, latestFractal);
+					if (sell2 != null && !BSPointExists(state, BSPointType.Sell2, sell2.Index))
+					{
+						state.BSPoints.Add(sell2);
+					}
+				}
+				// 也检查前一笔（如果是向上笔且当前笔未产生二卖）
+				else if (prevStroke != null && prevStroke.IsUp && prevStroke.EndIndex > state.LastSell1.Index)
 				{
 					var sell2 = IdentifySell2(state, prevStroke, latestFractal);
 					if (sell2 != null && !BSPointExists(state, BSPointType.Sell2, sell2.Index))
@@ -1904,7 +1915,7 @@ namespace QjySDK.Stg
 						Val1 = stroke.StartFractal.Price,
 						Val2 = stroke.EndFractal.Price
 					};
-					Plot("main", "bi", PlotType.LINE_SEGMENT, (double)q.Close, extra);
+					Plot("main", stroke.IsUp ? "bi_up" : "bi_down", PlotType.LINE_SEGMENT, (double)q.Close, extra);
 					s.LastDrawOriIndex = stroke.EndFractal.LastOriginalIndex;
 				}
 			}
