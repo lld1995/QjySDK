@@ -872,15 +872,15 @@ namespace QjySDK.Stg
             if (!wave.IsValid || pivots.Count == 0) return;
 
             // 绘制当前浪位
-            Plot("wave", "CurrentWave", PlotType.LINE, wave.CurrentWave);
+            Plot("main", "CurrentWave", PlotType.LINE, wave.CurrentWave);
             
             // 绘制波浪类型 (1=推动浪, 2=调整浪)
             double waveTypeVal = wave.Type == WaveType.Impulse ? 1 : (wave.Type == WaveType.Corrective ? 2 : 0);
-            Plot("wave", "WaveType", PlotType.LINE, waveTypeVal);
+            Plot("main", "WaveType", PlotType.LINE, waveTypeVal);
 
             // 绘制趋势方向 (1=上升, -1=下降)
             double directionVal = wave.Direction == WaveDirection.Up ? 1 : (wave.Direction == WaveDirection.Down ? -1 : 0);
-            Plot("wave", "Direction", PlotType.LINE, directionVal);
+            Plot("main", "Direction", PlotType.LINE, directionVal);
 
             // 绘制斐波那契关键位
             if (wave.Wave1Start > 0 && wave.Wave1End > 0)
@@ -889,8 +889,8 @@ namespace QjySDK.Stg
                 decimal low = Math.Min(wave.Wave1Start, wave.Wave1End);
                 var fibLevels = CalculateFibonacciRetracement(high, low);
                 
-                Plot("fib", "Fib382", PlotType.LINE, (double)fibLevels[0]);
-                Plot("fib", "Fib618", PlotType.LINE, (double)fibLevels[2]);
+                Plot("main", "Fib382", PlotType.LINE, (double)fibLevels[0]);
+                Plot("main", "Fib618", PlotType.LINE, (double)fibLevels[2]);
             }
         }
 
