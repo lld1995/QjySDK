@@ -47,6 +47,9 @@ namespace QjySDK.Stg
 			sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;
 			sd.SubChartNum = 1;
+
+			sd.ColorDic["sub0-GridPercent"] = "#FF9800";
+			sd.ColorDic["sub0-Position"] = "#2196F3";
 			return sd;
 		}
 
@@ -150,7 +153,7 @@ namespace QjySDK.Stg
 					// ATR占价格的百分比作为网格间距
 					gridPercent = (decimal)(atr.Atr.Value / (double)q.Close * 100);
 					gridPercent = Math.Max(0.5m, Math.Min(5m, gridPercent)); // 限制在0.5%-5%之间
-					Plot("sub1", "GridPercent", PlotType.LINE, (double)gridPercent);
+					Plot("sub0", "GridPercent", PlotType.LINE, (double)gridPercent);
 				}
 			}
 
@@ -219,7 +222,7 @@ namespace QjySDK.Stg
 			}
 
 			// 绘制当前持仓
-			Plot("sub1", "Position", PlotType.LINE, (double)s.TotalPosition);
+			Plot("sub0", "Position", PlotType.LINE, (double)s.TotalPosition);
 		}
 	}
 }

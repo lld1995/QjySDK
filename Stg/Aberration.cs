@@ -74,9 +74,9 @@ namespace QjySDK.Stg
             sd.SubChartNum = 0;
 
             // 通道颜色配置
-            sd.ColorDic["aberration-upper"] = "#F6465D";   // 上轨红色
-            sd.ColorDic["aberration-middle"] = "#F0B90B";  // 中轨黄色
-            sd.ColorDic["aberration-lower"] = "#0ECB81";   // 下轨绿色
+            sd.ColorDic["main-upper"] = "#F6465D";   // 上轨红色
+            sd.ColorDic["main-middle"] = "#F0B90B";  // 中轨黄色
+            sd.ColorDic["main-lower"] = "#0ECB81";   // 下轨绿色
 
             return sd;
         }
