@@ -350,29 +350,18 @@ namespace QjySDK
             state.Reset();
         }
 
+        /// <summary>
+        /// 计算ATR（使用 Skender.Stock.Indicators）
+        /// </summary>
         private decimal CalculateATR(List<SkQuote> quotes, int period)
         {
-            int count = quotes.Count;
-            if (count < period + 1)
+            if (quotes.Count < period + 1)
                 return 0;
 
-            List<decimal> trList = new List<decimal>();
-
-            for (int i = count - period; i < count; i++)
-            {
-                decimal high = quotes[i].High;
-                decimal low = quotes[i].Low;
-                decimal prevClose = quotes[i - 1].Close;
-
-                decimal tr1 = high - low;
-                decimal tr2 = Math.Abs(high - prevClose);
-                decimal tr3 = Math.Abs(low - prevClose);
-
-                decimal tr = Math.Max(tr1, Math.Max(tr2, tr3));
-                trList.Add(tr);
-            }
-
-            return trList.Average();
+            var atrList = quotes.GetAtr(period).ToList();
+            int lastIdx = atrList.Count - 1;
+            var atr = atrList[lastIdx].Atr;
+            return atr.HasValue ? (decimal)atr.Value : 0;
         }
 
         private class TradeState
