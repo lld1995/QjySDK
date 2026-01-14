@@ -28,10 +28,10 @@ namespace QjySDK.Stg
             sd.ArgDic["breakoutPercent"] = 0.1d;    // 突破确认百分比
             
             // 风控参数
-            sd.ArgDic["stopLossPercent"] = 3.0m;    // 止损百分比
-            sd.ArgDic["takeProfitPercent"] = 6.0m;  // 止盈百分比
+            sd.ArgDic["stopLossPercent"] = 8.0m;    // 止损百分比
+            sd.ArgDic["takeProfitPercent"] = 15.0m;  // 止盈百分比
             sd.ArgDic["trailingStop"] = 1;          // 是否启用移动止损 0-否 1-是
-            sd.ArgDic["trailingPercent"] = 2.0m;    // 移动止损百分比
+            sd.ArgDic["trailingPercent"] = 8.0m;    // 移动止损百分比
             
             // 交易模式
             sd.ArgDic["mode"] = 0;                   // 0-双向 1-仅做多 2-仅做空

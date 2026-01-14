@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using static Model.EnumDef;
 
-namespace QjySDK
+namespace QjySDK.Stg
 {
     /// <summary>
     /// 标准EMA交易策略
