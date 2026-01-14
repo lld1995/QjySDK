@@ -21,9 +21,9 @@ namespace QjySDK.Stg
 			// 网格基准价格（0表示使用第一个K线收盘价作为基准）
 			sd.ArgDic["basePrice"] = 0m;
 			// 网格间距百分比
-			sd.ArgDic["gridPercent"] = 1.0m;
+			sd.ArgDic["gridPercent"] = 2.0m;
 			// 网格数量（上下各多少格）
-			sd.ArgDic["gridCount"] = 5;
+			sd.ArgDic["gridCount"] = 3;
 			// 发单模式
 			sd.ArgDic["sendMode"] = 0;
 

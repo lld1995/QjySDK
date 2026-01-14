@@ -1915,7 +1915,7 @@ namespace QjySDK.Stg
 						Val1 = stroke.StartFractal.Price,
 						Val2 = stroke.EndFractal.Price
 					};
-					Plot("main", stroke.IsUp ? "bi_up" : "bi_down", PlotType.LINE_SEGMENT, (double)q.Close, extra);
+					Plot("main", stroke.IsUp ? "bi_up" : "bi_down", PlotType.LINE_SEGMENT, (double)stroke.StartFractal.Price, extra);
 					s.LastDrawOriIndex = stroke.EndFractal.LastOriginalIndex;
 				}
 			}

@@ -61,14 +61,31 @@ namespace QjySDK.Stg
 
         public void Trade(string mktSymbol, OrderType ot, decimal price, decimal num, Period p, int sendMode)
         {
-            var rtr = new RemoteTradeRecord();
-            rtr.MktSymbol = mktSymbol;
-            rtr.OT = ot;
-            rtr.Price = price;
-            rtr.Num = num;
-            rtr.P = p;
-            rtr.SendMode = sendMode;
-            _rtr.Add(rtr);
+            var isSame = false;
+            foreach (var item in _rtr)
+            {
+                if (item.MktSymbol == mktSymbol&& item.P==p && item.OT==ot && item.Price==price&&item.SendMode==sendMode)
+                {
+                    item.Num += num;
+					isSame = true;
+                    break;
+                }
+            }
+            if (isSame)
+            {
+
+            }
+            else
+            {
+				var rtr = new RemoteTradeRecord();
+				rtr.MktSymbol = mktSymbol;
+				rtr.OT = ot;
+				rtr.Price = price;
+				rtr.Num = num;
+				rtr.P = p;
+				rtr.SendMode = sendMode;
+				_rtr.Add(rtr);
+			}
         }
 
         public void Plot(string chartName, string name, PlotType pt, double? val, object extra = null)
