@@ -103,7 +103,7 @@ namespace QjySDK
             sd.ArgDescDic["TrailingStopAtrMultiplier"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数" };
             sd.ArgDic["TrailingStopAtrMultiplier"] = 1.5;
 
-            sd.ColorDic["main-EMA_Fast"] = "#FF6B6B";
+            sd.ColorDic["main-EMA_Fast"] = "#FF5722";
             sd.ColorDic["main-EMA_Slow"] = "#4ECDC4";
             sd.ColorDic["sub0-ADX"] = "#FFE66D";
             sd.ColorDic["sub0-PDI"] = "#4CAF50";

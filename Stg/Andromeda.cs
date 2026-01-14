@@ -120,7 +120,7 @@ namespace QjySDK.Stg
             sd.SubChartNum = 2;
 
             // 颜色配置
-            sd.ColorDic["main-FastEMA"] = "#FF6B6B";      // 快速EMA红色
+            sd.ColorDic["main-FastEMA"] = "#FF5722";      // 快速EMA橙红色
             sd.ColorDic["main-MidEMA"] = "#4ECDC4";       // 中速EMA青色
             sd.ColorDic["main-SlowEMA"] = "#45B7D1";      // 慢速EMA蓝色
             sd.ColorDic["sub0-ROC"] = "#9B59B6";           // ROC紫色
