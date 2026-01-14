@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using static Model.EnumDef;
 
-namespace QjySDK
+namespace QjySDK.Stg
 {
     /// <summary>
     /// 唐奇安通道策略 (Donchian Channel Strategy)

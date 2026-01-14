@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static Model.EnumDef;
 
-namespace QjySDK
+namespace QjySDK.Stg
 {
     public abstract class StgBase
     {
