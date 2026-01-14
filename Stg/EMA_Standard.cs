@@ -60,9 +60,9 @@ namespace QjySDK
             sd.ArgDescDic["TradeAmount"] = new ArgDesc { Text = "交易数量", Explain = "每次交易的数量" };
             sd.ArgDic["TradeAmount"] = 1.0;
 
-            sd.ColorDic["main-EMA_Fast"] = "#FF6B6B";
+            sd.ColorDic["main-EMA_Fast"] = "#FF5722";
             sd.ColorDic["main-EMA_Slow"] = "#4ECDC4";
-            sd.ColorDic["main-EMA_Trend"] = "#FFE66D";
+            sd.ColorDic["main-EMA_Trend"] = "#FF9800";
 
             return sd;
         }

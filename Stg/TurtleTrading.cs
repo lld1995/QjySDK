@@ -99,8 +99,8 @@ namespace QjySDK.Stg
             sd.SubChartNum = 1;
 
             // 通道颜色配置
-            sd.ColorDic["main-entryUpper"] = "#F6465D";      // 入场上轨红色
-            sd.ColorDic["main-entryLower"] = "#0ECB81";      // 入场下轨绿色
+            sd.ColorDic["main-entryUpper"] = "#FF5722";      // 入场上轨橙红色
+            sd.ColorDic["main-entryLower"] = "#00BCD4";      // 入场下轨青色
             sd.ColorDic["main-exitUpper"] = "#FF9800"; // 出场上轨橙色
             sd.ColorDic["main-exitLower"] = "#2196F3"; // 出场下轨蓝色
             sd.ColorDic["sub0-ATR"] = "#9C27B0";        // ATR紫色

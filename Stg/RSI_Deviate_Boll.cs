@@ -39,9 +39,9 @@ namespace QjySDK.Stg
 			sd.UseGlobalCalc = 0;
 			sd.SubChartNum = 1;
 
-			sd.ColorDic["main-up"] = "#F6465D";
-			sd.ColorDic["main-mid"] = "#F0B90B";
-			sd.ColorDic["main-low"] = "#0ECB81";
+			sd.ColorDic["main-up"] = "#FF5722";
+			sd.ColorDic["main-mid"] = "#FF9800";
+			sd.ColorDic["main-low"] = "#2196F3";
 			sd.ColorDic["rsi-rsi"] = "#9C27B0";
 			sd.MidValDic["rsi"] = 50;
 			return sd;

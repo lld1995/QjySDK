@@ -93,9 +93,9 @@ namespace QjySDK.Stg
             sd.SubChartNum = 1;
 
             // 颜色配置
-            sd.ColorDic["main-upper"] = "#F6465D";      // 上轨红色
-            sd.ColorDic["main-middle"] = "#F0B90B";     // 中轨黄色
-            sd.ColorDic["main-lower"] = "#0ECB81";      // 下轨绿色
+            sd.ColorDic["main-upper"] = "#FF5722";      // 上轨橙红色
+            sd.ColorDic["main-middle"] = "#FF9800";     // 中轨橙色
+            sd.ColorDic["main-lower"] = "#2196F3";      // 下轨蓝色
             sd.ColorDic["sub0-rsi"] = "#9B59B6";             // RSI紫色
             sd.ColorDic["main-stopLoss"] = "#E74C3C";        // 止损线红色
 

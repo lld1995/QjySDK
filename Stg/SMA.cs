@@ -60,9 +60,9 @@ namespace QjySDK.Stg
             sd.SubChartNum = 0;
 
             // 均线颜色配置
-            sd.ColorDic["main-fast"] = "#F6465D";        // 快线红色
-            sd.ColorDic["main-slow"] = "#0ECB81";        // 慢线绿色
-            sd.ColorDic["main-trend"] = "#F0B90B";       // 趋势线黄色
+            sd.ColorDic["main-fast"] = "#FF5722";        // 快线橙红色
+            sd.ColorDic["main-slow"] = "#00BCD4";        // 慢线青色
+            sd.ColorDic["main-trend"] = "#FF9800";       // 趋势线橙色
 
             return sd;
         }
