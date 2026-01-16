@@ -814,11 +814,6 @@ namespace QjySDK.Stg
                 {
                     shouldExit = true;
                 }
-                else if (prediction < -threshold)
-                {
-                    // 预测反转，平仓
-                    shouldExit = true;
-                }
 
                 if (shouldExit)
                 {
@@ -840,11 +835,6 @@ namespace QjySDK.Stg
                 }
                 else if (q.Close <= s.TakeProfit)
                 {
-                    shouldExit = true;
-                }
-                else if (prediction > threshold)
-                {
-                    // 预测反转，平仓
                     shouldExit = true;
                 }
 
