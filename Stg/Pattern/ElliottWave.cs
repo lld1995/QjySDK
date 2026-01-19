@@ -11,6 +11,8 @@ namespace QjySDK.Stg
 {
     public class ElliottWave : StgBase
     {
+        public ElliottWave() { }
+
         public ElliottWave(string id) : base(id) { }
 
         public override StgDesc GetStgDesc()

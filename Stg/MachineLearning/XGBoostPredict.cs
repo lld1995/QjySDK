@@ -22,6 +22,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class XGBoostPredict : StgBase
     {
+        public XGBoostPredict()
+        {
+        }
+
         public XGBoostPredict(string id) : base(id)
         {
         }

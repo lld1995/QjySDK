@@ -25,6 +25,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class ThreeFactorResonance : StgBase
     {
+        public ThreeFactorResonance()
+        {
+        }
+
         public ThreeFactorResonance(string id) : base(id)
         {
         }

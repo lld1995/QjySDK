@@ -32,6 +32,10 @@ namespace QjySDK.Stg
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
 
+		public MACDStandard()
+		{
+		}
+
 		public MACDStandard(string id) : base(id)
 		{
 		}

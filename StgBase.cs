@@ -14,6 +14,9 @@ namespace QjySDK.Stg
     public abstract class StgBase
     {
         public event Action OnInit;
+        public StgBase()
+        {
+        }
         public StgBase(string id)
         {
             Id = id;

@@ -22,6 +22,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class GBDTPredict : StgBase
     {
+        public GBDTPredict()
+        {
+        }
+
         public GBDTPredict(string id) : base(id)
         {
         }

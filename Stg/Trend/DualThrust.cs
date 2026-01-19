@@ -37,6 +37,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class DualThrust : StgBase
     {
+        public DualThrust()
+        {
+        }
+
         public DualThrust(string id) : base(id)
         {
         }

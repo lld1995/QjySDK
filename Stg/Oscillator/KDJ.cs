@@ -18,6 +18,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class KDJ : StgBase
     {
+        public KDJ()
+        {
+        }
+
         public KDJ(string id) : base(id)
         {
         }

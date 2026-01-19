@@ -13,6 +13,10 @@ namespace QjySDK.Stg
         private Dictionary<string, double?> _prevFastMA = new Dictionary<string, double?>();
         private Dictionary<string, double?> _prevSlowMA = new Dictionary<string, double?>();
 
+        public MACross()
+        {
+        }
+
         public MACross(string id) : base(id)
         {
         }

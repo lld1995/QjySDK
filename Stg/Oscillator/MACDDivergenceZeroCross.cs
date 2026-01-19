@@ -36,6 +36,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class MACDDivergenceZeroCross : StgBase
     {
+        public MACDDivergenceZeroCross()
+        {
+        }
+
         public MACDDivergenceZeroCross(string id) : base(id)
         {
         }

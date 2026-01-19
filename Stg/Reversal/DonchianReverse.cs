@@ -11,6 +11,10 @@ namespace QjySDK.Stg
 {
     public class DonchianReverse : StgBase
     {
+        public DonchianReverse()
+        {
+        }
+
         public DonchianReverse(string id) : base(id)
         {
         }

@@ -19,6 +19,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class SMA : StgBase
     {
+        public SMA()
+        {
+        }
+
         public SMA(string id) : base(id)
         {
         }

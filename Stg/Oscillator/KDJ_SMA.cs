@@ -11,6 +11,10 @@ namespace QjySDK.Stg
 {
     public class KDJ_SMA : StgBase
     {
+        public KDJ_SMA()
+        {
+        }
+
         public KDJ_SMA(string id) : base(id)
         {
         }

@@ -39,6 +39,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class TurtleTrading : StgBase
     {
+        public TurtleTrading()
+        {
+        }
+
         public TurtleTrading(string id) : base(id)
         {
         }

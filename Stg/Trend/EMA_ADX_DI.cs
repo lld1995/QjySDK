@@ -72,6 +72,10 @@ namespace QjySDK.Stg
         // 状态管理
         private Dictionary<string, TradeState> _stateDict = new Dictionary<string, TradeState>();
 
+        public EMA_ADX_DI()
+        {
+        }
+
         public EMA_ADX_DI(string id) : base(id)
         {
         }
