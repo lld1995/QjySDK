@@ -26,6 +26,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class MultiPeriodResonance : StgBase
     {
+        public MultiPeriodResonance()
+        {
+        }
+
         public MultiPeriodResonance(string id) : base(id)
         {
         }

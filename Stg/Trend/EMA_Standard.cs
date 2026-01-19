@@ -28,6 +28,10 @@ namespace QjySDK.Stg
         private decimal _takeProfitPercent;
         private decimal _tradeAmount;
 
+        public EMA_Standard()
+        {
+        }
+
         public EMA_Standard(string id) : base(id)
         {
         }

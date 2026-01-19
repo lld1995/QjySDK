@@ -29,6 +29,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class Aberration : StgBase
     {
+        public Aberration()
+        {
+        }
+
         public Aberration(string id) : base(id)
         {
         }

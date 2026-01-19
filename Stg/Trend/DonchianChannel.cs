@@ -33,6 +33,10 @@ namespace QjySDK.Stg
 
         private Dictionary<string, int> _positionState = new Dictionary<string, int>();
 
+        public DonchianChannel()
+        {
+        }
+
         public DonchianChannel(string id) : base(id)
         {
         }

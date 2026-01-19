@@ -53,6 +53,14 @@ namespace QjySDK.Stg
     /// </summary>
     public class MACD_ADX_Resonance : StgBase
     {
+        public MACD_ADX_Resonance()
+        {
+        }
+
+        public MACD_ADX_Resonance(string id) : base(id)
+        {
+        }
+
         #region 参数字段
 
         // MACD参数
@@ -91,10 +99,6 @@ namespace QjySDK.Stg
 
         // 状态管理
         private Dictionary<string, TradeState> _stateDict = new Dictionary<string, TradeState>();
-
-        public MACD_ADX_Resonance(string id) : base(id)
-        {
-        }
 
         public override StgDesc GetStgDesc()
         {

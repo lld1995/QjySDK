@@ -19,6 +19,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class MACD_KDJ_Cross : StgBase
     {
+        public MACD_KDJ_Cross()
+        {
+        }
+
         public MACD_KDJ_Cross(string id) : base(id)
         {
         }

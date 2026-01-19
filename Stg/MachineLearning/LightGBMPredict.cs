@@ -17,6 +17,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class LightGBMPredict : StgBase
     {
+        public LightGBMPredict()
+        {
+        }
+
         public LightGBMPredict(string id) : base(id)
         {
         }

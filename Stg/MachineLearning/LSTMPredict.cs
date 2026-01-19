@@ -17,6 +17,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class LSTMPredict : StgBase
     {
+        public LSTMPredict()
+        {
+        }
+
         public LSTMPredict(string id) : base(id)
         {
         }

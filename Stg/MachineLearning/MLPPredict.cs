@@ -22,6 +22,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class MLPPredict : StgBase
     {
+        public MLPPredict()
+        {
+        }
+
         public MLPPredict(string id) : base(id)
         {
         }

@@ -11,6 +11,10 @@ namespace QjySDK.Stg
 {
     public class KDJV : StgBase
     {
+        public KDJV()
+        {
+        }
+
         public KDJV(string id) : base(id)
         {
         }

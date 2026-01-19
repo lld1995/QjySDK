@@ -30,6 +30,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class BollingerMeanReversion : StgBase
     {
+        public BollingerMeanReversion()
+        {
+        }
+
         public BollingerMeanReversion(string id) : base(id)
         {
         }

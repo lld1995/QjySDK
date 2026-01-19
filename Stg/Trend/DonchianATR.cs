@@ -50,6 +50,10 @@ namespace QjySDK.Stg
 
         private Dictionary<string, PositionInfo> _positionInfos = new Dictionary<string, PositionInfo>();
 
+        public DonchianATR()
+        {
+        }
+
         public DonchianATR(string id) : base(id)
         {
         }

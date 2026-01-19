@@ -11,6 +11,10 @@ namespace QjySDK.Stg
 {
     public class DowTheory : StgBase
     {
+        public DowTheory()
+        {
+        }
+
         public DowTheory(string id) : base(id)
         {
         }

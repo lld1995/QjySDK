@@ -21,6 +21,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class CatBoostPredict : StgBase
     {
+        public CatBoostPredict()
+        {
+        }
+
         public CatBoostPredict(string id) : base(id)
         {
         }

@@ -42,6 +42,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class RUMI : StgBase
     {
+        public RUMI()
+        {
+        }
+
         public RUMI(string id) : base(id)
         {
         }

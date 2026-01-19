@@ -47,6 +47,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class Andromeda : StgBase
     {
+        public Andromeda()
+        {
+        }
+
         public Andromeda(string id) : base(id)
         {
         }
