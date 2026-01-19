@@ -1,6 +1,7 @@
 using Common;
 using Model;
 using Skender.Stock.Indicators;
+using stgInterface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,6 +59,10 @@ namespace QjySDK.Stg
         private decimal _trailingStopAtrMultiplier;
 
         private Dictionary<string, TradeState> _stateDict = new Dictionary<string, TradeState>();
+
+        public EMA_ADX()
+        {
+        }
 
         public EMA_ADX(string id) : base(id)
         {

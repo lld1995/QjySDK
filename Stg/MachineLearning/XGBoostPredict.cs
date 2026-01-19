@@ -1,6 +1,7 @@
 using Common;
 using Model;
 using Skender.Stock.Indicators;
+using stgInterface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class XGBoostPredict : StgBase
     {
+        public XGBoostPredict()
+        {
+        }
+
         public XGBoostPredict(string id) : base(id)
         {
         }

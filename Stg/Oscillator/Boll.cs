@@ -17,6 +17,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class Boll : StgBase
     {
+        public Boll()
+        {
+        }
+
         public Boll(string id) : base(id)
         {
         }

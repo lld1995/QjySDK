@@ -11,6 +11,10 @@ namespace QjySDK.Stg
 {
 	public class RSI_Deviate_Boll : StgBase
 	{
+		public RSI_Deviate_Boll()
+		{
+		}
+
 		public RSI_Deviate_Boll(string id) : base(id)
 		{
 		}

@@ -13,6 +13,10 @@ namespace QjySDK.Stg
 {
     public class ReverseShadow : StgBase
     {
+        public ReverseShadow()
+        {
+        }
+
         public ReverseShadow(string id) : base(id)
         {
         }

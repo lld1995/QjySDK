@@ -1,6 +1,7 @@
 using Common;
 using Model;
 using Skender.Stock.Indicators;
+using stgInterface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -71,6 +72,10 @@ namespace QjySDK.Stg
 
         // 状态管理
         private Dictionary<string, TradeState> _stateDict = new Dictionary<string, TradeState>();
+
+        public EMA_ADX_DI()
+        {
+        }
 
         public EMA_ADX_DI(string id) : base(id)
         {

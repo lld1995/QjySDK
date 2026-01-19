@@ -11,6 +11,9 @@ namespace QjySDK.Stg
 {
 	public class Boll_Shadow : StgBase
 	{
+		public Boll_Shadow()
+		{
+		}
 
 		public Boll_Shadow(string id) : base(id)
 		{

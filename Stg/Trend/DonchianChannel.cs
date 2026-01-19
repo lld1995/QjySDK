@@ -1,6 +1,7 @@
 using Common;
 using Model;
 using Skender.Stock.Indicators;
+using stgInterface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +33,10 @@ namespace QjySDK.Stg
         private decimal _positionRatio = 1.0m;
 
         private Dictionary<string, int> _positionState = new Dictionary<string, int>();
+
+        public DonchianChannel()
+        {
+        }
 
         public DonchianChannel(string id) : base(id)
         {

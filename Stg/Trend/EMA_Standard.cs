@@ -1,6 +1,7 @@
 using Common;
 using Model;
 using Skender.Stock.Indicators;
+using stgInterface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +28,10 @@ namespace QjySDK.Stg
         private decimal _stopLossPercent;
         private decimal _takeProfitPercent;
         private decimal _tradeAmount;
+
+        public EMA_Standard()
+        {
+        }
 
         public EMA_Standard(string id) : base(id)
         {

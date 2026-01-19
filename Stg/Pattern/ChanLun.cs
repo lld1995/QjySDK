@@ -15,6 +15,14 @@ namespace QjySDK.Stg
 	/// </summary>
 	public class ChanLun : StgBase
 	{
+		public ChanLun()
+		{
+		}
+
+		public ChanLun(string id) : base(id)
+		{
+		}
+
 		// 分型类型
 		internal enum FractalType
 		{
@@ -234,10 +242,6 @@ namespace QjySDK.Stg
 		}
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
-
-		public ChanLun(string id) : base(id)
-		{
-		}
 
 		#region K线包含关系处理
 

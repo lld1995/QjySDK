@@ -11,6 +11,10 @@ namespace QjySDK.Stg
 {
 	public class Reverse : StgBase
 	{
+		public Reverse()
+		{
+		}
+
 		public Reverse(string id) : base(id)
 		{
 		}

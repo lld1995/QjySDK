@@ -18,6 +18,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class RSI : StgBase
     {
+        public RSI()
+        {
+        }
+
         public RSI(string id) : base(id)
         {
         }
