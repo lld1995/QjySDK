@@ -32,6 +32,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class RSIDivergenceMA : StgBase
     {
+        public RSIDivergenceMA()
+        {
+        }
+
         public RSIDivergenceMA(string id) : base(id)
         {
         }

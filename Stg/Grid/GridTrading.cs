@@ -11,6 +11,10 @@ namespace QjySDK.Stg
 {
 	public class GridTrading : StgBase
 	{
+		public GridTrading()
+		{
+		}
+
 		public GridTrading(string id) : base(id)
 		{
 		}

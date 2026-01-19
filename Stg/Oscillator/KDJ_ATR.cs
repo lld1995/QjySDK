@@ -11,6 +11,10 @@ namespace QjySDK.Stg
 {
     public class KDJ_ATR : StgBase
     {
+        public KDJ_ATR()
+        {
+        }
+
         public KDJ_ATR(string id) : base(id)
         {
         }

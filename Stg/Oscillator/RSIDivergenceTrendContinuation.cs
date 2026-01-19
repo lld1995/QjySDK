@@ -41,6 +41,10 @@ namespace QjySDK.Stg
     /// </summary>
     public class RSIDivergenceTrendContinuation : StgBase
     {
+        public RSIDivergenceTrendContinuation()
+        {
+        }
+
         public RSIDivergenceTrendContinuation(string id) : base(id)
         {
         }

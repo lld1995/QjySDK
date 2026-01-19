@@ -11,6 +11,10 @@ namespace QjySDK.Stg
 {
 	public class MACD_Deviate_Boll : StgBase
 	{
+		public MACD_Deviate_Boll()
+		{
+		}
+
 		public MACD_Deviate_Boll(string id) : base(id)
 		{
 		}

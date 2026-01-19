@@ -1,6 +1,7 @@
 using Common;
 using Model;
 using Skender.Stock.Indicators;
+using stgInterface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,6 +50,10 @@ namespace QjySDK.Stg
         private decimal _unitPositionRatio = 0.25m;
 
         private Dictionary<string, PositionInfo> _positionInfos = new Dictionary<string, PositionInfo>();
+
+        public DonchianATR()
+        {
+        }
 
         public DonchianATR(string id) : base(id)
         {
