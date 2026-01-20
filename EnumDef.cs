@@ -20,5 +20,9 @@
         {
             LINE, CURVE, RECTANGLE, XLINE, POINT, TEXT, LINE_SEGMENT
         }
+        public enum SymbolType
+        {
+            AUTO, COIN, STOCK, FUTURES, MAX
+        }
     }
 }

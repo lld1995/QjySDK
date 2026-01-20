@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QjySDK
+namespace QjySDK.Stg
 {
 	public class StgDemo : StgBase
     {

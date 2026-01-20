@@ -9,10 +9,14 @@ using System.Text;
 using System.Threading.Tasks;
 using static Model.EnumDef;
 
-namespace QjySDK
+namespace QjySDK.Stg
 {
     public abstract class StgBase
     {
+        public event Action OnInit;
+        public StgBase()
+        {
+        }
         public StgBase(string id)
         {
             Id = id;
@@ -25,6 +29,12 @@ namespace QjySDK
 
         private List<RemoteTradeRecord> _rtr = new List<RemoteTradeRecord>();
         private List<PlotRecord> _pr = new List<PlotRecord>();
+
+        public virtual void OnSendOrder(TableUnit tu, decimal price)
+        {
+
+        }
+
         public virtual void OnPeriodEnd(Period p, SkQuote q, string mktSymbol)
         {
 
@@ -54,17 +64,34 @@ namespace QjySDK
 
         public void Trade(string mktSymbol, OrderType ot, decimal price, decimal num, Period p, int sendMode)
         {
-            var rtr = new RemoteTradeRecord();
-            rtr.MktSymbol = mktSymbol;
-            rtr.OT = ot;
-            rtr.Price = price;
-            rtr.Num = num;
-            rtr.P = p;
-            rtr.SendMode = sendMode;
-            _rtr.Add(rtr);
+            var isSame = false;
+            foreach (var item in _rtr)
+            {
+                if (item.MktSymbol == mktSymbol&& item.P==p && item.OT==ot && item.Price==price&&item.SendMode==sendMode)
+                {
+                    item.Num += num;
+					isSame = true;
+                    break;
+                }
+            }
+            if (isSame)
+            {
+
+            }
+            else
+            {
+				var rtr = new RemoteTradeRecord();
+				rtr.MktSymbol = mktSymbol;
+				rtr.OT = ot;
+				rtr.Price = price;
+				rtr.Num = num;
+				rtr.P = p;
+				rtr.SendMode = sendMode;
+				_rtr.Add(rtr);
+			}
         }
 
-        public void Plot(string chartName, string name, PlotType pt, double val, object extra = null)
+        public void Plot(string chartName, string name, PlotType pt, double? val, object extra = null)
         {
             var pr = new PlotRecord();
             pr.ChartName = chartName;
@@ -73,6 +100,21 @@ namespace QjySDK
             pr.Val = (decimal)val;
             pr.Extra= extra;
             _pr.Add(pr);
+        }
+
+        public async Task<Symbol> GetSymbolAsync(string mktSymbol)
+        {
+            var tcs = _stc.RegisterGetSymbol(mktSymbol);
+            var dic = new Dictionary<string, object>();
+            dic["oper"] = "getSymbol";
+            dic["mktSymbol"] = mktSymbol;
+            await _stc.SendMessageAsync(dic.ToJson());
+            return await tcs.Task;
+        }
+
+        public Symbol GetSymbol(string mktSymbol)
+        {
+            return GetSymbolAsync(mktSymbol).GetAwaiter().GetResult();
         }
 
         public async Task Run()
@@ -86,6 +128,7 @@ namespace QjySDK
             {
                 ArgDic = sd.ArgDic;
             }
+            OnInit?.Invoke();
             _stc = new SimpleTcpClient(this);
             await _stc.ConnectAsync("127.0.0.1", 30898);
 
