@@ -176,16 +176,18 @@
 
 ## 快速开始
 
-### 1. 创建项目
+### 1. 克隆仓库
 
 ```bash
-dotnet new console -n MyStrategy
-cd MyStrategy
+git clone https://github.com/lld1995/QjySDK.git
+cd QjySDK
 ```
 
-### 2. 添加 SDK 引用
+### 2. 还原依赖
 
-将泉金盈策略开发 SDK 项目添加至您的解决方案，或引用编译后的 DLL。
+```bash
+dotnet restore
+```
 
 ### 3. 编写策略
 
