@@ -224,6 +224,14 @@ await strategy.Run();
 
 > **注意**: 运行策略前请确保泉金盈客户端已启动并登录。
 
+### 5. 在客户端创建本地策略
+
+在泉金盈客户端中创建本地策略，关联您开发的策略程序：
+
+<p align="center">
+  <img src="images/bendicelue.png" alt="本地策略创建" width="800">
+</p>
+
 ---
 
 ## 核心类说明
