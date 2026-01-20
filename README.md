@@ -331,6 +331,36 @@ Symbol GetSymbol(string mktSymbol)
 
 ---
 
+## 策略示例展示
+
+以下是基于本 SDK 开发的策略在泉金盈客户端中的运行效果：
+
+### MACD-布林带偏离策略
+
+<p align="center">
+  <img src="images/MACD-布林带偏离策略.png" alt="MACD-布林带偏离策略" width="800">
+</p>
+
+### 三重因子共振策略
+
+<p align="center">
+  <img src="images/三重因子共振.png" alt="三重因子共振策略" width="800">
+</p>
+
+### RSI 背离与布林带策略
+
+<p align="center">
+  <img src="images/相对强弱指数（RSI）背离与布林带.png" alt="RSI背离与布林带策略" width="800">
+</p>
+
+### 缠论笔交易策略
+
+<p align="center">
+  <img src="images/缠论笔交易策略.png" alt="缠论笔交易策略" width="800">
+</p>
+
+---
+
 ## 示例代码
 
 ### 简单均线策略
