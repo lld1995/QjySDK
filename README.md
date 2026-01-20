@@ -411,9 +411,9 @@ public class MaStrategy : StgBase
 
 | 渠道 | 联系方式 |
 |------|----------|
-| **官方网站** | [https://www.quanjinying.com](https://www.quanjinying.com) |
-| **技术支持** | support@quanjinying.com |
-| **商务合作** | business@quanjinying.com |
+| **官方网站** | [https://www.ysykj.top](https://www.ysykj.top) |
+| **技术支持** | 411050567@qq.com |
+| **商务合作** | 暂不支持 |
 
 ---
 
