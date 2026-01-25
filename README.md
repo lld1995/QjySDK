@@ -19,6 +19,7 @@
 ## 目录
 
 - [概述](#概述)
+- [立即体验](#立即体验)
 - [泉金盈客户端功能](#泉金盈客户端功能)
 - [SDK 功能特性](#sdk-功能特性)
 - [系统要求](#系统要求)
@@ -45,6 +46,10 @@
 - **消息推送** - 支持邮件/钉钉消息推送，及时获取策略信号通知
 
 ---
+
+### 立即体验
+
+即刻下载/在线体验泉金盈量化交易平台的强大功能：
 
 <p align="center">
   <a href="https://www.ysykj.top"><img src="https://img.shields.io/badge/🌐_官方网址-ysykj.top-blue?style=for-the-badge" alt="官方网址"></a>
