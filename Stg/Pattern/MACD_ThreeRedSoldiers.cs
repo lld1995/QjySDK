@@ -243,8 +243,9 @@ namespace QjySDK.Stg
             if (!prevMACD.HasValue || !prevSignal.HasValue)
                 return;
 
-            // 当前价格
-            decimal currentPrice = tq.Close;
+            // 当前价格（使用最后一根K线的收盘价）
+            var lastBar = quotes[quotes.Count - 1];
+            decimal currentPrice = lastBar.Close;
 
             // 检测红三兵和绿三兵形态
             bool threeRedSoldiers = DetectThreeRedSoldiers(quotes, minBodyRatio, maxShadowRatio, minBodySize);
