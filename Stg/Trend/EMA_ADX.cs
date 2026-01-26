@@ -71,7 +71,7 @@ namespace QjySDK.Stg
         public override StgDesc GetStgDesc()
         {
             var sd = new StgDesc();
-            sd.MaxSymbolNum = 10;
+            sd.MaxSymbolNum = 1000;
             sd.SubChartNum = 1;
             sd.UseGlobalCalc = 0;
 

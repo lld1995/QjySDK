@@ -79,7 +79,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0:立即 1:下个开盘" };
             sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0:固定手数 1:固定金额" };
 
-            sd.MaxSymbolNum = 100;
+            sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;
             sd.SubChartNum = 2;
 

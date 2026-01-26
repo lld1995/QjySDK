@@ -25,7 +25,7 @@ namespace QjySDK.Stg
         public override StgDesc GetStgDesc()
         {
             var sd = new StgDesc();
-            sd.MaxSymbolNum = 10;
+            sd.MaxSymbolNum = 1000;
             sd.SubChartNum = 0;
 
             sd.ArgDescDic["FastPeriod"] = new ArgDesc { Text = "快线周期", Explain = "快速均线的计算周期" };

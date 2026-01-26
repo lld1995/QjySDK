@@ -62,7 +62,7 @@ namespace QjySDK.Stg
         public override StgDesc GetStgDesc()
         {
             var sd = new StgDesc();
-            sd.MaxSymbolNum = 10;
+            sd.MaxSymbolNum = 1000;
             sd.SubChartNum = 1;
 
             sd.ArgDescDic["entryPeriod"] = new ArgDesc { Text = "入场周期", Explain = "计算入场通道的K线数量" };

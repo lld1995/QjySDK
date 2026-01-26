@@ -104,7 +104,7 @@ namespace QjySDK.Stg
         public override StgDesc GetStgDesc()
         {
             var sd = new StgDesc();
-            sd.MaxSymbolNum = 100;
+            sd.MaxSymbolNum = 1000;
             sd.SubChartNum = 2;  // 两个副图：MACD和ADX/DI
             sd.UseGlobalCalc = 0;
 
