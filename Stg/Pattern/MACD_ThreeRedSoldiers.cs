@@ -120,23 +120,23 @@ namespace QjySDK.Stg
             sd.ArgDic["lotsMode"] = 0;
 
             sd.ArgDescDic["lots"] = new ArgDesc { Text = "固定手数", Explain = "每次交易的固定手数" };
-            sd.ArgDic["lots"] = 1.0m;
+            sd.ArgDic["lots"] = 1.0;
 
             sd.ArgDescDic["money"] = new ArgDesc { Text = "固定金额", Explain = "每次交易的固定金额" };
-            sd.ArgDic["money"] = 10000m;
+            sd.ArgDic["money"] = 10000.0;
 
             // ========== 止损止盈参数 ==========
             sd.ArgDescDic["useStopLoss"] = new ArgDesc { Text = "启用止损", Explain = "1=启用 0=禁用" };
             sd.ArgDic["useStopLoss"] = 1;
 
             sd.ArgDescDic["stopLossPercent"] = new ArgDesc { Text = "止损百分比", Explain = "止损距离占入场价的百分比" };
-            sd.ArgDic["stopLossPercent"] = 2.0m;
+            sd.ArgDic["stopLossPercent"] = 2.0;
 
             sd.ArgDescDic["useTakeProfit"] = new ArgDesc { Text = "启用止盈", Explain = "1=启用 0=禁用" };
             sd.ArgDic["useTakeProfit"] = 1;
 
             sd.ArgDescDic["takeProfitPercent"] = new ArgDesc { Text = "止盈百分比", Explain = "止盈距离占入场价的百分比" };
-            sd.ArgDic["takeProfitPercent"] = 4.0m;
+            sd.ArgDic["takeProfitPercent"] = 4.0;
 
             sd.ArgDescDic["useMacdExit"] = new ArgDesc { Text = "MACD反向出场", Explain = "1=MACD反向交叉时平仓 0=禁用" };
             sd.ArgDic["useMacdExit"] = 1;
@@ -301,7 +301,7 @@ namespace QjySDK.Stg
             }
 
             // 计算交易手数
-            decimal lots = CalculateLots(currentPrice);
+            decimal lots = CalculateLots(tu.MktSymbol, currentPrice);
 
             // 止损止盈检查
             if (state.Position != 0)
@@ -547,20 +547,27 @@ namespace QjySDK.Stg
         /// <summary>
         /// 计算交易手数
         /// </summary>
-        private decimal CalculateLots(decimal price)
+        private decimal CalculateLots(string mktSymbol, decimal price)
         {
             int lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
-            if (lotsMode == 0)
+            decimal num = Convert.ToDecimal(ArgDic["lots"]);
+
+            if (lotsMode == 1)
             {
-                return Convert.ToDecimal(ArgDic["lots"]);
+                var symbol = GetSymbol(mktSymbol);
+                num = Convert.ToDecimal(ArgDic["money"]) / (price * symbol.multiplier * symbol.margin_ratio);
+
+                if (symbol.symbol_type == (int)SymbolType.COIN)
+                {
+                    num = Math.Floor(num * 1000) / 1000.0m;
+                }
+                else
+                {
+                    num = Math.Floor(num);
+                }
             }
-            else
-            {
-                decimal money = Convert.ToDecimal(ArgDic["money"]);
-                if (price > 0)
-                    return Math.Floor(money / price * 100) / 100;
-                return 1;
-            }
+
+            return num;
         }
     }
 }

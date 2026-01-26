@@ -70,7 +70,9 @@ namespace QjySDK.Stg
         private decimal _takeProfitAtrMultiplier;
 
         // 交易参数
-        private decimal _tradeAmount;
+        private int _lotsMode;
+        private decimal _lots;
+        private decimal _money;
         private bool _useTrailingStop;
         private decimal _trailingStopAtrMultiplier;
         private int _maxHoldBars;
@@ -136,8 +138,14 @@ namespace QjySDK.Stg
             sd.ArgDic["TakeProfitAtrMultiplier"] = 3.0;
 
             // 交易参数
-            sd.ArgDescDic["TradeAmount"] = new ArgDesc { Text = "交易数量", Explain = "每次交易的数量/比例" };
-            sd.ArgDic["TradeAmount"] = 1.0;
+            sd.ArgDescDic["LotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0=固定手数 1=固定金额" };
+            sd.ArgDic["LotsMode"] = 0;
+
+            sd.ArgDescDic["Lots"] = new ArgDesc { Text = "固定手数", Explain = "每次交易的固定手数" };
+            sd.ArgDic["Lots"] = 1.0;
+
+            sd.ArgDescDic["Money"] = new ArgDesc { Text = "固定金额", Explain = "每次交易的固定金额" };
+            sd.ArgDic["Money"] = 10000.0;
 
             sd.ArgDescDic["UseTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "是否启用移动止损(1=启用,0=禁用)" };
             sd.ArgDic["UseTrailingStop"] = 1;
@@ -184,7 +192,9 @@ namespace QjySDK.Stg
             _stopLossAtrMultiplier = Convert.ToDecimal(ArgDic["StopLossAtrMultiplier"]);
             _takeProfitAtrMultiplier = Convert.ToDecimal(ArgDic["TakeProfitAtrMultiplier"]);
 
-            _tradeAmount = Convert.ToDecimal(ArgDic["TradeAmount"]);
+            _lotsMode = Convert.ToInt32(ArgDic["LotsMode"]);
+            _lots = Convert.ToDecimal(ArgDic["Lots"]);
+            _money = Convert.ToDecimal(ArgDic["Money"]);
             _useTrailingStop = Convert.ToInt32(ArgDic["UseTrailingStop"]) == 1;
             _trailingStopAtrMultiplier = Convert.ToDecimal(ArgDic["TrailingStopAtrMultiplier"]);
             _maxHoldBars = Convert.ToInt32(ArgDic["MaxHoldBars"]);
@@ -440,12 +450,13 @@ namespace QjySDK.Stg
 
         private void OpenLongPosition(TradeState state, string mktSymbol, decimal price, decimal atr, Period period)
         {
-            Trade(mktSymbol, OrderType.BUY, price, _tradeAmount, period, 0);
+            decimal num = CalculateLots(mktSymbol, price);
+            Trade(mktSymbol, OrderType.BUY, price, num, period, 0);
 
             state.HasPosition = true;
             state.IsLong = true;
             state.EntryPrice = price;
-            state.PositionSize = _tradeAmount;
+            state.PositionSize = num;
             state.EntryAtr = atr;
             state.StopLoss = price - atr * _stopLossAtrMultiplier;
             state.TakeProfit = price + atr * _takeProfitAtrMultiplier;
@@ -456,12 +467,13 @@ namespace QjySDK.Stg
 
         private void OpenShortPosition(TradeState state, string mktSymbol, decimal price, decimal atr, Period period)
         {
-            Trade(mktSymbol, OrderType.SELL, price, _tradeAmount, period, 0);
+            decimal num = CalculateLots(mktSymbol, price);
+            Trade(mktSymbol, OrderType.SELL, price, num, period, 0);
 
             state.HasPosition = true;
             state.IsLong = false;
             state.EntryPrice = price;
-            state.PositionSize = _tradeAmount;
+            state.PositionSize = num;
             state.EntryAtr = atr;
             state.StopLoss = price + atr * _stopLossAtrMultiplier;
             state.TakeProfit = price - atr * _takeProfitAtrMultiplier;
@@ -476,6 +488,31 @@ namespace QjySDK.Stg
             Trade(mktSymbol, ot, price, state.PositionSize, period, 0);
 
             state.Reset();
+        }
+
+        /// <summary>
+        /// 计算交易手数
+        /// </summary>
+        private decimal CalculateLots(string mktSymbol, decimal price)
+        {
+            decimal num = _lots;
+
+            if (_lotsMode == 1)
+            {
+                var symbol = GetSymbol(mktSymbol);
+                num = _money / (price * symbol.multiplier * symbol.margin_ratio);
+
+                if (symbol.symbol_type == (int)SymbolType.COIN)
+                {
+                    num = Math.Floor(num * 1000) / 1000.0m;
+                }
+                else
+                {
+                    num = Math.Floor(num);
+                }
+            }
+
+            return num;
         }
 
         /// <summary>
