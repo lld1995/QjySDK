@@ -233,10 +233,11 @@ namespace QjySDK.Stg
             decimal atr = CalculateATR(quotes, _atrPeriod);
             if (atr <= 0) return;
 
-            // 提取当前值
-            decimal currentPrice = tq.Close;
-            decimal currentHigh = tq.High;
-            decimal currentLow = tq.Low;
+            // 提取当前值（使用最后一根K线）
+            var lastBar = quotes[lastIdx];
+            decimal currentPrice = lastBar.Close;
+            decimal currentHigh = lastBar.High;
+            decimal currentLow = lastBar.Low;
 
             double kCurr = stochCurr.K.Value;
             double dCurr = stochCurr.D.Value;
