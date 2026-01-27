@@ -57,9 +57,9 @@ namespace QjySDK.Stg
             sd.ArgDic["sendMode"] = 0;               // 发单模式
 
             // 手数控制
-            sd.ArgDic["lotsMode"] = 0;
+            sd.ArgDic["lotsMode"] = 1;
             sd.ArgDic["lots"] = 1.0m;
-            sd.ArgDic["money"] = 100000m;
+            sd.ArgDic["money"] = 10000m;
 
             // 参数说明
             sd.ArgDescDic["lookback"] = new ArgDesc() { Text = "回看周期", Explain = "特征计算窗口长度" };

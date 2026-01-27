@@ -58,9 +58,9 @@ namespace QjySDK.Stg
 			sd.ArgDic["sendMode"] = 0;  // 0: 立即 1: 下个开盘
 			
 			// 手数控制
-			sd.ArgDic["lotsMode"] = 0;
+			sd.ArgDic["lotsMode"] = 1;
 			sd.ArgDic["lots"] = 1.0m;
-			sd.ArgDic["money"] = 100000m;
+			sd.ArgDic["money"] = 10000m;
 
 			// 参数说明
 			sd.ArgDescDic["rsiPeriod"] = new ArgDesc() { Text = "RSI周期", Explain = "RSI指标计算周期" };

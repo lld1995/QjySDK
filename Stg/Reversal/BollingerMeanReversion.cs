@@ -70,9 +70,9 @@ namespace QjySDK.Stg
             sd.ArgDic["sendMode"] = 0;              // 发单模式：0立即 1下个开盘
 
             // 手数控制
-            sd.ArgDic["lotsMode"] = 0;              // 0:固定手数 1:固定金额
+            sd.ArgDic["lotsMode"] = 1;              // 0:固定手数 1:固定金额
             sd.ArgDic["lots"] = 1.0m;
-            sd.ArgDic["money"] = 100000m;
+            sd.ArgDic["money"] = 10000m;
 
             // 参数说明
             sd.ArgDescDic["bollPeriod"] = new ArgDesc() { Text = "布林带周期", Explain = "计算布林带的周期数，默认20" };

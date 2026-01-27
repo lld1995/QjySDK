@@ -56,9 +56,9 @@ namespace QjySDK.Stg
             sd.ArgDic["trailingAtrMultiplier"] = 3.0; // 跟踪止损ATR倍数
 
             // 手数控制
-            sd.ArgDic["lotsMode"] = 0;            // 0:固定手数 1:固定金额
+            sd.ArgDic["lotsMode"] = 1;            // 0:固定手数 1:固定金额
             sd.ArgDic["lots"] = 1.0m;             // 固定手数
-            sd.ArgDic["money"] = 100000m;         // 固定金额
+            sd.ArgDic["money"] = 10000m;         // 固定金额
 
             // 参数说明
             sd.ArgDescDic["maPeriod"] = new ArgDesc() { Text = "均线周期", Explain = "计算中轨的移动平均周期" };

@@ -26,9 +26,9 @@ namespace QjySDK.Stg
             sd.ArgDic["profitRate"] = 20m;
             sd.ArgDic["trailingStop"] = 1;
             sd.ArgDic["trailingPercent"] = 20m;
-            sd.ArgDic["lotsMode"] = 0;
+            sd.ArgDic["lotsMode"] = 1;
             sd.ArgDic["lots"] = 1.0m;
-            sd.ArgDic["money"] = 100000m;
+            sd.ArgDic["money"] = 10000m;
             sd.ArgDescDic["zigzagDepth"] = new ArgDesc() { Text = "ZigZag Depth", Explain = "Depth for pivot detection" };
             sd.ArgDescDic["mode"] = new ArgDesc() { Text = "Mode", Explain = "0 Standard 1 Long Only 2 Short Only" };
             sd.MaxSymbolNum = 1000;

@@ -30,9 +30,9 @@ namespace QjySDK.Stg
 			sd.ArgDic["sendMode"] = 0;
 
 			//手数控制
-			sd.ArgDic["lotsMode"] = 0;
+			sd.ArgDic["lotsMode"] = 1;
 			sd.ArgDic["lots"] = 1.0m;
-			sd.ArgDic["money"] = 100000m;
+			sd.ArgDic["money"] = 10000m;
 
 			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0 标准 1 仅做多 2 仅做空" };
 			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };

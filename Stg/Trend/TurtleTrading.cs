@@ -70,7 +70,7 @@ namespace QjySDK.Stg
             // ========== 仓位管理 ==========
             sd.ArgDic["riskPerTrade"] = 0.01;         // 每笔交易风险比例（账户的1%）
             sd.ArgDic["accountEquity"] = 1000000m;    // 账户权益
-            sd.ArgDic["lotsMode"] = 0;                // 0:按风险计算 1:固定手数
+            sd.ArgDic["lotsMode"] = 1;                // 0:按风险计算 1:固定手数
             sd.ArgDic["fixedLots"] = 1.0m;            // 固定手数
 
             // ========== 交易模式 ==========

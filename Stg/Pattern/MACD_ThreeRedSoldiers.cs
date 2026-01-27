@@ -117,7 +117,7 @@ namespace QjySDK.Stg
             sd.ArgDic["sendMode"] = 0;
 
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0=固定手数 1=固定金额" };
-            sd.ArgDic["lotsMode"] = 0;
+            sd.ArgDic["lotsMode"] = 1;
 
             sd.ArgDescDic["lots"] = new ArgDesc { Text = "固定手数", Explain = "每次交易的固定手数" };
             sd.ArgDic["lots"] = 1.0;

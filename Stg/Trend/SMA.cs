@@ -43,9 +43,9 @@ namespace QjySDK.Stg
             sd.ArgDic["usePriceConfirm"] = 0;       // 是否启用价格确认: 0关闭 1开启
 
             // 手数控制
-            sd.ArgDic["lotsMode"] = 0;              // 0固定手数 1固定金额
+            sd.ArgDic["lotsMode"] = 1;              // 0固定手数 1固定金额
             sd.ArgDic["lots"] = 1.0m;               // 固定手数
-            sd.ArgDic["money"] = 100000m;           // 固定金额
+            sd.ArgDic["money"] = 10000m;           // 固定金额
 
             // 参数说明
             sd.ArgDescDic["fastPeriod"] = new ArgDesc() { Text = "快线周期", Explain = "短周期SMA，用于捕捉短期趋势" };

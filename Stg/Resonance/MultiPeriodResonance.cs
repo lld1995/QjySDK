@@ -83,9 +83,9 @@ namespace QjySDK.Stg
             sd.ArgDic["maxPositionScale"] = 3.0m;  // 最大仓位倍数
 
             // ===== 手数控制 =====
-            sd.ArgDic["lotsMode"] = 0;
+            sd.ArgDic["lotsMode"] = 1;
             sd.ArgDic["lots"] = 1.0m;
-            sd.ArgDic["money"] = 100000m;
+            sd.ArgDic["money"] = 10000m;
 
             // ===== 风控参数 =====
             sd.ArgDic["useStopLoss"] = 1;          // 启用止损

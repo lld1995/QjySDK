@@ -55,7 +55,7 @@ namespace QjySDK.Stg
 			sd.ArgDic["sendMode"] = 0;         // 0:立即 1:下个开盘
 
 			// 手数控制
-			sd.ArgDic["lotsMode"] = 0;         // 0:固定手数 1:固定金额
+			sd.ArgDic["lotsMode"] = 1;         // 0:固定手数 1:固定金额
 			sd.ArgDic["lots"] = 1.0m;          // 固定手数
 			sd.ArgDic["money"] = 10000m;       // 固定金额
 

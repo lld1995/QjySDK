@@ -62,9 +62,9 @@ namespace QjySDK.Stg
             sd.ArgDic["exitMode"] = 0;               // 出场模式 0:反向共振 1:任一因子反转 2:MA反转 3:MACD反转
 
             // 手数控制
-            sd.ArgDic["lotsMode"] = 0;
+            sd.ArgDic["lotsMode"] = 1;
             sd.ArgDic["lots"] = 1.0m;
-            sd.ArgDic["money"] = 100000m;
+            sd.ArgDic["money"] = 10000m;
 
             // 参数说明
             sd.ArgDescDic["maPeriod"] = new ArgDesc() { Text = "MA周期", Explain = "趋势判断的均线周期" };

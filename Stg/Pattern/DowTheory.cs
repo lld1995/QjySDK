@@ -42,9 +42,9 @@ namespace QjySDK.Stg
             sd.ArgDic["sendMode"] = 0;              // 0-立即 1-下个开盘
             
             // 手数控制
-            sd.ArgDic["lotsMode"] = 0;              // 0-固定手数 1-固定金额
+            sd.ArgDic["lotsMode"] = 1;              // 0-固定手数 1-固定金额
             sd.ArgDic["lots"] = 1.0m;
-            sd.ArgDic["money"] = 100000m;
+            sd.ArgDic["money"] = 10000m;
 
             // 参数说明
             sd.ArgDescDic["swingLookback"] = new ArgDesc() { Text = "波峰波谷回溯", Explain = "识别波峰波谷的回溯K线数" };

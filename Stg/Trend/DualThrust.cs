@@ -75,9 +75,9 @@ namespace QjySDK.Stg
             sd.ArgDic["closeMinute"] = 55;        // 收盘平仓时间(分钟)
 
             // 手数控制
-            sd.ArgDic["lotsMode"] = 0;            // 0:固定手数 1:固定金额
+            sd.ArgDic["lotsMode"] = 1;            // 0:固定手数 1:固定金额
             sd.ArgDic["lots"] = 1.0m;             // 固定手数
-            sd.ArgDic["money"] = 100000m;         // 固定金额
+            sd.ArgDic["money"] = 10000m;         // 固定金额
 
             // 参数说明
             sd.ArgDescDic["lookbackDays"] = new ArgDesc() { Text = "回溯天数", Explain = "计算Range使用的历史天数N" };

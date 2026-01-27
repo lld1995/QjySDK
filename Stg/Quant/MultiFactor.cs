@@ -153,13 +153,13 @@ namespace QjySDK.Stg
             sd.ArgDic["sendMode"] = 0;
 
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0=固定手数 1=固定金额" };
-            sd.ArgDic["lotsMode"] = 0;
+            sd.ArgDic["lotsMode"] = 1;
 
             sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量" };
             sd.ArgDic["lots"] = 1.0m;
 
             sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下的交易金额" };
-            sd.ArgDic["money"] = 100000m;
+            sd.ArgDic["money"] = 10000m;
 
             sd.ArgDescDic["factorConsistency"] = new ArgDesc { Text = "因子一致性要求", Explain = "至少N个因子同向才入场(1-5)" };
             sd.ArgDic["factorConsistency"] = 3;

@@ -139,7 +139,7 @@ namespace QjySDK.Stg
 
             // 交易参数
             sd.ArgDescDic["LotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0=固定手数 1=固定金额" };
-            sd.ArgDic["LotsMode"] = 0;
+            sd.ArgDic["lotsMode"] = 1;
 
             sd.ArgDescDic["Lots"] = new ArgDesc { Text = "固定手数", Explain = "每次交易的固定手数" };
             sd.ArgDic["Lots"] = 1.0;

@@ -32,9 +32,9 @@ namespace QjySDK.Stg
 			sd.ArgDic["sendMode"] = 0;
 
 			// 手数控制
-			sd.ArgDic["lotsMode"] = 0;
+			sd.ArgDic["lotsMode"] = 1;
 			sd.ArgDic["lots"] = 1.0m;
-			sd.ArgDic["money"] = 100000m;
+			sd.ArgDic["money"] = 10000m;
 
 			// 是否启用动态网格（根据ATR调整网格间距）
 			sd.ArgDic["dynamicGrid"] = 0;

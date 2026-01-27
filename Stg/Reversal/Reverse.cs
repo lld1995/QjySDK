@@ -34,9 +34,9 @@ namespace QjySDK.Stg
 			sd.ArgDic["sendMode"] = 0;
 
 			//手数控制
-			sd.ArgDic["lotsMode"] = 0;
+			sd.ArgDic["lotsMode"] = 1;
 			sd.ArgDic["lots"] = 1.0m;
-			sd.ArgDic["money"] = 100000m;
+			sd.ArgDic["money"] = 10000m;
 
 			sd.ArgDescDic["observePeriod"] = new ArgDesc() { Text = "观测周期", Explain = "止盈时当前CLOSE必须大于：观测周期CLOSE*(1+-观测最小幅度)" };
 			sd.ArgDescDic["observeMinRate"] = new ArgDesc() { Text = "观测最小幅度", Explain = "止盈时当前CLOSE必须大于：观测周期CLOSE*(1+-观测最小幅度)" };

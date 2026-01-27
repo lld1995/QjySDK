@@ -37,9 +37,9 @@ namespace QjySDK.Stg
             sd.ArgDic["exitMode"] = 0;          // 平仓模式
 
             // 手数控制
-            sd.ArgDic["lotsMode"] = 0;
+            sd.ArgDic["lotsMode"] = 1;
             sd.ArgDic["lots"] = 1.0m;
-            sd.ArgDic["money"] = 100000m;
+            sd.ArgDic["money"] = 10000m;
 
             // 参数说明
             sd.ArgDescDic["period"] = new ArgDesc() { Text = "布林带周期", Explain = "计算布林带的周期数" };

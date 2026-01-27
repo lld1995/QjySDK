@@ -41,9 +41,9 @@ namespace QjySDK.Stg
             sd.ArgDic["signalMode"] = 0;             // 信号模式
 
             // 手数控制
-            sd.ArgDic["lotsMode"] = 0;               // 0固定手数 1固定金额
+            sd.ArgDic["lotsMode"] = 1;               // 0固定手数 1固定金额
             sd.ArgDic["lots"] = 1.0m;                // 固定手数
-            sd.ArgDic["money"] = 100000m;            // 固定金额
+            sd.ArgDic["money"] = 10000m;            // 固定金额
 
             // 参数说明
             sd.ArgDescDic["rsiPeriod"] = new ArgDesc() { Text = "RSI周期", Explain = "RSI计算周期，通常为14" };

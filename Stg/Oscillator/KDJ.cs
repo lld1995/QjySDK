@@ -41,9 +41,9 @@ namespace QjySDK.Stg
             sd.ArgDic["signalMode"] = 0;         // 信号模式
 
             // 手数控制
-            sd.ArgDic["lotsMode"] = 0;
+            sd.ArgDic["lotsMode"] = 1;
             sd.ArgDic["lots"] = 1.0m;
-            sd.ArgDic["money"] = 100000m;
+            sd.ArgDic["money"] = 10000m;
 
             // 参数说明
             sd.ArgDescDic["kPeriod"] = new ArgDesc() { Text = "K周期", Explain = "RSV计算周期，通常为9" };
