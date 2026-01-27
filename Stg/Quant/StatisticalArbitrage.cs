@@ -259,7 +259,9 @@ namespace QjySDK.Stg
                 actualLookback = (int)Math.Max(minLookback, Math.Min(maxLookback, halfLife * 2));
             }
 
-            if (priceHist.Count < actualLookback) return;
+            // 确保actualLookback不超过可用数据量，避免指标断线
+            actualLookback = Math.Min(actualLookback, priceHist.Count);
+            if (actualLookback < minLookback) return; // 数据量不足最小周期时才跳过
 
             // ==================== 计算Z-Score ====================
             double mean = 0;
@@ -292,10 +294,11 @@ namespace QjySDK.Stg
                 double atrVal = atrList.Last().Atr.GetValueOrDefault(0);
                 double atrPercent = atrVal / (double)currentPrice * 100;
 
-                // 波动率高时提高阈值，波动率低时降低阈值
+                // 波动率高时提高入场阈值，波动率低时降低入场阈值
                 double volAdjust = Math.Max(0.5, Math.Min(1.5, atrPercent / 2.0));
                 dynamicEntryZ = entryZScore * volAdjust;
-                dynamicStopZ = stopLossZScore * volAdjust;
+                // 止损阈值只允许收紧，不允许放宽（波动率高时不放大止损阈值）
+                dynamicStopZ = stopLossZScore * Math.Min(1.0, volAdjust);
             }
 
             // ==================== 计算确认指标 ====================

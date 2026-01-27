@@ -5,7 +5,7 @@ using QjySDK.Stg;
 GlobalDef.Init();
 
 {
-    var sd = new MultiFactor("245044dd55a046829617593d4cda19a8");
+    var sd = new StatisticalArbitrage("245044dd55a046829617593d4cda19a8");
     await sd.Run();
     
     Console.ReadLine();
