@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using static Model.EnumDef;
 using System.Collections.Generic;
+using Skender.Stock.Indicators;
 
 namespace QjySDK.Stg
 {
