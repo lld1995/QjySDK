@@ -70,7 +70,7 @@
 
 SDK 内置了丰富的量化交易策略，按类型分类如下：
 
-#### 趋势跟踪类 (Trend)
+#### ![](images/icons/trend.svg) 趋势跟踪类 (Trend)
 | 策略名称 | 文件 | 简介 |
 |---------|------|------|
 | Aberration 通道突破 | `Aberration.cs` | 基于肯特纳通道的经典趋势跟踪系统，突破上轨做多、突破下轨做空 |
@@ -88,7 +88,7 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 | SMA 均线策略 | `SMA.cs` | 标准SMA双均线交叉策略，支持趋势过滤和价格确认 |
 | 海龟交易法则 | `TurtleTrading.cs` | 经典海龟交易系统，唐奇安通道突破+ATR仓位管理+金字塔加仓 |
 
-#### 震荡指标类 (Oscillator)
+#### ![](images/icons/oscillator.svg) 震荡指标类 (Oscillator)
 | 策略名称 | 文件 | 简介 |
 |---------|------|------|
 | 布林带影线策略 | `Boll_Shadow.cs` | 布林带结合K线影线形态的交易策略 |
@@ -107,7 +107,7 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 | RSI 背离策略 | `RSI_Deviate.cs` | RSI顶底背离交易策略 |
 | RSI 背离 + 布林带 | `RSI_Deviate_Boll.cs` | RSI背离+布林带过滤的组合交易策略 |
 
-#### 形态识别类 (Pattern)
+#### ![](images/icons/pattern.svg) 形态识别类 (Pattern)
 | 策略名称 | 文件 | 简介 |
 |---------|------|------|
 | 缠论策略 | `ChanLun.cs` | 完整缠论交易系统：K线包含处理、分型、笔、线段、中枢、背驰、买卖点 |
@@ -116,7 +116,7 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 | 艾略特波浪 | `ElliottWave.cs` | 艾略特波浪理论交易策略，识别浪3/浪5入场点 |
 | MACD + 三红兵 | `MACD_ThreeRedSoldiers.cs` | MACD动量+红三兵/三只乌鸦K线形态组合策略 |
 
-#### 反转策略类 (Reversal)
+#### ![](images/icons/reversal.svg) 反转策略类 (Reversal)
 | 策略名称 | 文件 | 简介 |
 |---------|------|------|
 | 自适应均值回归 | `AdaptiveMeanReversion.cs` | 布林带+RSI+Keltner通道多重确认的自适应均值回归策略 |
@@ -128,7 +128,7 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 | 统计套利 | `StatisticalArbitrage.cs` | 基于Z-Score和半衰期的统计套利策略 |
 | 夜神抄底 | `YeShenChaoDi.cs` | RSI超卖+价格企稳反转信号的抄底策略 |
 
-#### 量化因子类 (Quant)
+#### ![](images/icons/quant.svg) 量化因子类 (Quant)
 | 策略名称 | 文件 | 简介 |
 |---------|------|------|
 | 多因子策略 | `MultiFactor.cs` | 动量+趋势+波动率+成交量+均值回归五因子加权打分系统 |
@@ -136,17 +136,17 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 | RSI 背离趋势延续 | `RSIDivergenceTrendContinuation.cs` | RSI反转背离+趋势延续背离双模式交易系统 |
 | 三重因子共振 | `ThreeFactorResonance.cs` | MA趋势+MACD动量+OBV成交量三因子共振交易系统 |
 
-#### 共振策略类 (Resonance)
+#### ![](images/icons/resonance.svg) 共振策略类 (Resonance)
 | 策略名称 | 文件 | 简介 |
 |---------|------|------|
 | MACD + ADX 共振 | `MACD_ADX_Resonance.cs` | MACD动量信号+ADX/DI趋势强度双指标共振交易系统 |
 
-#### 网格交易类 (Grid)
+#### ![](images/icons/grid.svg) 网格交易类 (Grid)
 | 策略名称 | 文件 | 简介 |
 |---------|------|------|
 | 网格交易 | `GridTrading.cs` | 经典网格交易策略，支持动态网格（ATR自适应间距） |
 
-#### 机器学习类 (MachineLearning)
+#### ![](images/icons/ml.svg) 机器学习类 (MachineLearning)
 | 策略名称 | 文件 | 简介 |
 |---------|------|------|
 | CatBoost 预测 | `CatBoostPredict.cs` | 基于CatBoost对称树+Ordered Boosting的价格预测策略 |
