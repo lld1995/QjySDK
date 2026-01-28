@@ -19,8 +19,8 @@
 ## 目录
 
 - [概述](#概述)
-- [官方维护的策略](#官方维护的策略)
 - [立即体验](#立即体验)
+- [官方维护的策略](#官方维护的策略)
 - [泉金盈客户端功能](#泉金盈客户端功能)
 - [SDK 功能特性](#sdk-功能特性)
 - [系统要求](#系统要求)
@@ -35,6 +35,26 @@
 ## 概述
 
 **泉金盈策略开发 SDK** 是泉金盈量化交易平台的官方策略开发工具包，为开发者提供标准化的策略开发接口。通过本 SDK，您可以快速开发、调试并部署自定义量化交易策略至泉金盈平台。
+
+### 核心优势
+- **全平台支持** - 支持Windows/Mac/Linux/Android/iOS/Web
+- **超强可视化** - 覆盖99%指标绘制标准，策略信号可视化展示及联动
+- **多市场支持** - 覆盖加密货币、股票、期货等交易市场
+- **双策略模式** - 支持本地/云端策略运行，极速回测，稳定易用
+- **消息推送** - 支持邮件/钉钉消息推送，及时获取策略信号通知
+- **无偏离设计** - 从底层保证信号不会偏移，确保策略信号的真实有效性
+- **实时数据** - 毫秒级行情推送，支持多周期 K 线数据
+- **标准化接口** - 统一的策略开发规范，自由易扩展，降低学习成本
+
+### 立即体验
+
+即刻下载/在线体验泉金盈量化交易平台的强大功能：
+
+<p align="center">
+  <a href="https://www.ysykj.top"><img src="https://img.shields.io/badge/🌐_官方网址-ysykj.top-blue?style=for-the-badge" alt="官方网址"></a>
+  &nbsp;&nbsp;
+  <a href="https://qjycdn.ysykj.top"><img src="https://img.shields.io/badge/🚀_体验地址-qjycdn.ysykj.top-green?style=for-the-badge" alt="体验地址"></a>
+</p>
 
 ---
 
@@ -127,29 +147,6 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 | LightGBM 预测 | `LightGBMPredict.cs` | 基于LightGBM的轻量级梯度提升价格预测策略 |
 | MLP 预测 | `MLPPredict.cs` | 基于多层感知机(MLP)神经网络的价格预测策略 |
 | XGBoost 预测 | `XGBoostPredict.cs` | 基于XGBoost二阶泰勒展开优化的价格预测策略 |
-
----
-
-## 核心优势
-- **全平台支持** - 支持Windows/Mac/Linux/Android/iOS/Web
-- **超强可视化** - 覆盖99%指标绘制标准，策略信号可视化展示及联动
-- **多市场支持** - 覆盖加密货币、股票、期货等交易市场
-- **双策略模式** - 支持本地/云端策略运行，极速回测，稳定易用
-- **消息推送** - 支持邮件/钉钉消息推送，及时获取策略信号通知
-- **无偏离设计** - 从底层保证信号不会偏移，确保策略信号的真实有效性
-- **实时数据** - 毫秒级行情推送，支持多周期 K 线数据
-- **标准化接口** - 统一的策略开发规范，自由易扩展，降低学习成本
----
-
-### 立即体验
-
-即刻下载/在线体验泉金盈量化交易平台的强大功能：
-
-<p align="center">
-  <a href="https://www.ysykj.top"><img src="https://img.shields.io/badge/🌐_官方网址-ysykj.top-blue?style=for-the-badge" alt="官方网址"></a>
-  &nbsp;&nbsp;
-  <a href="https://qjycdn.ysykj.top"><img src="https://img.shields.io/badge/🚀_体验地址-qjycdn.ysykj.top-green?style=for-the-badge" alt="体验地址"></a>
-</p>
 
 ---
 
