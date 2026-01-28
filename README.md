@@ -35,6 +35,96 @@
 
 **泉金盈策略开发 SDK** 是泉金盈量化交易平台的官方策略开发工具包，为开发者提供标准化的策略开发接口。通过本 SDK，您可以快速开发、调试并部署自定义量化交易策略至泉金盈平台。
 
+### 官方支持的策略
+
+SDK 内置了丰富的量化交易策略，按类型分类如下：
+
+#### 趋势跟踪类 (Trend)
+| 策略名称 | 文件 | 简介 |
+|---------|------|------|
+| Aberration 通道突破 | `Aberration.cs` | 基于肯特纳通道的经典趋势跟踪系统，突破上轨做多、突破下轨做空 |
+| Andromeda 趋势策略 | `Andromeda.cs` | 多重EMA+动量+波动率过滤的中长期趋势跟踪系统 |
+| 唐奇安通道 ATR | `DonchianATR.cs` | 唐奇安通道突破+ATR金字塔加仓策略 |
+| 唐奇安通道 | `DonchianChannel.cs` | 经典唐奇安通道突破策略，突破N日高点做多、突破N日低点做空 |
+| Dual Thrust 策略 | `DualThrust.cs` | 经典日内突破系统，基于前N日价格计算动态突破区间 |
+| EMA + ADX 趋势 | `EMA_ADX.cs` | 圣杯策略，强趋势中价格回调到EMA时顺势入场 |
+| EMA + ADX + DI 趋势 | `EMA_ADX_DI.cs` | DI交叉+EMA趋势过滤+ADX强度确认的趋势动量策略 |
+| EMA 标准策略 | `EMA_Standard.cs` | 快慢EMA交叉交易系统，支持趋势过滤和止损止盈 |
+| 均线交叉 | `MACross.cs` | 经典双均线金叉死叉交易策略 |
+| 动量突破 | `MomentumBreakout.cs` | MACD+RSI+成交量+ADX多重确认的动量突破策略 |
+| RUMI 策略 | `RUMI.cs` | 相对动量指标系统，结合动量、趋势和波动率的综合交易系统 |
+| SMA 均线策略 | `SMA.cs` | 标准SMA双均线交叉策略，支持趋势过滤和价格确认 |
+| 海龟交易法则 | `TurtleTrading.cs` | 经典海龟交易系统，唐奇安通道突破+ATR仓位管理+金字塔加仓 |
+
+#### 震荡指标类 (Oscillator)
+| 策略名称 | 文件 | 简介 |
+|---------|------|------|
+| 布林带策略 | `Boll.cs` | 标准布林带交易策略，突破上轨做多、突破下轨做空、回归中轨平仓 |
+| 布林带影线策略 | `Boll_Shadow.cs` | 布林带结合K线影线形态的交易策略 |
+| KDJ 策略 | `KDJ.cs` | 标准KDJ交易策略，K/D金叉死叉+超买超卖区域过滤 |
+| KDJ + 成交量 | `KDJV.cs` | KDJ指标结合成交量确认的交易策略 |
+| KDJ + ATR | `KDJ_ATR.cs` | KDJ信号+ATR动态止损止盈的交易策略 |
+| KDJ + RSI | `KDJ_RSI.cs` | KDJ与RSI双震荡指标共振交易策略 |
+| KDJ + SMA | `KDJ_SMA.cs` | KDJ信号+SMA均线趋势过滤的交易策略 |
+| MACD 背离零轴交叉 | `MACDDivergenceZeroCross.cs` | MACD背离+零轴交叉组合交易系统，支持多种组合模式 |
+| MACD 标准策略 | `MACDStandard.cs` | 经典MACD金叉死叉交易系统 |
+| MACD 背离策略 | `MACD_Deviate.cs` | MACD顶底背离交易策略 |
+| MACD 背离 + 布林带 | `MACD_Deviate_Boll.cs` | MACD背离+布林带过滤的组合交易策略 |
+| MACD + KDJ 交叉 | `MACD_KDJ_Cross.cs` | MACD与KDJ双指标金叉死叉共振交易系统 |
+| RSI 策略 | `RSI.cs` | 标准RSI交易策略，支持超买超卖反转、中轴穿越、双RSI交叉 |
+| RSI 背离 + 均线 | `RSIDivergenceMA.cs` | RSI背离+均线过滤的交易系统，自动识别趋势/震荡市场 |
+| RSI 背离策略 | `RSI_Deviate.cs` | RSI顶底背离交易策略 |
+| RSI 背离 + 布林带 | `RSI_Deviate_Boll.cs` | RSI背离+布林带过滤的组合交易策略 |
+
+#### 形态识别类 (Pattern)
+| 策略名称 | 文件 | 简介 |
+|---------|------|------|
+| 缠论策略 | `ChanLun.cs` | 完整缠论交易系统：K线包含处理、分型、笔、线段、中枢、背驰、买卖点 |
+| 缠论笔交易 | `ChanLun_bi.cs` | 基于缠论笔结构的简化交易策略 |
+| 道氏理论 | `DowTheory.cs` | 基于道氏理论的波峰波谷趋势识别交易策略 |
+| 艾略特波浪 | `ElliottWave.cs` | 艾略特波浪理论交易策略，识别浪3/浪5入场点 |
+| MACD + 三红兵 | `MACD_ThreeRedSoldiers.cs` | MACD动量+红三兵/三只乌鸦K线形态组合策略 |
+
+#### 反转策略类 (Reversal)
+| 策略名称 | 文件 | 简介 |
+|---------|------|------|
+| 自适应均值回归 | `AdaptiveMeanReversion.cs` | 布林带+RSI+Keltner通道多重确认的自适应均值回归策略 |
+| 布林带均值回归 | `BollingerMeanReversion.cs` | 价格触及布林带轨道后回归中轨的均值回归交易系统 |
+| 唐奇安反转 | `DonchianReverse.cs` | 基于唐奇安通道的反转交易策略 |
+| ML 自适应均值回归 | `MLAdaptiveMeanReversion.cs` | 基于GBDT机器学习预测回归概率的智能均值回归策略 |
+| 反转策略 | `Reverse.cs` | 价格极端偏离后的反转交易策略，支持金字塔加仓 |
+| 影线反转 | `ReverseShadow.cs` | 基于K线长影线形态的反转交易策略 |
+| 统计套利 | `StatisticalArbitrage.cs` | 基于Z-Score和半衰期的统计套利策略 |
+| 夜神抄底 | `YeShenChaoDi.cs` | RSI超卖+价格企稳反转信号的抄底策略 |
+
+#### 量化因子类 (Quant)
+| 策略名称 | 文件 | 简介 |
+|---------|------|------|
+| 多因子策略 | `MultiFactor.cs` | 动量+趋势+波动率+成交量+均值回归五因子加权打分系统 |
+| 多周期共振 | `MultiPeriodResonance.cs` | 多时间周期趋势共振交易系统，共振强度越高信号越强 |
+| RSI 背离趋势延续 | `RSIDivergenceTrendContinuation.cs` | RSI反转背离+趋势延续背离双模式交易系统 |
+| 三重因子共振 | `ThreeFactorResonance.cs` | MA趋势+MACD动量+OBV成交量三因子共振交易系统 |
+
+#### 共振策略类 (Resonance)
+| 策略名称 | 文件 | 简介 |
+|---------|------|------|
+| MACD + ADX 共振 | `MACD_ADX_Resonance.cs` | MACD动量信号+ADX/DI趋势强度双指标共振交易系统 |
+
+#### 网格交易类 (Grid)
+| 策略名称 | 文件 | 简介 |
+|---------|------|------|
+| 网格交易 | `GridTrading.cs` | 经典网格交易策略，支持动态网格（ATR自适应间距） |
+
+#### 机器学习类 (MachineLearning)
+| 策略名称 | 文件 | 简介 |
+|---------|------|------|
+| CatBoost 预测 | `CatBoostPredict.cs` | 基于CatBoost对称树+Ordered Boosting的价格预测策略 |
+| GBDT 预测 | `GBDTPredict.cs` | 基于梯度提升决策树(GBDT)的价格预测策略 |
+| LSTM 预测 | `LSTMPredict.cs` | 基于LSTM神经网络的时序价格预测策略 |
+| LightGBM 预测 | `LightGBMPredict.cs` | 基于LightGBM的轻量级梯度提升价格预测策略 |
+| MLP 预测 | `MLPPredict.cs` | 基于多层感知机(MLP)神经网络的价格预测策略 |
+| XGBoost 预测 | `XGBoostPredict.cs` | 基于XGBoost二阶泰勒展开优化的价格预测策略 |
+
 ### 核心优势
 - **全平台支持** - 支持Windows/Mac/Linux/Android/iOS/Web
 - **超强可视化** - 覆盖99%指标绘制标准，策略信号可视化展示及联动
