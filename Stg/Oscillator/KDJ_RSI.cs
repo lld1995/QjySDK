@@ -99,66 +99,66 @@ namespace QjySDK.Stg
             sd.UseGlobalCalc = 0;
 
             // KDJ参数
-            sd.ArgDescDic["KdjPeriod"] = new ArgDesc { Text = "KDJ周期", Explain = "KDJ指标的计算周期（通常为9）" };
-            sd.ArgDic["KdjPeriod"] = 9;
+            sd.ArgDescDic["kdjPeriod"] = new ArgDesc { Text = "KDJ周期", Explain = "KDJ指标的计算周期（通常为9）" };
+            sd.ArgDic["kdjPeriod"] = 9;
 
-            sd.ArgDescDic["KdjSignalPeriod"] = new ArgDesc { Text = "KDJ信号周期", Explain = "K和D的平滑周期（通常为3）" };
-            sd.ArgDic["KdjSignalPeriod"] = 3;
+            sd.ArgDescDic["kdjSignalPeriod"] = new ArgDesc { Text = "KDJ信号周期", Explain = "K和D的平滑周期（通常为3）" };
+            sd.ArgDic["kdjSignalPeriod"] = 3;
 
-            sd.ArgDescDic["KdjOverbought"] = new ArgDesc { Text = "KDJ超买线", Explain = "KDJ超买区域阈值" };
-            sd.ArgDic["KdjOverbought"] = 80.0;
+            sd.ArgDescDic["kdjOverbought"] = new ArgDesc { Text = "KDJ超买线", Explain = "KDJ超买区域阈值" };
+            sd.ArgDic["kdjOverbought"] = 80.0;
 
-            sd.ArgDescDic["KdjOversold"] = new ArgDesc { Text = "KDJ超卖线", Explain = "KDJ超卖区域阈值" };
-            sd.ArgDic["KdjOversold"] = 20.0;
+            sd.ArgDescDic["kdjOversold"] = new ArgDesc { Text = "KDJ超卖线", Explain = "KDJ超卖区域阈值" };
+            sd.ArgDic["kdjOversold"] = 20.0;
 
             // RSI参数
-            sd.ArgDescDic["RsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "RSI指标的计算周期（通常为14）" };
-            sd.ArgDic["RsiPeriod"] = 14;
+            sd.ArgDescDic["rsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "RSI指标的计算周期（通常为14）" };
+            sd.ArgDic["rsiPeriod"] = 14;
 
-            sd.ArgDescDic["RsiBullThreshold"] = new ArgDesc { Text = "RSI多头阈值", Explain = "RSI大于此值时允许做多" };
-            sd.ArgDic["RsiBullThreshold"] = 50.0;
+            sd.ArgDescDic["rsiBullThreshold"] = new ArgDesc { Text = "RSI多头阈值", Explain = "RSI大于此值时允许做多" };
+            sd.ArgDic["rsiBullThreshold"] = 50.0;
 
-            sd.ArgDescDic["RsiBearThreshold"] = new ArgDesc { Text = "RSI空头阈值", Explain = "RSI小于此值时允许做空" };
-            sd.ArgDic["RsiBearThreshold"] = 50.0;
+            sd.ArgDescDic["rsiBearThreshold"] = new ArgDesc { Text = "RSI空头阈值", Explain = "RSI小于此值时允许做空" };
+            sd.ArgDic["rsiBearThreshold"] = 50.0;
 
-            sd.ArgDescDic["RsiOverbought"] = new ArgDesc { Text = "RSI超买线", Explain = "RSI超买区域阈值" };
-            sd.ArgDic["RsiOverbought"] = 70.0;
+            sd.ArgDescDic["rsiOverbought"] = new ArgDesc { Text = "RSI超买线", Explain = "RSI超买区域阈值" };
+            sd.ArgDic["rsiOverbought"] = 70.0;
 
-            sd.ArgDescDic["RsiOversold"] = new ArgDesc { Text = "RSI超卖线", Explain = "RSI超卖区域阈值" };
-            sd.ArgDic["RsiOversold"] = 30.0;
+            sd.ArgDescDic["rsiOversold"] = new ArgDesc { Text = "RSI超卖线", Explain = "RSI超卖区域阈值" };
+            sd.ArgDic["rsiOversold"] = 30.0;
 
             // ATR止损止盈参数
-            sd.ArgDescDic["AtrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR指标的计算周期" };
-            sd.ArgDic["AtrPeriod"] = 14;
+            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR指标的计算周期" };
+            sd.ArgDic["atrPeriod"] = 14;
 
-            sd.ArgDescDic["StopLossAtrMultiplier"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离 = ATR × 此倍数" };
-            sd.ArgDic["StopLossAtrMultiplier"] = 2.0;
+            sd.ArgDescDic["stopLossAtrMultiplier"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离 = ATR × 此倍数" };
+            sd.ArgDic["stopLossAtrMultiplier"] = 2.0;
 
-            sd.ArgDescDic["TakeProfitAtrMultiplier"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "止盈距离 = ATR × 此倍数" };
-            sd.ArgDic["TakeProfitAtrMultiplier"] = 3.0;
+            sd.ArgDescDic["takeProfitAtrMultiplier"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "止盈距离 = ATR × 此倍数" };
+            sd.ArgDic["takeProfitAtrMultiplier"] = 3.0;
 
             // 交易参数
-            sd.ArgDescDic["LotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0=固定手数 1=固定金额" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0=固定手数 1=固定金额" };
             sd.ArgDic["lotsMode"] = 1;
 
-            sd.ArgDescDic["Lots"] = new ArgDesc { Text = "固定手数", Explain = "每次交易的固定手数" };
-            sd.ArgDic["Lots"] = 1.0;
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "固定手数", Explain = "每次交易的固定手数" };
+            sd.ArgDic["lots"] = 1.0;
 
-            sd.ArgDescDic["Money"] = new ArgDesc { Text = "固定金额", Explain = "每次交易的固定金额" };
-            sd.ArgDic["Money"] = 10000.0;
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "固定金额", Explain = "每次交易的固定金额" };
+            sd.ArgDic["money"] = 10000.0;
 
-            sd.ArgDescDic["UseTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "是否启用移动止损(1=启用,0=禁用)" };
-            sd.ArgDic["UseTrailingStop"] = 1;
+            sd.ArgDescDic["useTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "是否启用移动止损(1=启用,0=禁用)" };
+            sd.ArgDic["useTrailingStop"] = 1;
 
-            sd.ArgDescDic["TrailingStopAtrMultiplier"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数" };
-            sd.ArgDic["TrailingStopAtrMultiplier"] = 1.5;
+            sd.ArgDescDic["trailingStopAtrMultiplier"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数" };
+            sd.ArgDic["trailingStopAtrMultiplier"] = 1.5;
 
-            sd.ArgDescDic["MaxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "持仓超过此数量K线强制平仓（0=不限制）" };
-            sd.ArgDic["MaxHoldBars"] = 0;
+            sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "持仓超过此数量K线强制平仓（0=不限制）" };
+            sd.ArgDic["maxHoldBars"] = 0;
 
             // 共振模式
-            sd.ArgDescDic["ResonanceMode"] = new ArgDesc { Text = "共振模式", Explain = "0=标准共振 1=严格共振(需RSI也在超卖/超买区)" };
-            sd.ArgDic["ResonanceMode"] = 0;
+            sd.ArgDescDic["resonanceMode"] = new ArgDesc { Text = "共振模式", Explain = "0=标准共振 1=严格共振(需RSI也在超卖/超买区)" };
+            sd.ArgDic["resonanceMode"] = 0;
 
             // 颜色配置
             sd.ColorDic["sub0-K"] = "#2196F3";      // K线蓝色
@@ -177,29 +177,29 @@ namespace QjySDK.Stg
 
         private void InitParams()
         {
-            _kdjPeriod = Convert.ToInt32(ArgDic["KdjPeriod"]);
-            _kdjSignalPeriod = Convert.ToInt32(ArgDic["KdjSignalPeriod"]);
-            _kdjOverbought = Convert.ToDecimal(ArgDic["KdjOverbought"]);
-            _kdjOversold = Convert.ToDecimal(ArgDic["KdjOversold"]);
+            _kdjPeriod = Convert.ToInt32(ArgDic["kdjPeriod"]);
+            _kdjSignalPeriod = Convert.ToInt32(ArgDic["kdjSignalPeriod"]);
+            _kdjOverbought = Convert.ToDecimal(ArgDic["kdjOverbought"]);
+            _kdjOversold = Convert.ToDecimal(ArgDic["kdjOversold"]);
 
-            _rsiPeriod = Convert.ToInt32(ArgDic["RsiPeriod"]);
-            _rsiBullThreshold = Convert.ToDecimal(ArgDic["RsiBullThreshold"]);
-            _rsiBearThreshold = Convert.ToDecimal(ArgDic["RsiBearThreshold"]);
-            _rsiOverbought = Convert.ToDecimal(ArgDic["RsiOverbought"]);
-            _rsiOversold = Convert.ToDecimal(ArgDic["RsiOversold"]);
+            _rsiPeriod = Convert.ToInt32(ArgDic["rsiPeriod"]);
+            _rsiBullThreshold = Convert.ToDecimal(ArgDic["rsiBullThreshold"]);
+            _rsiBearThreshold = Convert.ToDecimal(ArgDic["rsiBearThreshold"]);
+            _rsiOverbought = Convert.ToDecimal(ArgDic["rsiOverbought"]);
+            _rsiOversold = Convert.ToDecimal(ArgDic["rsiOversold"]);
 
-            _atrPeriod = Convert.ToInt32(ArgDic["AtrPeriod"]);
-            _stopLossAtrMultiplier = Convert.ToDecimal(ArgDic["StopLossAtrMultiplier"]);
-            _takeProfitAtrMultiplier = Convert.ToDecimal(ArgDic["TakeProfitAtrMultiplier"]);
+            _atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
+            _stopLossAtrMultiplier = Convert.ToDecimal(ArgDic["stopLossAtrMultiplier"]);
+            _takeProfitAtrMultiplier = Convert.ToDecimal(ArgDic["takeProfitAtrMultiplier"]);
 
-            _lotsMode = Convert.ToInt32(ArgDic["LotsMode"]);
-            _lots = Convert.ToDecimal(ArgDic["Lots"]);
-            _money = Convert.ToDecimal(ArgDic["Money"]);
-            _useTrailingStop = Convert.ToInt32(ArgDic["UseTrailingStop"]) == 1;
-            _trailingStopAtrMultiplier = Convert.ToDecimal(ArgDic["TrailingStopAtrMultiplier"]);
-            _maxHoldBars = Convert.ToInt32(ArgDic["MaxHoldBars"]);
+            _lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
+            _lots = Convert.ToDecimal(ArgDic["lots"]);
+            _money = Convert.ToDecimal(ArgDic["money"]);
+            _useTrailingStop = Convert.ToInt32(ArgDic["useTrailingStop"]) == 1;
+            _trailingStopAtrMultiplier = Convert.ToDecimal(ArgDic["trailingStopAtrMultiplier"]);
+            _maxHoldBars = Convert.ToInt32(ArgDic["maxHoldBars"]);
 
-            _resonanceMode = Convert.ToInt32(ArgDic["ResonanceMode"]);
+            _resonanceMode = Convert.ToInt32(ArgDic["resonanceMode"]);
         }
 
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
