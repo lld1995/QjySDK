@@ -194,6 +194,9 @@ namespace QjySDK.Stg
 			sd.ArgDic["useStopLoss"] = 1;        // 是否使用止损（0否 1是）
 			sd.ArgDic["stopLossPercent"] = 3.0m; // 止损比例（百分比，如3表示3%）
 
+			// 中枢偏离限制
+			sd.ArgDic["maxZhongShuDeviation"] = 5.0m; // 开仓点距离中枢的最大偏离比例（百分比，如5表示5%）
+
             //sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0 标准 1 仅做多 2 仅做空" };
             //sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
             //sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
@@ -1182,8 +1185,8 @@ namespace QjySDK.Stg
 		/// 判断当前走势类型（趋势/盘整）
 		/// 缠论定义：
 		/// - 盘整：只有一个中枢的走势
-		/// - 上涨趋势：至少两个中枢，后一个中枢DD > 前一个中枢GG（中枢间无重叠，向上排列）
-		/// - 下跌趋势：至少两个中枢，后一个中枢GG < 前一个中枢DD（中枢间无重叠，向下排列）
+		/// - 上涨趋势：至少两个中枢，后一个中枢ZD > 前一个中枢ZG（中枢区间无重叠，向上排列）
+		/// - 下跌趋势：至少两个中枢，后一个中枢ZG < 前一个中枢ZD（中枢区间无重叠，向下排列）
 		/// </summary>
 		internal TrendType DetermineTrendType(List<ZhongShu> zhongShus)
 		{
@@ -1197,14 +1200,14 @@ namespace QjySDK.Stg
 			var lastZs = zhongShus[zhongShus.Count - 1];
 			var prevZs = zhongShus[zhongShus.Count - 2];
 
-			// 上涨趋势：后一个中枢完全在前一个中枢上方（中枢间无重叠）
-			// 判定条件：后一个中枢的波动区间最低点 > 前一个中枢的波动区间最高点
-			if (lastZs.DD > prevZs.GG)
+			// 上涨趋势：后一个中枢完全在前一个中枢上方（中枢区间无重叠）
+			// 缠论定义：后一个中枢的中枢下沿(ZD) > 前一个中枢的中枢上沿(ZG)
+			if (lastZs.ZD > prevZs.ZG)
 				return TrendType.UpTrend;
 
-			// 下跌趋势：后一个中枢完全在前一个中枢下方（中枢间无重叠）
-			// 判定条件：后一个中枢的波动区间最高点 < 前一个中枢的波动区间最低点
-			if (lastZs.GG < prevZs.DD)
+			// 下跌趋势：后一个中枢完全在前一个中枢下方（中枢区间无重叠）
+			// 缠论定义：后一个中枢的中枢上沿(ZG) < 前一个中枢的中枢下沿(ZD)
+			if (lastZs.ZG < prevZs.ZD)
 				return TrendType.DownTrend;
 
 			// 中枢有重叠，仍为盘整
@@ -1341,9 +1344,9 @@ namespace QjySDK.Stg
 				var curr = zhongShus[i];
 				var prev = zhongShus[i - 1];
 				
-				// 下跌趋势：后一个中枢完全在前一个中枢下方（中枢间无重叠）
-				// 判定条件：后一个中枢的波动区间最高点 < 前一个中枢的波动区间最低点
-				if (curr.GG < prev.DD)
+				// 下跌趋势：后一个中枢完全在前一个中枢下方（中枢区间无重叠）
+				// 缠论定义：后一个中枢的中枢上沿(ZG) < 前一个中枢的中枢下沿(ZD)
+				if (curr.ZG < prev.ZD)
 				{
 					lastZhongShu = curr;
 					prevZhongShu = prev;
@@ -1370,9 +1373,9 @@ namespace QjySDK.Stg
 				var curr = zhongShus[i];
 				var prev = zhongShus[i - 1];
 				
-				// 上涨趋势：后一个中枢完全在前一个中枢上方（中枢间无重叠）
-				// 判定条件：后一个中枢的波动区间最低点 > 前一个中枢的波动区间最高点
-				if (curr.DD > prev.GG)
+				// 上涨趋势：后一个中枢完全在前一个中枢上方（中枢区间无重叠）
+				// 缠论定义：后一个中枢的中枢下沿(ZD) > 前一个中枢的中枢上沿(ZG)
+				if (curr.ZD > prev.ZG)
 				{
 					lastZhongShu = curr;
 					prevZhongShu = prev;
@@ -1529,6 +1532,15 @@ namespace QjySDK.Stg
 			if (state.LastBuy1 == null)
 				return null;
 			
+			// 关键检查：一买之后必须先有向上笔，然后才是回调的向下笔
+			// 即回调笔的前一笔必须是向上笔，且该向上笔在一买之后
+			int pullbackIdx = state.Strokes?.IndexOf(pullbackStroke) ?? -1;
+			if (pullbackIdx < 1)
+				return null;
+			var prevStroke = state.Strokes[pullbackIdx - 1];
+			if (!prevStroke.IsUp || prevStroke.StartIndex < state.LastBuy1.Index)
+				return null;
+			
 			// 检查是否有底分型确认（提前识别的关键）
 			bool hasFractalConfirm = latestFractal != null && 
 									  latestFractal.Type == FractalType.Bottom && latestFractal.IsConfirmed;
@@ -1537,7 +1549,6 @@ namespace QjySDK.Stg
 			bool hasSubDivergence = false;
 			if (state.Strokes != null && state.Strokes.Count >= 3)
 			{
-				int pullbackIdx = state.Strokes.IndexOf(pullbackStroke);
 				if (pullbackIdx >= 2)
 				{
 					var prevSameDir = state.Strokes[pullbackIdx - 2];
@@ -1588,22 +1599,27 @@ namespace QjySDK.Stg
 			if (state.LastSell1 == null)
 				return null;
 			
+			// 关键检查：一卖之后必须先有向下笔，然后才是反弹的向上笔
+			// 即反弹笔的前一笔必须是向下笔，且该向下笔在一卖之后
+			int pullbackIdx = state.Strokes?.IndexOf(pullbackStroke) ?? -1;
+			if (pullbackIdx < 1)
+				return null;
+			var prevStroke = state.Strokes[pullbackIdx - 1];
+			if (prevStroke.IsUp || prevStroke.StartIndex < state.LastSell1.Index)
+				return null;
+			
 			// 检查是否有顶分型确认（提前识别的关键）
 			bool hasFractalConfirm = latestFractal != null && 
 									  latestFractal.Type == FractalType.Top && latestFractal.IsConfirmed;
 			
 			// 检查次级别背驰（反弹笔与前一个同向笔比较）
 			bool hasSubDivergence = false;
-			if (state.Strokes != null && state.Strokes.Count >= 3)
+			if (pullbackIdx >= 2)
 			{
-				int pullbackIdx = state.Strokes.IndexOf(pullbackStroke);
-				if (pullbackIdx >= 2)
+				var prevSameDir = state.Strokes[pullbackIdx - 2];
+				if (prevSameDir.IsUp && pullbackStroke.MACDArea < prevSameDir.MACDArea)
 				{
-					var prevSameDir = state.Strokes[pullbackIdx - 2];
-					if (prevSameDir.IsUp && pullbackStroke.MACDArea < prevSameDir.MACDArea)
-					{
-						hasSubDivergence = true;
-					}
+					hasSubDivergence = true;
 				}
 			}
 			
@@ -1719,7 +1735,6 @@ namespace QjySDK.Stg
 				if (state.Strokes.Count > 1)
 					prevStroke = state.Strokes[state.Strokes.Count - 2];
 			}
-
 			if (currentStroke == null)
 				return;
 
@@ -1729,9 +1744,11 @@ namespace QjySDK.Stg
 			ZhongShu prevDownTrendZs = null;
 			ZhongShu prevUpTrendZs = null;
 			
+			// 获取下跌趋势中枢
 			HasDownTrend(state.ZhongShus, out lastDownTrendZs, out prevDownTrendZs);
+			// 获取上涨趋势中枢
 			HasUpTrend(state.ZhongShus, out lastUpTrendZs, out prevUpTrendZs);
-
+			
 			// ========== 第一类买卖点识别 ==========
 			// 一买：下跌趋势背驰点
 			var buy1 = IdentifyBuy1(state);
@@ -1741,6 +1758,9 @@ namespace QjySDK.Stg
 				state.LastBuy1 = buy1;
 				// 记录产生一买时的中枢，用于二买判断
 				state.LastBuy1ZhongShu = lastDownTrendZs;
+				// 一买出现表示趋势反转，清除之前的一卖信号，防止错误触发二卖
+				state.LastSell1 = null;
+				state.LastSell1ZhongShu = null;
 			}
 
 			// 一卖：上涨趋势背驰点
@@ -1751,6 +1771,9 @@ namespace QjySDK.Stg
 				state.LastSell1 = sell1;
 				// 记录产生一卖时的中枢，用于二卖判断
 				state.LastSell1ZhongShu = lastUpTrendZs;
+				// 一卖出现表示趋势反转，清除之前的一买信号，防止错误触发二买
+				state.LastBuy1 = null;
+				state.LastBuy1ZhongShu = null;
 			}
 
 			// ========== 第二类买卖点识别 ==========
@@ -2053,6 +2076,20 @@ namespace QjySDK.Stg
 			bool isSellPoint = latestBSPoint.Type == BSPointType.Sell1 || 
 							   latestBSPoint.Type == BSPointType.Sell2 || 
 							   latestBSPoint.Type == BSPointType.Sell3;
+
+			// 检查开仓点是否偏离中枢太远
+			decimal maxDeviation = (decimal)ArgDic["maxZhongShuDeviation"];
+			if (maxDeviation > 0 && s.CurrentZhongShu != null && s.CurrentZhongShu.IsValid)
+			{
+				decimal zhongShuCenter = (s.CurrentZhongShu.ZG + s.CurrentZhongShu.ZD) / 2;
+				decimal deviationPercent = Math.Abs(q.Close - zhongShuCenter) / zhongShuCenter * 100;
+				if (deviationPercent > maxDeviation)
+				{
+					// 偏离中枢太远，不开仓，但标记此买卖点已处理
+					s.LastTradedBSPointIndex = latestBSPoint.Index;
+					return;
+				}
+			}
 
 			if (isBuyPoint && mode != 2)  // 买点且不是仅做空模式
 			{

@@ -1187,8 +1187,8 @@ namespace QjySDK.Stg
 		/// 判断当前走势类型（趋势/盘整）
 		/// 缠论定义：
 		/// - 盘整：只有一个中枢的走势
-		/// - 上涨趋势：至少两个中枢，后一个中枢DD > 前一个中枢GG（中枢间无重叠，向上排列）
-		/// - 下跌趋势：至少两个中枢，后一个中枢GG < 前一个中枢DD（中枢间无重叠，向下排列）
+		/// - 上涨趋势：至少两个中枢，后一个中枢ZD > 前一个中枢ZG（中枢区间无重叠，向上排列）
+		/// - 下跌趋势：至少两个中枢，后一个中枢ZG < 前一个中枢ZD（中枢区间无重叠，向下排列）
 		/// </summary>
 		internal TrendType DetermineTrendType(List<ZhongShu> zhongShus)
 		{
@@ -1202,14 +1202,14 @@ namespace QjySDK.Stg
 			var lastZs = zhongShus[zhongShus.Count - 1];
 			var prevZs = zhongShus[zhongShus.Count - 2];
 
-			// 上涨趋势：后一个中枢完全在前一个中枢上方（中枢间无重叠）
-			// 判定条件：后一个中枢的波动区间最低点 > 前一个中枢的波动区间最高点
-			if (lastZs.DD > prevZs.GG)
+			// 上涨趋势：后一个中枢完全在前一个中枢上方（中枢区间无重叠）
+			// 缠论定义：后一个中枢的中枢下沿(ZD) > 前一个中枢的中枢上沿(ZG)
+			if (lastZs.ZD > prevZs.ZG)
 				return TrendType.UpTrend;
 
-			// 下跌趋势：后一个中枢完全在前一个中枢下方（中枢间无重叠）
-			// 判定条件：后一个中枢的波动区间最高点 < 前一个中枢的波动区间最低点
-			if (lastZs.GG < prevZs.DD)
+			// 下跌趋势：后一个中枢完全在前一个中枢下方（中枢区间无重叠）
+			// 缠论定义：后一个中枢的中枢上沿(ZG) < 前一个中枢的中枢下沿(ZD)
+			if (lastZs.ZG < prevZs.ZD)
 				return TrendType.DownTrend;
 
 			// 中枢有重叠，仍为盘整
@@ -1346,9 +1346,9 @@ namespace QjySDK.Stg
 				var curr = zhongShus[i];
 				var prev = zhongShus[i - 1];
 				
-				// 下跌趋势：后一个中枢完全在前一个中枢下方（中枢间无重叠）
-				// 判定条件：后一个中枢的波动区间最高点 < 前一个中枢的波动区间最低点
-				if (curr.GG < prev.DD)
+				// 下跌趋势：后一个中枢完全在前一个中枢下方（中枢区间无重叠）
+				// 缠论定义：后一个中枢的中枢上沿(ZG) < 前一个中枢的中枢下沿(ZD)
+				if (curr.ZG < prev.ZD)
 				{
 					lastZhongShu = curr;
 					prevZhongShu = prev;
@@ -1375,9 +1375,9 @@ namespace QjySDK.Stg
 				var curr = zhongShus[i];
 				var prev = zhongShus[i - 1];
 				
-				// 上涨趋势：后一个中枢完全在前一个中枢上方（中枢间无重叠）
-				// 判定条件：后一个中枢的波动区间最低点 > 前一个中枢的波动区间最高点
-				if (curr.DD > prev.GG)
+				// 上涨趋势：后一个中枢完全在前一个中枢上方（中枢区间无重叠）
+				// 缠论定义：后一个中枢的中枢下沿(ZD) > 前一个中枢的中枢上沿(ZG)
+				if (curr.ZD > prev.ZG)
 				{
 					lastZhongShu = curr;
 					prevZhongShu = prev;
@@ -1729,6 +1729,9 @@ namespace QjySDK.Stg
 				state.LastBuy1 = buy1;
 				// 记录产生一买时的中枢，用于二买判断
 				state.LastBuy1ZhongShu = lastDownTrendZs;
+				// 一买出现表示趋势反转，清除之前的一卖信号，防止错误触发二卖
+				state.LastSell1 = null;
+				state.LastSell1ZhongShu = null;
 			}
 
 			// 一卖：上涨趋势背驰点
@@ -1739,6 +1742,9 @@ namespace QjySDK.Stg
 				state.LastSell1 = sell1;
 				// 记录产生一卖时的中枢，用于二卖判断
 				state.LastSell1ZhongShu = lastUpTrendZs;
+				// 一卖出现表示趋势反转，清除之前的一买信号，防止错误触发二买
+				state.LastBuy1 = null;
+				state.LastBuy1ZhongShu = null;
 			}
 
 			// ========== 第二类买卖点识别 ==========
