@@ -239,6 +239,8 @@ namespace QjySDK.Stg
 			public ZhongShu? LastBuy1ZhongShu { get; set; }    // 产生一买时的中枢（用于二买判断）
 			public ZhongShu? LastSell1ZhongShu { get; set; }   // 产生一卖时的中枢（用于二卖判断）
 			public int LastTradedBSPointIndex { get; set; } = -1;  // 最后交易的买卖点索引（防止重复触发）
+			public ZhongShu? LastConfirmedDrawZhongShu { get; set; }  // 上次绘制的已确认中枢（用于防止中枢回退）
+			public int LastConfirmedSegmentCount { get; set; }  // 上次确认中枢时的线段数量
 		}
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -1937,12 +1939,46 @@ namespace QjySDK.Stg
 				}
 			}
 
-			// 绘制当前中枢
+			// 绘制当前中枢（防止中枢回退）
+			// 只有在线段数量增加时才更新绘制的中枢，避免未形成新线段时中枢值跳回前一个
 			if (s.CurrentZhongShu != null && s.CurrentZhongShu.IsValid)
 			{
-				var zs = s.CurrentZhongShu;
-				Plot("main", "zhongshu_zg", PlotType.LINE, (double)zs.ZG);
-				Plot("main", "zhongshu_zd", PlotType.LINE, (double)zs.ZD);
+				int currentSegmentCount = s.Segments?.Count ?? 0;
+				
+				// 判断是否应该更新绘制的中枢
+				bool shouldUpdateDrawZhongShu = false;
+				if (s.LastConfirmedDrawZhongShu == null)
+				{
+					// 首次绘制中枢
+					shouldUpdateDrawZhongShu = true;
+				}
+				else if (currentSegmentCount > s.LastConfirmedSegmentCount)
+				{
+					// 线段数量增加了，可以更新中枢
+					shouldUpdateDrawZhongShu = true;
+				}
+				else if (s.CurrentZhongShu.Id == s.LastConfirmedDrawZhongShu.Id)
+				{
+					// 同一个中枢，允许更新（可能是中枢延伸）
+					shouldUpdateDrawZhongShu = true;
+				}
+				
+				if (shouldUpdateDrawZhongShu)
+				{
+					s.LastConfirmedDrawZhongShu = s.CurrentZhongShu;
+					s.LastConfirmedSegmentCount = currentSegmentCount;
+				}
+				
+				// 使用稳定的中枢进行绘制
+				var zsToPlot = s.LastConfirmedDrawZhongShu ?? s.CurrentZhongShu;
+				Plot("main", "zhongshu_zg", PlotType.LINE, (double)zsToPlot.ZG);
+				Plot("main", "zhongshu_zd", PlotType.LINE, (double)zsToPlot.ZD);
+			}
+			else if (s.LastConfirmedDrawZhongShu != null && s.LastConfirmedDrawZhongShu.IsValid)
+			{
+				// 当前没有有效中枢，但之前有确认的中枢，继续绘制之前的
+				Plot("main", "zhongshu_zg", PlotType.LINE, (double)s.LastConfirmedDrawZhongShu.ZG);
+				Plot("main", "zhongshu_zd", PlotType.LINE, (double)s.LastConfirmedDrawZhongShu.ZD);
 			}
 
 			// 计算手数

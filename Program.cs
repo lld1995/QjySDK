@@ -5,7 +5,7 @@ using QjySDK.Stg;
 GlobalDef.Init();
 
 {
-    var sd = new StatisticalArbitrage("245044dd55a046829617593d4cda19a8");
+    var sd = new ChanLunBi("c3bb1894005a46b39a427a4f77cc595c");
     await sd.Run();
     
     Console.ReadLine();
