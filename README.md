@@ -9,6 +9,10 @@
 </p>
 
 <p align="center">
+  <strong>简体中文</strong> | <a href="README_EN.md">English</a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/version-v1.0.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/.NET-9.0-purple.svg" alt=".NET">
   <img src="https://img.shields.io/badge/license-Commercial-red.svg" alt="License">
@@ -75,7 +79,7 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 |---------|------|------|
 | Aberration 通道突破 | `Aberration.cs` | 基于肯特纳通道的经典趋势跟踪系统，突破上轨做多、突破下轨做空 |
 | Andromeda 趋势策略 | `Andromeda.cs` | 多重EMA+动量+波动率过滤的中长期趋势跟踪系统 |
-| 布林带策略 | `Boll.cs` | 标准布林带交易策略，突破上轨做多、突破下轨做空、回归中轨平仓 |
+| 布林带突破策略 | `Boll.cs` | 标准布林带交易策略，突破上轨做多、突破下轨做空、回归中轨平仓 |
 | 唐奇安通道 ATR | `DonchianATR.cs` | 唐奇安通道突破+ATR金字塔加仓策略 |
 | 唐奇安通道 | `DonchianChannel.cs` | 经典唐奇安通道突破策略，突破N日高点做多、突破N日低点做空 |
 | Dual Thrust 策略 | `DualThrust.cs` | 经典日内突破系统，基于前N日价格计算动态突破区间 |
@@ -83,6 +87,8 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 | EMA + ADX + DI 趋势 | `EMA_ADX_DI.cs` | DI交叉+EMA趋势过滤+ADX强度确认的趋势动量策略 |
 | EMA 标准策略 | `EMA_Standard.cs` | 快慢EMA交叉交易系统，支持趋势过滤和止损止盈 |
 | 均线交叉 | `MACross.cs` | 经典双均线金叉死叉交易策略 |
+| MACD 标准策略 | `MACDStandard.cs` | 经典MACD金叉死叉交易系统，基于EMA差值跟踪趋势 |
+| MACD + 傅里叶 | `MACD_Fourier.cs` | MACD+傅里叶变换周期分析策略，FFT过滤噪音确认趋势方向 |
 | 动量突破 | `MomentumBreakout.cs` | MACD+RSI+成交量+ADX多重确认的动量突破策略 |
 | RUMI 策略 | `RUMI.cs` | 相对动量指标系统，结合动量、趋势和波动率的综合交易系统 |
 | SMA 均线策略 | `SMA.cs` | 标准SMA双均线交叉策略，支持趋势过滤和价格确认 |
@@ -91,21 +97,13 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 #### ![](images/icons/oscillator.svg) 震荡指标类 (Oscillator)
 | 策略名称 | 文件 | 简介 |
 |---------|------|------|
-| 布林带影线策略 | `Boll_Shadow.cs` | 布林带结合K线影线形态的交易策略 |
 | KDJ 策略 | `KDJ.cs` | 标准KDJ交易策略，K/D金叉死叉+超买超卖区域过滤 |
 | KDJ + 成交量 | `KDJV.cs` | KDJ指标结合成交量确认的交易策略 |
 | KDJ + ATR | `KDJ_ATR.cs` | KDJ信号+ATR动态止损止盈的交易策略 |
-| KDJ + RSI | `KDJ_RSI.cs` | KDJ与RSI双震荡指标共振交易策略 |
 | KDJ + SMA | `KDJ_SMA.cs` | KDJ信号+SMA均线趋势过滤的交易策略 |
-| MACD 背离零轴交叉 | `MACDDivergenceZeroCross.cs` | MACD背离+零轴交叉组合交易系统，支持多种组合模式 |
-| MACD 标准策略 | `MACDStandard.cs` | 经典MACD金叉死叉交易系统 |
-| MACD 背离策略 | `MACD_Deviate.cs` | MACD顶底背离交易策略 |
-| MACD 背离 + 布林带 | `MACD_Deviate_Boll.cs` | MACD背离+布林带过滤的组合交易策略 |
-| MACD + KDJ 交叉 | `MACD_KDJ_Cross.cs` | MACD与KDJ双指标金叉死叉共振交易系统 |
 | RSI 策略 | `RSI.cs` | 标准RSI交易策略，支持超买超卖反转、中轴穿越、双RSI交叉 |
-| RSI 背离 + 均线 | `RSIDivergenceMA.cs` | RSI背离+均线过滤的交易系统，自动识别趋势/震荡市场 |
-| RSI 背离策略 | `RSI_Deviate.cs` | RSI顶底背离交易策略 |
-| RSI 背离 + 布林带 | `RSI_Deviate_Boll.cs` | RSI背离+布林带过滤的组合交易策略 |
+| RSI + 傅里叶 | `RSI_Fourier.cs` | RSI+傅里叶变换交易策略，周期底部超卖做多、顶部超买做空 |
+| WR + 傅里叶 | `WR_Fourier.cs` | 威廉指标+傅里叶变换策略，WR超买超卖结合FFT周期预测 |
 
 #### ![](images/icons/pattern.svg) 形态识别类 (Pattern)
 | 策略名称 | 文件 | 简介 |
@@ -121,10 +119,17 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 |---------|------|------|
 | 自适应均值回归 | `AdaptiveMeanReversion.cs` | 布林带+RSI+Keltner通道多重确认的自适应均值回归策略 |
 | 布林带均值回归 | `BollingerMeanReversion.cs` | 价格触及布林带轨道后回归中轨的均值回归交易系统 |
+| 布林带影线反转 | `Boll_Shadow.cs` | 布林带结合K线影线形态的反转交易策略 |
 | 唐奇安反转 | `DonchianReverse.cs` | 基于唐奇安通道的反转交易策略 |
+| MACD 背离策略 | `MACD_Deviate.cs` | MACD顶底背离交易策略，背离信号预示趋势反转 |
+| MACD 背离 + 布林带 | `MACD_Deviate_Boll.cs` | MACD背离+布林带过滤的反转交易策略 |
+| MACD 背离零轴交叉 | `MACDDivergenceZeroCross.cs` | MACD背离+零轴交叉组合反转系统，支持多种组合模式 |
 | ML 自适应均值回归 | `MLAdaptiveMeanReversion.cs` | 基于GBDT机器学习预测回归概率的智能均值回归策略 |
 | 反转策略 | `Reverse.cs` | 价格极端偏离后的反转交易策略，支持金字塔加仓 |
 | 影线反转 | `ReverseShadow.cs` | 基于K线长影线形态的反转交易策略 |
+| RSI 背离策略 | `RSI_Deviate.cs` | RSI顶底背离交易策略，背离信号预示反转 |
+| RSI 背离 + 布林带 | `RSI_Deviate_Boll.cs` | RSI背离+布林带过滤的反转交易策略 |
+| RSI 背离 + 均线 | `RSIDivergenceMA.cs` | RSI背离+均线过滤的反转系统，自动识别趋势/震荡市场 |
 | 统计套利 | `StatisticalArbitrage.cs` | 基于Z-Score和半衰期的统计套利策略 |
 | 夜神抄底 | `YeShenChaoDi.cs` | RSI超卖+价格企稳反转信号的抄底策略 |
 
@@ -132,14 +137,19 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 | 策略名称 | 文件 | 简介 |
 |---------|------|------|
 | 多因子策略 | `MultiFactor.cs` | 动量+趋势+波动率+成交量+均值回归五因子加权打分系统 |
-| 多周期共振 | `MultiPeriodResonance.cs` | 多时间周期趋势共振交易系统，共振强度越高信号越强 |
 | RSI 背离趋势延续 | `RSIDivergenceTrendContinuation.cs` | RSI反转背离+趋势延续背离双模式交易系统 |
-| 三重因子共振 | `ThreeFactorResonance.cs` | MA趋势+MACD动量+OBV成交量三因子共振交易系统 |
+| 傅里叶变换 | `FourierTransform.cs` | 基于FFT频域分析的周期识别与趋势预测交易系统 |
 
 #### ![](images/icons/resonance.svg) 共振策略类 (Resonance)
 | 策略名称 | 文件 | 简介 |
 |---------|------|------|
+| KDJ + RSI 共振 | `KDJ_RSI.cs` | KDJ与RSI双震荡指标共振交易策略 |
 | MACD + ADX 共振 | `MACD_ADX_Resonance.cs` | MACD动量信号+ADX/DI趋势强度双指标共振交易系统 |
+| MACD + KDJ 共振 | `MACD_KDJ_Cross.cs` | MACD与KDJ双指标金叉死叉共振交易系统 |
+| 多周期共振 | `MultiPeriodResonance.cs` | 多时间周期趋势共振交易系统，共振强度越高信号越强 |
+| 三重因子共振 | `ThreeFactorResonance.cs` | MA趋势+MACD动量+OBV成交量三因子共振交易系统 |
+| CCI + MACD + 傅里叶 | `CCI_MACD_Fourier.cs` | CCI+MACD+傅里叶变换三重共振交易策略，频谱分析识别周期与相位 |
+| RSI + 布林带 + 傅里叶 | `RSI_Boll_Fourier.cs` | RSI+布林带+傅里叶变换三重信号共振策略，提高交易胜率 |
 
 #### ![](images/icons/grid.svg) 网格交易类 (Grid)
 | 策略名称 | 文件 | 简介 |
