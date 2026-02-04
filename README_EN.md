@@ -165,6 +165,7 @@ The SDK includes a rich set of quantitative trading strategies, categorized as f
 | LightGBM Prediction | `LightGBMPredict.cs` | Lightweight gradient boosting price prediction based on LightGBM |
 | MLP Prediction | `MLPPredict.cs` | Price prediction based on Multi-Layer Perceptron neural networks |
 | XGBoost Prediction | `XGBoostPredict.cs` | Price prediction based on XGBoost second-order Taylor expansion optimization |
+| PCA Prediction | `PCAPredict.cs` | Dimensionality reduction and anomaly detection trading strategy based on Principal Component Analysis (PCA) |
 
 ---
 
