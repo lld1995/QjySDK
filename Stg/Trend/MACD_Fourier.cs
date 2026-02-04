@@ -437,7 +437,7 @@ namespace QjySDK.Stg
 				}
 			}
 
-			return Math.Max(num, 0.001m);
+			return num;
 		}
 	}
 }

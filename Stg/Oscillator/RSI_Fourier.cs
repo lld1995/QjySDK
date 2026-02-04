@@ -33,7 +33,10 @@ namespace QjySDK.Stg
             var sd = new StgDesc();
 
             // RSI参数
-            sd.ArgDic["rsiPeriod"] = 14;             // RSI计算周期
+            sd.ArgDic["useAdaptiveRsi"] = 1;         // 是否使用自适应RSI周期(0否 1是)
+            sd.ArgDic["rsiPeriod"] = 14;             // RSI计算周期(自适应关闭时使用)
+            sd.ArgDic["rsiPeriodMin"] = 5;           // RSI周期最小值(自适应开启时)
+            sd.ArgDic["rsiPeriodMax"] = 30;          // RSI周期最大值(自适应开启时)
             sd.ArgDic["overbought"] = 70;            // 超买阈值
             sd.ArgDic["oversold"] = 30;              // 超卖阈值
 
@@ -56,7 +59,10 @@ namespace QjySDK.Stg
             sd.ArgDic["money"] = 10000m;             // 固定金额
 
             // 参数说明
-            sd.ArgDescDic["rsiPeriod"] = new ArgDesc() { Text = "RSI周期", Explain = "RSI计算周期，通常为14" };
+            sd.ArgDescDic["useAdaptiveRsi"] = new ArgDesc() { Text = "自适应RSI", Explain = "0 使用固定RSI周期 1 使用傅里叶主周期作为RSI周期" };
+            sd.ArgDescDic["rsiPeriod"] = new ArgDesc() { Text = "RSI周期", Explain = "RSI计算周期，自适应关闭时使用，通常为14" };
+            sd.ArgDescDic["rsiPeriodMin"] = new ArgDesc() { Text = "RSI最小周期", Explain = "自适应RSI周期的最小值" };
+            sd.ArgDescDic["rsiPeriodMax"] = new ArgDesc() { Text = "RSI最大周期", Explain = "自适应RSI周期的最大值" };
             sd.ArgDescDic["overbought"] = new ArgDesc() { Text = "超买线", Explain = "超买区域阈值，通常为70" };
             sd.ArgDescDic["oversold"] = new ArgDesc() { Text = "超卖线", Explain = "超卖区域阈值，通常为30" };
             sd.ArgDescDic["fftPeriod"] = new ArgDesc() { Text = "FFT窗口", Explain = "傅里叶变换分析窗口大小，必须是2的幂次(如32,64,128)" };
@@ -220,14 +226,18 @@ namespace QjySDK.Stg
 
             if (!isFinal) return;
 
-            int rsiPeriod = (int)ArgDic["rsiPeriod"];
+            int useAdaptiveRsi = (int)ArgDic["useAdaptiveRsi"];
+            int rsiPeriodFixed = (int)ArgDic["rsiPeriod"];
+            int rsiPeriodMin = (int)ArgDic["rsiPeriodMin"];
+            int rsiPeriodMax = (int)ArgDic["rsiPeriodMax"];
             int fftPeriod = (int)ArgDic["fftPeriod"];
             int dominantPeriodMin = (int)ArgDic["dominantPeriodMin"];
             int dominantPeriodMax = (int)ArgDic["dominantPeriodMax"];
             int harmonics = (int)ArgDic["harmonics"];
 
-            // 确保有足够的数据
-            int minBars = Math.Max(rsiPeriod + 2, fftPeriod);
+            // 确保有足够的数据(先用最大可能的RSI周期检查)
+            int maxRsiPeriod = useAdaptiveRsi == 1 ? rsiPeriodMax : rsiPeriodFixed;
+            int minBars = Math.Max(maxRsiPeriod + 2, fftPeriod);
             if (tu.QuoteList.Count < minBars) return;
 
             int mode = (int)ArgDic["mode"];
@@ -239,19 +249,6 @@ namespace QjySDK.Stg
             double phaseThresholdSell = Convert.ToDouble(ArgDic["phaseThresholdSell"]);
 
             var q = tu.QuoteList.Last();
-
-            // 计算RSI指标
-            var rsiList = tu.QuoteList.GetRsi(rsiPeriod).ToList();
-            var rsi1 = rsiList[rsiList.Count - 1];
-            var rsi2 = rsiList[rsiList.Count - 2];
-
-            if (rsi1.Rsi == null || rsi2.Rsi == null) return;
-
-            double curRsi = rsi1.Rsi.Value;
-            double prevRsi = rsi2.Rsi.Value;
-
-            // 绘制RSI
-            Plot("sub0", "RSI", PlotType.LINE, curRsi);
 
             // 准备傅里叶变换数据(使用收盘价)
             var priceData = tu.QuoteList.Skip(tu.QuoteList.Count - fftPeriod).Take(fftPeriod)
@@ -283,7 +280,26 @@ namespace QjySDK.Stg
             // 计算当前相位位置
             double phasePosition = CalculatePhasePosition(fftResult, harmonics, fftPeriod - 1, fftPeriod);
 
-            // 绘制相位和周期信息
+            // 确定RSI周期：自适应模式使用傅里叶主周期，否则使用固定周期
+            int rsiPeriod = rsiPeriodFixed;
+            if (useAdaptiveRsi == 1 && dominantPeriod > 0)
+            {
+                // 将傅里叶主周期约束在RSI周期范围内
+                rsiPeriod = Math.Max(rsiPeriodMin, Math.Min(rsiPeriodMax, dominantPeriod));
+            }
+
+            // 计算RSI指标(使用动态或固定周期)
+            var rsiList = tu.QuoteList.GetRsi(rsiPeriod).ToList();
+            var rsi1 = rsiList[rsiList.Count - 1];
+            var rsi2 = rsiList[rsiList.Count - 2];
+
+            if (rsi1.Rsi == null || rsi2.Rsi == null) return;
+
+            double curRsi = rsi1.Rsi.Value;
+            double prevRsi = rsi2.Rsi.Value;
+
+            // 绘制RSI和相位周期信息
+            Plot("sub0", "RSI", PlotType.LINE, curRsi);
             Plot("sub1", "Phase", PlotType.LINE, phasePosition);
             Plot("sub1", "Cycle", PlotType.LINE, dominantPeriod);
 
