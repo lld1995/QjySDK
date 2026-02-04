@@ -165,6 +165,7 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 | LightGBM 预测 | `LightGBMPredict.cs` | 基于LightGBM的轻量级梯度提升价格预测策略 |
 | MLP 预测 | `MLPPredict.cs` | 基于多层感知机(MLP)神经网络的价格预测策略 |
 | XGBoost 预测 | `XGBoostPredict.cs` | 基于XGBoost二阶泰勒展开优化的价格预测策略 |
+| PCA 预测 | `PCAPredict.cs` | 基于主成分分析(PCA)的降维与异常检测交易策略 |
 
 ---
 
