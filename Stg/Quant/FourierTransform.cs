@@ -1,11 +1,12 @@
 using Common;
 using Model;
+using Skender.Stock.Indicators;
 using stgInterface;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using static Model.EnumDef;
+using System.Collections.Generic;
+using System.Numerics;
 
 namespace QjySDK.Stg
 {
@@ -160,7 +161,7 @@ namespace QjySDK.Stg
 			decimal currentPrice = tq.Close;
 
 			// 计算交易手数
-			decimal lots = CalculateLots(currentPrice);
+			decimal lots = CalculateLots(tu, tq);
 
 			// 止损检查
 			if (useStopLoss == 1 && state.Position != 0)
@@ -373,20 +374,27 @@ namespace QjySDK.Stg
 		/// <summary>
 		/// 计算交易手数
 		/// </summary>
-		private decimal CalculateLots(decimal price)
+		private decimal CalculateLots(TableUnit tu, SkQuote q)
 		{
+			var num = Convert.ToDecimal(ArgDic["lots"]);
 			int lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
-			if (lotsMode == 0)
+
+			if (lotsMode == 1)
 			{
-				return Convert.ToDecimal(ArgDic["lots"]);
+				var symbol = GetSymbol(tu.MktSymbol);
+				num = Convert.ToDecimal(ArgDic["money"]) / (q.Close * symbol.multiplier * symbol.margin_ratio);
+
+				if (symbol.symbol_type == (int)SymbolType.COIN)
+				{
+					num = Math.Floor(num * 1000) / 1000m;
+				}
+				else
+				{
+					num = Math.Floor(num);
+				}
 			}
-			else
-			{
-				decimal money = Convert.ToDecimal(ArgDic["money"]);
-				if (price > 0)
-					return Math.Floor(money / price * 100) / 100; // 保留两位小数
-				return 1;
-			}
+
+			return num;
 		}
 	}
 }

@@ -341,11 +341,11 @@ namespace QjySDK.Stg
                 num = ((decimal)ArgDic["money"] / (q.Close * sym.multiplier * sym.margin_ratio));
                 if (sym.symbol_type == (int)SymbolType.COIN)
                 {
-                    num = (int)(num * 1000) / 1000.0m;
+                    num = Math.Floor(num * 1000) / 1000m;
                 }
                 else
                 {
-                    num = (int)num;
+                    num = Math.Floor(num);
                 }
             }
 
