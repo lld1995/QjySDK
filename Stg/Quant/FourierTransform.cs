@@ -39,6 +39,8 @@ namespace QjySDK.Stg
 			public int DominantPeriod { get; set; }        // 主导周期
 			public List<double> PhaseHistory { get; set; } // 相位历史（用于信号确认）
 			public bool Initialized { get; set; }          // 是否已初始化
+			public int CooldownBars { get; set; }           // 冷却期剩余K线数
+			public int HoldingBars { get; set; }            // 已持仓K线数
 		}
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -61,9 +63,10 @@ namespace QjySDK.Stg
 			sd.ArgDic["maxCyclePeriod"] = 32;         // 最大周期（过滤超低频）
 
 			// 信号参数
-			sd.ArgDic["powerThreshold"] = 0.3;        // 功率阈值（0-1，过滤弱周期）
-			sd.ArgDic["phaseThreshold"] = 0.8;        // 相位阈值（接近极值的程度，0-1）
+			sd.ArgDic["powerThreshold"] = 0.1;        // 功率阈值（0-1，过滤弱周期）
+			sd.ArgDic["phaseChangeThreshold"] = 0.03; // 相位变化阈值
 			sd.ArgDic["confirmBars"] = 2;             // 信号确认K线数
+			sd.ArgDic["cooldownBars"] = 3;            // 平仓后冷却K线数
 
 			// 交易模式
 			sd.ArgDic["mode"] = 0;                    // 0:双向 1:仅做多 2:仅做空
@@ -79,6 +82,7 @@ namespace QjySDK.Stg
 			sd.ArgDic["stopLossPercent"] = 2.0m;      // 止损百分比
 			sd.ArgDic["useTakeProfit"] = 0;           // 是否使用止盈
 			sd.ArgDic["takeProfitPercent"] = 4.0m;    // 止盈百分比
+			sd.ArgDic["minHoldBars"] = 10;             // 最小持仓K线数（之前不平仓）
 
 			// 图表颜色配置
 			sd.ColorDic["fft-phase"] = "#2196F3";     // 相位线颜色（蓝色）
@@ -105,7 +109,7 @@ namespace QjySDK.Stg
 			int minCyclePeriod = Convert.ToInt32(ArgDic["minCyclePeriod"]);
 			int maxCyclePeriod = Convert.ToInt32(ArgDic["maxCyclePeriod"]);
 			double powerThreshold = Convert.ToDouble(ArgDic["powerThreshold"]);
-			double phaseThreshold = Convert.ToDouble(ArgDic["phaseThreshold"]);
+			double phaseChangeThreshold = Convert.ToDouble(ArgDic["phaseChangeThreshold"]);
 			int confirmBars = Convert.ToInt32(ArgDic["confirmBars"]);
 			int mode = Convert.ToInt32(ArgDic["mode"]);
 			int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
@@ -177,9 +181,11 @@ namespace QjySDK.Stg
 			Plot("fft", "power", PlotType.LINE, normalizedPower);
 			Plot("fft", "cycle", PlotType.LINE, dominantPeriod);
 
-			// 更新状态
+			// 获取上一根K线的相位（在更新之前）
 			double prevPhase = state.PrevPhase;
-			double prevPower = state.PrevPower;
+			bool hasPrevPhase = state.Initialized;  // 只有初始化后才有有效的prevPhase
+			
+			// 更新状态
 			state.PrevPhase = normalizedPhase;
 			state.PrevPower = normalizedPower;
 			state.DominantPeriod = dominantPeriod;
@@ -187,16 +193,30 @@ namespace QjySDK.Stg
 			// 首次运行，等待积累数据
 			if (!state.Initialized)
 			{
-				if (state.PhaseHistory.Count >= confirmBars)
-					state.Initialized = true;
+				state.Initialized = true;  // 第一根K线后就初始化
 				return;
 			}
+			
+			// 如果没有有效的上一根相位，跳过信号判断
+			if (!hasPrevPhase) return;
+
+			// 获取冷却期和最小持仓参数
+			int cooldownBars = Convert.ToInt32(ArgDic["cooldownBars"]);
+			int minHoldBars = Convert.ToInt32(ArgDic["minHoldBars"]);
+			
+			// 冷却期递减
+			if (state.CooldownBars > 0)
+				state.CooldownBars--;
+			
+			// 持仓时递增持仓K线数
+			if (state.Position != 0)
+				state.HoldingBars++;
 
 			// 当前价格
 			decimal currentPrice = tq.Close;
 
-			// 止损止盈检查
-			if (state.Position != 0)
+			// 止损止盈检查（只有达到最小持仓时间后才检查）
+			if (state.Position != 0 && state.HoldingBars >= minHoldBars)
 			{
 				bool shouldClose = false;
 				
@@ -230,28 +250,30 @@ namespace QjySDK.Stg
 
 				if (shouldClose)
 				{
-					ClosePosition(tu.MktSymbol, state, currentPrice, period, sendMode);
+					ClosePosition(tu.MktSymbol, state, currentPrice, period, sendMode, cooldownBars);
 					return;
 				}
 			}
 
-			// 信号判断：基于相位穿越和功率强度
+			// 信号判断：基于相位方向变化
 			bool powerStrong = normalizedPower >= powerThreshold;
 			
-			// 检测相位是否从谷底区域向上穿越（买入信号）
-			// 谷底区域：相位接近 -1（即 -π）
-			bool phaseAtBottom = normalizedPhase > -phaseThreshold && prevPhase <= -phaseThreshold;
+			// 计算相位变化（处理跳变）
+			double phaseDiff = normalizedPhase - prevPhase;
+			if (phaseDiff < -1) phaseDiff += 2;  // 从π跳到-π
+			if (phaseDiff > 1) phaseDiff -= 2;   // 从-π跳到π
 			
-			// 检测相位是否从峰顶区域向下穿越（卖出信号）
-			// 峰顶区域：相位接近 1（即 π）
-			bool phaseAtTop = normalizedPhase < phaseThreshold && prevPhase >= phaseThreshold;
-
-			// 信号确认：检查相位历史是否一致
-			bool buyConfirmed = phaseAtBottom && IsPhaseRising(state.PhaseHistory);
-			bool sellConfirmed = phaseAtTop && IsPhaseFalling(state.PhaseHistory);
-
-			bool buySignal = powerStrong && buyConfirmed;
-			bool sellSignal = powerStrong && sellConfirmed;
+			// 买入信号：相位从负向正穿越，或在负区域且上升
+			bool buySignal = powerStrong && (
+			    (prevPhase < 0 && normalizedPhase >= 0) ||  // 穿越零线向上
+			    (normalizedPhase < 0 && phaseDiff > phaseChangeThreshold)  // 负区域上升
+			);
+			
+			// 卖出信号：相位从正向负穿越，或在正区域且下降
+			bool sellSignal = powerStrong && (
+			    (prevPhase > 0 && normalizedPhase <= 0) ||  // 穿越零线向下
+			    (normalizedPhase > 0 && phaseDiff < -phaseChangeThreshold)  // 正区域下降
+			);
 
 			// 计算交易手数
 			decimal lots = CalculateLots(tu, tq);
@@ -259,36 +281,38 @@ namespace QjySDK.Stg
 			// 交易逻辑
 			if (buySignal && mode != 2)
 			{
-				// 平空仓
-				if (state.Position < 0)
+				// 平空仓（只有达到最小持仓时间后才平仓）
+				if (state.Position < 0 && state.HoldingBars >= minHoldBars)
 				{
-					ClosePosition(tu.MktSymbol, state, currentPrice, period, sendMode);
+					ClosePosition(tu.MktSymbol, state, currentPrice, period, sendMode, cooldownBars);
 				}
 
-				// 开多仓
-				if (state.Position == 0)
+				// 开多仓（冷却期内不开仓）
+				if (state.Position == 0 && state.CooldownBars == 0)
 				{
 					Trade(tu.MktSymbol, OrderType.BUY, currentPrice, lots, period, sendMode);
 					state.Position = 1;
 					state.Num = lots;
 					state.EntryPrice = currentPrice;
+					state.HoldingBars = 0;  // 重置持仓K线数
 				}
 			}
 			else if (sellSignal && mode != 1)
 			{
-				// 平多仓
-				if (state.Position > 0)
+				// 平多仓（只有达到最小持仓时间后才平仓）
+				if (state.Position > 0 && state.HoldingBars >= minHoldBars)
 				{
-					ClosePosition(tu.MktSymbol, state, currentPrice, period, sendMode);
+					ClosePosition(tu.MktSymbol, state, currentPrice, period, sendMode, cooldownBars);
 				}
 
-				// 开空仓（双向模式）
-				if (state.Position == 0 && mode == 0)
+				// 开空仓（双向模式，冷却期内不开仓）
+				if (state.Position == 0 && mode == 0 && state.CooldownBars == 0)
 				{
 					Trade(tu.MktSymbol, OrderType.SELL, currentPrice, lots, period, sendMode);
 					state.Position = -1;
 					state.Num = lots;
 					state.EntryPrice = currentPrice;
+					state.HoldingBars = 0;  // 重置持仓K线数
 				}
 			}
 		}
@@ -296,7 +320,7 @@ namespace QjySDK.Stg
 		/// <summary>
 		/// 平仓
 		/// </summary>
-		private void ClosePosition(string mktSymbol, State state, decimal price, Period period, int sendMode)
+		private void ClosePosition(string mktSymbol, State state, decimal price, Period period, int sendMode, int cooldownBars = 0)
 		{
 			if (state.Position > 0)
 			{
@@ -309,6 +333,7 @@ namespace QjySDK.Stg
 			state.Position = 0;
 			state.Num = 0;
 			state.EntryPrice = 0;
+			state.CooldownBars = cooldownBars;  // 设置冷却期
 		}
 
 		/// <summary>
@@ -490,6 +515,38 @@ namespace QjySDK.Stg
 				if (diff > 0) return false;
 			}
 			return true;
+		}
+
+		/// <summary>
+		/// 检查相位是否大致上升（放宽条件：允许小幅回调）
+		/// </summary>
+		private bool IsPhaseGenerallyRising(List<double> history)
+		{
+			if (history.Count < 2) return true; // 数据不足时默认通过
+			
+			// 计算总体变化
+			double totalChange = history[history.Count - 1] - history[0];
+			// 处理相位跳变
+			if (totalChange < -1) totalChange += 2;
+			
+			// 只要总体趋势向上即可
+			return totalChange >= -0.1;
+		}
+
+		/// <summary>
+		/// 检查相位是否大致下降（放宽条件：允许小幅反弹）
+		/// </summary>
+		private bool IsPhaseGenerallyFalling(List<double> history)
+		{
+			if (history.Count < 2) return true; // 数据不足时默认通过
+			
+			// 计算总体变化
+			double totalChange = history[history.Count - 1] - history[0];
+			// 处理相位跳变
+			if (totalChange > 1) totalChange -= 2;
+			
+			// 只要总体趋势向下即可
+			return totalChange <= 0.1;
 		}
 
 		/// <summary>

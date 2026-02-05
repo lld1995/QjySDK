@@ -67,6 +67,13 @@ namespace QjySDK.Stg
             public decimal WaveB { get; set; }
             public decimal WaveC { get; set; }
             public int LastPivotIndex { get; set; }  // Track last processed pivot index to avoid reprocessing
+            
+            // Wave lengths for validation
+            public decimal Wave1Length => Math.Abs(Wave1 - Wave0);
+            public decimal Wave2Length => Math.Abs(Wave2 - Wave1);
+            public decimal Wave3Length => Math.Abs(Wave3 - Wave2);
+            public decimal Wave4Length => Math.Abs(Wave4 - Wave3);
+            public decimal Wave5Length => Math.Abs(Wave5 - Wave4);
         }
 
         private class TradeState
@@ -89,6 +96,8 @@ namespace QjySDK.Stg
 
         private Dictionary<string, TradeState> _tradeDic = new Dictionary<string, TradeState>();
         private Dictionary<string, WaveState> _waveDic = new Dictionary<string, WaveState>();
+        private Dictionary<string, List<Pivot>> _pivotHistoryDic = new Dictionary<string, List<Pivot>>();
+        private const int MaxPivotHistory = 20; // Keep last 20 pivots for backtracking
 
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
@@ -117,7 +126,12 @@ namespace QjySDK.Stg
             decimal num = CalculateLots(tu, currentQuote);
 
             var pivots = FindPivots(quotes, zigzagDepth, zigzagDeviation);
-            bool isNewPivot = UpdateWaveStateMachine(wave, pivots);
+            
+            // Maintain pivot history for backtracking
+            if (!_pivotHistoryDic.ContainsKey(sk)) _pivotHistoryDic[sk] = new List<Pivot>();
+            UpdatePivotHistory(_pivotHistoryDic[sk], pivots);
+            
+            bool isNewPivot = UpdateWaveStateMachine(wave, pivots, _pivotHistoryDic[sk]);
             PlotWaveInfo(wave, isNewPivot);
             ExecuteTrade(trade, wave, currentQuote, tu, period, mode, sendMode, num, lossRate, profitRate, trailingStop, trailingPercent);
         }
@@ -165,7 +179,26 @@ namespace QjySDK.Stg
             return pivots;
         }
 
-        private bool UpdateWaveStateMachine(WaveState wave, List<Pivot> pivots)
+        private void UpdatePivotHistory(List<Pivot> history, List<Pivot> currentPivots)
+        {
+            if (currentPivots.Count == 0) return;
+            
+            var latestPivot = currentPivots.Last();
+            if (history.Count == 0 || history.Last().Index < latestPivot.Index)
+            {
+                history.Add(latestPivot);
+                // Keep only the last MaxPivotHistory pivots
+                while (history.Count > MaxPivotHistory)
+                    history.RemoveAt(0);
+            }
+            else if (history.Count > 0 && history.Last().Index == latestPivot.Index)
+            {
+                // Update the last pivot if same index but different price
+                history[history.Count - 1] = latestPivot;
+            }
+        }
+
+        private bool UpdateWaveStateMachine(WaveState wave, List<Pivot> pivots, List<Pivot> pivotHistory)
         {
             if (pivots.Count < 3) { wave.IsValid = false; return false; }
 
@@ -186,7 +219,7 @@ namespace QjySDK.Stg
                     bool upTrend = recentHighs.Last().Price > recentHighs.First().Price && recentLows.Last().Price > recentLows.First().Price;
                     bool downTrend = recentHighs.Last().Price < recentHighs.First().Price && recentLows.Last().Price < recentLows.First().Price;
                     
-                    // Trend change resets wave count
+                    // Trend change - try to transition waves properly
                     if ((upTrend && !wave.IsUpTrend && wave.CurrentWave > 0) || (downTrend && wave.IsUpTrend && wave.CurrentWave > 0))
                     {
                         // Impulse wave completed, start corrective wave
@@ -195,8 +228,12 @@ namespace QjySDK.Stg
                             StartCorrectiveWave(wave, latestPivot);
                             return true;
                         }
-                        // Otherwise reset
-                        ResetWave(wave);
+                        // Pattern invalidated - backtrack to find new wave start
+                        if (!BacktrackAndRestart(wave, pivotHistory, upTrend))
+                        {
+                            // If backtrack fails, start fresh from latest pivot
+                            StartFreshWave(wave, latestPivot, upTrend);
+                        }
                     }
                     if (upTrend) wave.IsUpTrend = true;
                     else if (downTrend) wave.IsUpTrend = false;
@@ -204,6 +241,7 @@ namespace QjySDK.Stg
             }
 
             // Process based on current wave type
+            bool wasValid = wave.IsValid;
             if (wave.Type == WaveType.Corrective)
             {
                 ProcessCorrectiveWave(wave, latestPivot);
@@ -212,14 +250,123 @@ namespace QjySDK.Stg
             {
                 ProcessImpulseWave(wave, latestPivot);
             }
+            
+            // If wave became invalid during processing, try to backtrack
+            if (wasValid && !wave.IsValid && pivotHistory.Count >= 3)
+            {
+                if (BacktrackAndRestart(wave, pivotHistory, wave.IsUpTrend))
+                {
+                    // Successfully found alternative count
+                    wave.IsValid = true;
+                }
+            }
+            
             return true;
         }
-
-        private void ResetWave(WaveState wave)
+        
+        private bool BacktrackAndRestart(WaveState wave, List<Pivot> pivotHistory, bool isUpTrend)
+        {
+            // Try to find a valid wave pattern starting from recent pivots
+            // Start from the 2nd most recent pivot and work backwards
+            for (int startIdx = pivotHistory.Count - 2; startIdx >= 0 && startIdx >= pivotHistory.Count - 6; startIdx--)
+            {
+                var startPivot = pivotHistory[startIdx];
+                
+                // For uptrend, we need to start from a low; for downtrend, from a high
+                if ((isUpTrend && startPivot.IsHigh) || (!isUpTrend && !startPivot.IsHigh))
+                    continue;
+                
+                // Try to build a valid wave sequence from this starting point
+                if (TryBuildWaveFromPivots(wave, pivotHistory, startIdx, isUpTrend))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        private bool TryBuildWaveFromPivots(WaveState wave, List<Pivot> pivotHistory, int startIdx, bool isUpTrend)
+        {
+            if (startIdx + 2 >= pivotHistory.Count) return false;
+            
+            var p0 = pivotHistory[startIdx];
+            var p1 = pivotHistory[startIdx + 1];
+            var p2 = pivotHistory[startIdx + 2];
+            
+            if (isUpTrend)
+            {
+                // Validate: p0 is low, p1 is high > p0, p2 is low > p0 and < p1
+                if (p0.IsHigh || !p1.IsHigh || p2.IsHigh) return false;
+                if (p1.Price <= p0.Price) return false;
+                if (p2.Price <= p0.Price || p2.Price >= p1.Price) return false;
+                
+                // Check Wave 2 retracement ratio
+                decimal wave1Len = p1.Price - p0.Price;
+                decimal wave2Retracement = p1.Price - p2.Price;
+                decimal retracementRatio = wave2Retracement / wave1Len;
+                if (retracementRatio < 0.382m || retracementRatio > 0.786m) return false;
+                
+                // Valid wave 1-2 found, set up state
+                wave.Type = WaveType.Impulse;
+                wave.IsUpTrend = true;
+                wave.IsValid = true;
+                wave.Wave0 = p0.Price;
+                wave.Wave1 = p1.Price;
+                wave.Wave2 = p2.Price;
+                wave.Wave3 = 0; wave.Wave4 = 0; wave.Wave5 = 0;
+                wave.WaveA = 0; wave.WaveB = 0; wave.WaveC = 0;
+                wave.CurrentWave = 3;
+                wave.LastPivotIndex = p2.Index;
+                return true;
+            }
+            else
+            {
+                // Validate: p0 is high, p1 is low < p0, p2 is high < p0 and > p1
+                if (!p0.IsHigh || p1.IsHigh || !p2.IsHigh) return false;
+                if (p1.Price >= p0.Price) return false;
+                if (p2.Price >= p0.Price || p2.Price <= p1.Price) return false;
+                
+                // Check Wave 2 retracement ratio
+                decimal wave1Len = p0.Price - p1.Price;
+                decimal wave2Retracement = p2.Price - p1.Price;
+                decimal retracementRatio = wave2Retracement / wave1Len;
+                if (retracementRatio < 0.382m || retracementRatio > 0.786m) return false;
+                
+                // Valid wave 1-2 found, set up state
+                wave.Type = WaveType.Impulse;
+                wave.IsUpTrend = false;
+                wave.IsValid = true;
+                wave.Wave0 = p0.Price;
+                wave.Wave1 = p1.Price;
+                wave.Wave2 = p2.Price;
+                wave.Wave3 = 0; wave.Wave4 = 0; wave.Wave5 = 0;
+                wave.WaveA = 0; wave.WaveB = 0; wave.WaveC = 0;
+                wave.CurrentWave = 3;
+                wave.LastPivotIndex = p2.Index;
+                return true;
+            }
+        }
+        
+        private void StartFreshWave(WaveState wave, Pivot pivot, bool isUpTrend)
         {
             wave.Type = WaveType.None;
             wave.CurrentWave = 0;
-            wave.IsValid = false;
+            wave.IsValid = true;
+            wave.IsUpTrend = isUpTrend;
+            wave.Wave0 = 0; wave.Wave1 = 0; wave.Wave2 = 0; wave.Wave3 = 0; wave.Wave4 = 0; wave.Wave5 = 0;
+            wave.WaveA = 0; wave.WaveB = 0; wave.WaveC = 0;
+            
+            // Initialize with the current pivot if it matches the expected type
+            if ((isUpTrend && !pivot.IsHigh) || (!isUpTrend && pivot.IsHigh))
+            {
+                wave.Wave0 = pivot.Price;
+                wave.CurrentWave = 1;
+                wave.Type = WaveType.Impulse;
+            }
+        }
+
+        private void ResetWaveValues(WaveState wave)
+        {
             wave.Wave0 = 0; wave.Wave1 = 0; wave.Wave2 = 0; wave.Wave3 = 0; wave.Wave4 = 0; wave.Wave5 = 0;
             wave.WaveA = 0; wave.WaveB = 0; wave.WaveC = 0;
         }
@@ -286,8 +433,16 @@ namespace QjySDK.Stg
                         // Wave 2 must not go below Wave 0
                         if (pivot.Price > wave.Wave0 && pivot.Price < wave.Wave1)
                         {
-                            wave.Wave2 = pivot.Price;
-                            wave.CurrentWave = 3;
+                            decimal wave1Len = wave.Wave1 - wave.Wave0;
+                            decimal wave2Retracement = wave.Wave1 - pivot.Price;
+                            decimal retracementRatio = wave2Retracement / wave1Len;
+                            
+                            // Wave 2 retracement should be 38.2% - 78.6% of Wave 1
+                            if (retracementRatio >= 0.382m && retracementRatio <= 0.786m)
+                            {
+                                wave.Wave2 = pivot.Price;
+                                wave.CurrentWave = 3;
+                            }
                         }
                         else if (pivot.Price <= wave.Wave0)
                         {
@@ -305,8 +460,17 @@ namespace QjySDK.Stg
                 case 3: // In wave 3, looking for wave 3 end (a high)
                     if (pivot.IsHigh && pivot.Price > wave.Wave1)
                     {
-                        wave.Wave3 = pivot.Price;
-                        wave.CurrentWave = 4;
+                        decimal potentialWave3 = pivot.Price;
+                        decimal wave3Len = potentialWave3 - wave.Wave2;
+                        decimal wave1Len = wave.Wave1 - wave.Wave0;
+                        
+                        // Wave 3 should be at least 1.0x of Wave 1 (typically 1.618x)
+                        // Allow some tolerance for market variations
+                        if (wave3Len >= wave1Len * 0.618m)
+                        {
+                            wave.Wave3 = potentialWave3;
+                            wave.CurrentWave = 4;
+                        }
                     }
                     // Stay in wave 3, don't update wave 2
                     break;
@@ -317,8 +481,16 @@ namespace QjySDK.Stg
                         // Wave 4 must not overlap Wave 1 territory
                         if (pivot.Price > wave.Wave1 && pivot.Price < wave.Wave3)
                         {
-                            wave.Wave4 = pivot.Price;
-                            wave.CurrentWave = 5;
+                            decimal wave4Len = wave.Wave3 - pivot.Price;
+                            decimal wave3Len = wave.Wave3 - wave.Wave2;
+                            
+                            // Wave 4 retracement should be 23.6% - 61.8% of Wave 3
+                            decimal retracementRatio = wave4Len / wave3Len;
+                            if (retracementRatio >= 0.236m && retracementRatio <= 0.618m)
+                            {
+                                wave.Wave4 = pivot.Price;
+                                wave.CurrentWave = 5;
+                            }
                         }
                         else if (pivot.Price <= wave.Wave1)
                         {
@@ -332,8 +504,27 @@ namespace QjySDK.Stg
                 case 5: // In wave 5, looking for wave 5 end (a high)
                     if (pivot.IsHigh && pivot.Price > wave.Wave3)
                     {
-                        wave.Wave5 = pivot.Price;
-                        // Impulse complete, prepare for correction
+                        decimal potentialWave5 = pivot.Price;
+                        decimal wave5Len = potentialWave5 - wave.Wave4;
+                        decimal wave1Len = wave.Wave1 - wave.Wave0;
+                        decimal wave3Len = wave.Wave3 - wave.Wave2;
+                        
+                        // Rule: Wave 3 cannot be the shortest among 1, 3, 5
+                        // Wave 5 typically equals Wave 1 or 0.618x of Wave 1
+                        if (wave5Len >= wave1Len * 0.382m && wave5Len <= wave1Len * 2.618m)
+                        {
+                            // Validate Wave 3 is not the shortest
+                            if (wave3Len >= wave1Len && wave3Len >= wave5Len * 0.618m)
+                            {
+                                wave.Wave5 = potentialWave5;
+                                // Impulse complete, prepare for correction
+                            }
+                            else
+                            {
+                                // Wave 3 is too short - invalid pattern
+                                wave.IsValid = false;
+                            }
+                        }
                     }
                     // Stay in wave 5, don't update wave 4
                     break;
@@ -371,8 +562,16 @@ namespace QjySDK.Stg
                     {
                         if (pivot.Price < wave.Wave0 && pivot.Price > wave.Wave1)
                         {
-                            wave.Wave2 = pivot.Price;
-                            wave.CurrentWave = 3;
+                            decimal wave1Len = wave.Wave0 - wave.Wave1;
+                            decimal wave2Retracement = pivot.Price - wave.Wave1;
+                            decimal retracementRatio = wave2Retracement / wave1Len;
+                            
+                            // Wave 2 retracement should be 38.2% - 78.6% of Wave 1
+                            if (retracementRatio >= 0.382m && retracementRatio <= 0.786m)
+                            {
+                                wave.Wave2 = pivot.Price;
+                                wave.CurrentWave = 3;
+                            }
                         }
                         else if (pivot.Price >= wave.Wave0)
                         {
@@ -389,8 +588,16 @@ namespace QjySDK.Stg
                 case 3:
                     if (!pivot.IsHigh && pivot.Price < wave.Wave1)
                     {
-                        wave.Wave3 = pivot.Price;
-                        wave.CurrentWave = 4;
+                        decimal potentialWave3 = pivot.Price;
+                        decimal wave3Len = wave.Wave2 - potentialWave3;
+                        decimal wave1Len = wave.Wave0 - wave.Wave1;
+                        
+                        // Wave 3 should be at least 0.618x of Wave 1 (typically 1.618x)
+                        if (wave3Len >= wave1Len * 0.618m)
+                        {
+                            wave.Wave3 = potentialWave3;
+                            wave.CurrentWave = 4;
+                        }
                     }
                     // Stay in wave 3, don't update wave 2
                     break;
@@ -400,8 +607,16 @@ namespace QjySDK.Stg
                     {
                         if (pivot.Price < wave.Wave1 && pivot.Price > wave.Wave3)
                         {
-                            wave.Wave4 = pivot.Price;
-                            wave.CurrentWave = 5;
+                            decimal wave4Len = pivot.Price - wave.Wave3;
+                            decimal wave3Len = wave.Wave2 - wave.Wave3;
+                            
+                            // Wave 4 retracement should be 23.6% - 61.8% of Wave 3
+                            decimal retracementRatio = wave4Len / wave3Len;
+                            if (retracementRatio >= 0.236m && retracementRatio <= 0.618m)
+                            {
+                                wave.Wave4 = pivot.Price;
+                                wave.CurrentWave = 5;
+                            }
                         }
                         else if (pivot.Price >= wave.Wave1)
                         {
@@ -414,7 +629,24 @@ namespace QjySDK.Stg
                 case 5:
                     if (!pivot.IsHigh && pivot.Price < wave.Wave3)
                     {
-                        wave.Wave5 = pivot.Price;
+                        decimal potentialWave5 = pivot.Price;
+                        decimal wave5Len = wave.Wave4 - potentialWave5;
+                        decimal wave1Len = wave.Wave0 - wave.Wave1;
+                        decimal wave3Len = wave.Wave2 - wave.Wave3;
+                        
+                        // Wave 5 typically equals Wave 1 or 0.618x of Wave 1
+                        if (wave5Len >= wave1Len * 0.382m && wave5Len <= wave1Len * 2.618m)
+                        {
+                            // Validate Wave 3 is not the shortest
+                            if (wave3Len >= wave1Len && wave3Len >= wave5Len * 0.618m)
+                            {
+                                wave.Wave5 = potentialWave5;
+                            }
+                            else
+                            {
+                                wave.IsValid = false;
+                            }
+                        }
                     }
                     // Stay in wave 5, don't update wave 4
                     break;
@@ -494,10 +726,11 @@ namespace QjySDK.Stg
                         }
                         else if (pivot.IsHigh)
                         {
-                            // Correction complete, may start new impulse
+                            // Correction complete, start new impulse from C wave end
+                            decimal waveCPrice = wave.WaveC;
                             wave.IsUpTrend = true;
-                            ResetWave(wave);
-                            wave.Wave0 = wave.WaveC;
+                            ResetWaveValues(wave);
+                            wave.Wave0 = waveCPrice;
                             wave.CurrentWave = 1;
                             wave.Type = WaveType.Impulse;
                             wave.IsValid = true;
@@ -511,9 +744,11 @@ namespace QjySDK.Stg
                         }
                         else if (!pivot.IsHigh)
                         {
+                            // Correction complete, start new impulse from C wave end
+                            decimal waveCPrice = wave.WaveC;
                             wave.IsUpTrend = false;
-                            ResetWave(wave);
-                            wave.Wave0 = wave.WaveC;
+                            ResetWaveValues(wave);
+                            wave.Wave0 = waveCPrice;
                             wave.CurrentWave = 1;
                             wave.Type = WaveType.Impulse;
                             wave.IsValid = true;
