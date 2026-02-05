@@ -176,9 +176,10 @@ namespace QjySDK.Stg
             decimal atr = CalculateATR(quotes, (int)_atrPeriod);
             if (atr <= 0) return;
 
-            decimal currentPrice = tq.Close;
-            decimal currentHigh = tq.High;
-            decimal currentLow = tq.Low;
+            var q = quotes.Last();
+            decimal currentPrice = q.Close;
+            decimal currentHigh = q.High;
+            decimal currentLow = q.Low;
             decimal fastEma = (decimal)emaFastCurr.Value;
             decimal slowEma = (decimal)emaSlowCurr.Value;
             double adxValue = adxCurr.Adx.Value;

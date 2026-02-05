@@ -127,7 +127,8 @@ namespace QjySDK.Stg
 
             if (!isFinal) return;
 
-            decimal currentPrice = tq.Close;
+            var q = quotes.Last();
+            decimal currentPrice = q.Close;
 
             if (state.HasPosition)
             {

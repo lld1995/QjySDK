@@ -213,9 +213,10 @@ namespace QjySDK.Stg
             if (atr <= 0) return;
 
             // 提取当前值
-            decimal currentPrice = tq.Close;
-            decimal currentHigh = tq.High;
-            decimal currentLow = tq.Low;
+            var q = quotes.Last();
+            decimal currentPrice = q.Close;
+            decimal currentHigh = q.High;
+            decimal currentLow = q.Low;
             decimal ema = (decimal)emaCurr.Value;
             double adxValue = adxCurr.Adx.Value;
             double pdiCurr = adxCurr.Pdi.Value;

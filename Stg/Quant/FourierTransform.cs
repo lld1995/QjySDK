@@ -213,7 +213,8 @@ namespace QjySDK.Stg
 				state.HoldingBars++;
 
 			// 当前价格
-			decimal currentPrice = tq.Close;
+			var q = quotes.Last();
+			decimal currentPrice = q.Close;
 
 			// 止损止盈检查（只有达到最小持仓时间后才检查）
 			if (state.Position != 0 && state.HoldingBars >= minHoldBars)
@@ -276,7 +277,7 @@ namespace QjySDK.Stg
 			);
 
 			// 计算交易手数
-			decimal lots = CalculateLots(tu, tq);
+			decimal lots = CalculateLots(tu, q);
 
 			// 交易逻辑
 			if (buySignal && mode != 2)

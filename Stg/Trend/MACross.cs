@@ -76,13 +76,14 @@ namespace QjySDK.Stg
                 bool prevFastAbove = prevFast.Value > prevSlow.Value;
                 bool currFastAbove = fastMA.Value > slowMA.Value;
 
+                var q = quotes.Last();
                 if (!prevFastAbove && currFastAbove)
                 {
-                    Trade(tu.MktSymbol, OrderType.BUY, tq.Close, 1, period, 0);
+                    Trade(tu.MktSymbol, OrderType.BUY, q.Close, 1, period, 0);
                 }
                 else if (prevFastAbove && !currFastAbove)
                 {
-                    Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, tq.Close, 1, period, 0);
+                    Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, 1, period, 0);
                 }
             }
 

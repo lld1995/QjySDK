@@ -102,7 +102,8 @@ namespace QjySDK.Stg
             decimal exitUpper = (decimal)(exitChannel.UpperBand ?? 0);
             decimal exitLower = (decimal)(exitChannel.LowerBand ?? 0);
 
-            decimal currentClose = tq.Close;
+            var q = quotes.Last();
+            decimal currentClose = q.Close;
             decimal prevHigh = quotes[quotes.Count - 2].High;
             decimal prevLow = quotes[quotes.Count - 2].Low;
 

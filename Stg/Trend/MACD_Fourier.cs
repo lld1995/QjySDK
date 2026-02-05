@@ -197,10 +197,11 @@ namespace QjySDK.Stg
 			}
 
 			// 当前价格
-			decimal currentPrice = tq.Close;
+			var q = quotes.Last();
+			decimal currentPrice = q.Close;
 
 			// 计算交易手数
-			decimal lots = CalculateLots(tu, tq);
+			decimal lots = CalculateLots(tu, q);
 
 			// 止损检查
 			if (useStopLoss == 1 && state.Position != 0)
