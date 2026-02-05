@@ -12,11 +12,17 @@ namespace QjySDK.Stg
 {
 	/// <summary>
 	/// 傅里叶变换交易策略
-	/// 使用快速傅里叶变换(FFT)分析价格周期，识别主导周期并预测价格走势
+	/// 
 	/// 核心原理：
-	/// 1. 对价格序列进行FFT分解，提取主要频率成分
-	/// 2. 通过逆FFT重建平滑的价格趋势
-	/// 3. 基于重建信号的斜率和相位判断买卖时机
+	/// 1. 对价格序列进行去趋势处理，提取周期性波动
+	/// 2. 应用汉宁窗减少频谱泄漏
+	/// 3. 执行FFT分析，识别主导周期
+	/// 4. 基于主导周期的相位预测价格拐点
+	/// 5. 结合功率谱强度过滤弱信号
+	/// 
+	/// 信号生成：
+	/// - 当主导周期相位接近谷底且功率足够强时，产生买入信号
+	/// - 当主导周期相位接近峰顶且功率足够强时，产生卖出信号
 	/// </summary>
 	public class FourierTransform : StgBase
 	{
@@ -25,11 +31,14 @@ namespace QjySDK.Stg
 		/// </summary>
 		private class State
 		{
-			public int Position { get; set; }           // 0:无持仓 1:多仓 -1:空仓
-			public decimal Num { get; set; }            // 持仓数量
-			public decimal EntryPrice { get; set; }     // 入场价格
-			public double? PrevTrend { get; set; }      // 上一根K线的趋势值
-			public double? PrevSlope { get; set; }      // 上一根K线的斜率
+			public int Position { get; set; }              // 0:无持仓 1:多仓 -1:空仓
+			public decimal Num { get; set; }               // 持仓数量
+			public decimal EntryPrice { get; set; }        // 入场价格
+			public double PrevPhase { get; set; }          // 上一根K线的主导相位
+			public double PrevPower { get; set; }          // 上一根K线的功率
+			public int DominantPeriod { get; set; }        // 主导周期
+			public List<double> PhaseHistory { get; set; } // 相位历史（用于信号确认）
+			public bool Initialized { get; set; }          // 是否已初始化
 		}
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -46,35 +55,35 @@ namespace QjySDK.Stg
 		{
 			var sd = new StgDesc();
 
-			// FFT参数
-			sd.ArgDic["fftPeriod"] = 64;           // FFT分析周期（必须是2的幂次）
-			sd.ArgDic["harmonics"] = 5;            // 保留的谐波数量（主要频率成分）
-			sd.ArgDic["smoothFactor"] = 3;         // 平滑因子
+			// FFT核心参数
+			sd.ArgDic["fftPeriod"] = 64;              // FFT分析周期（必须是2的幂次）
+			sd.ArgDic["minCyclePeriod"] = 8;          // 最小周期（过滤高频噪声）
+			sd.ArgDic["maxCyclePeriod"] = 32;         // 最大周期（过滤超低频）
 
 			// 信号参数
-			sd.ArgDic["slopeThreshold"] = 0.001;   // 斜率阈值，过滤小幅波动
-			sd.ArgDic["signalDelay"] = 1;          // 信号延迟确认周期
+			sd.ArgDic["powerThreshold"] = 0.3;        // 功率阈值（0-1，过滤弱周期）
+			sd.ArgDic["phaseThreshold"] = 0.8;        // 相位阈值（接近极值的程度，0-1）
+			sd.ArgDic["confirmBars"] = 2;             // 信号确认K线数
 
 			// 交易模式
-			sd.ArgDic["mode"] = 0;                 // 0:双向 1:仅做多 2:仅做空
-			sd.ArgDic["sendMode"] = 0;             // 0:立即 1:下个开盘
+			sd.ArgDic["mode"] = 0;                    // 0:双向 1:仅做多 2:仅做空
+			sd.ArgDic["sendMode"] = 0;                // 0:立即 1:下个开盘
 
 			// 手数控制
-			sd.ArgDic["lotsMode"] = 1;             // 0:固定手数 1:固定金额
-			sd.ArgDic["lots"] = 1.0m;              // 固定手数
-			sd.ArgDic["money"] = 10000m;           // 固定金额
+			sd.ArgDic["lotsMode"] = 1;                // 0:固定手数 1:固定金额
+			sd.ArgDic["lots"] = 1.0m;                 // 固定手数
+			sd.ArgDic["money"] = 10000m;              // 固定金额
 
-			// 止损设置
-			sd.ArgDic["useStopLoss"] = 0;          // 是否使用止损
-			sd.ArgDic["stopLossPercent"] = 2.0m;   // 止损百分比
-
-			// 过滤设置
-			sd.ArgDic["minBarCount"] = 128;        // 最少K线数（需要足够数据进行FFT）
+			// 止损止盈
+			sd.ArgDic["useStopLoss"] = 1;             // 是否使用止损
+			sd.ArgDic["stopLossPercent"] = 2.0m;      // 止损百分比
+			sd.ArgDic["useTakeProfit"] = 0;           // 是否使用止盈
+			sd.ArgDic["takeProfitPercent"] = 4.0m;    // 止盈百分比
 
 			// 图表颜色配置
-			sd.ColorDic["fft-trend"] = "#2196F3";       // 趋势线颜色（蓝色）
-			sd.ColorDic["fft-slope"] = "#FF9800";       // 斜率线颜色（橙色）
-			sd.ColorDic["fft-signal"] = "#F6465D;#0ECB81"; // 信号颜色（红/绿）
+			sd.ColorDic["fft-phase"] = "#2196F3";     // 相位线颜色（蓝色）
+			sd.ColorDic["fft-power"] = "#FF9800";     // 功率线颜色（橙色）
+			sd.ColorDic["fft-cycle"] = "#9C27B0";     // 周期线颜色（紫色）
 
 			sd.MidValDic["fft"] = 0;
 			sd.MaxSymbolNum = 1000;
@@ -93,147 +102,250 @@ namespace QjySDK.Stg
 
 			// 获取参数
 			int fftPeriod = Convert.ToInt32(ArgDic["fftPeriod"]);
-			int harmonics = Convert.ToInt32(ArgDic["harmonics"]);
-			int smoothFactor = Convert.ToInt32(ArgDic["smoothFactor"]);
-			double slopeThreshold = Convert.ToDouble(ArgDic["slopeThreshold"]);
-			int signalDelay = Convert.ToInt32(ArgDic["signalDelay"]);
-			int minBarCount = Convert.ToInt32(ArgDic["minBarCount"]);
+			int minCyclePeriod = Convert.ToInt32(ArgDic["minCyclePeriod"]);
+			int maxCyclePeriod = Convert.ToInt32(ArgDic["maxCyclePeriod"]);
+			double powerThreshold = Convert.ToDouble(ArgDic["powerThreshold"]);
+			double phaseThreshold = Convert.ToDouble(ArgDic["phaseThreshold"]);
+			int confirmBars = Convert.ToInt32(ArgDic["confirmBars"]);
 			int mode = Convert.ToInt32(ArgDic["mode"]);
 			int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 			int useStopLoss = Convert.ToInt32(ArgDic["useStopLoss"]);
 			decimal stopLossPercent = Convert.ToDecimal(ArgDic["stopLossPercent"]);
+			int useTakeProfit = Convert.ToInt32(ArgDic["useTakeProfit"]);
+			decimal takeProfitPercent = Convert.ToDecimal(ArgDic["takeProfitPercent"]);
 
 			// 确保fftPeriod是2的幂次
 			fftPeriod = NextPowerOfTwo(fftPeriod);
 
 			// 检查K线数量
-			if (quotes.Count < Math.Max(minBarCount, fftPeriod + smoothFactor)) return;
+			if (quotes.Count < fftPeriod + 10) return;
 
 			// 获取或创建状态
 			string stateKey = tu.GetStateKey();
 			if (!_stateDic.TryGetValue(stateKey, out var state))
 			{
-				state = new State();
+				state = new State
+				{
+					PhaseHistory = new List<double>(),
+					Initialized = false
+				};
 				_stateDic[stateKey] = state;
 			}
 
-			// 提取价格数据用于FFT分析
-			var priceData = quotes.Skip(quotes.Count - fftPeriod).Take(fftPeriod)
-				.Select(q => (double)q.Close).ToArray();
+			// 提取价格数据
+			var prices = quotes.Skip(quotes.Count - fftPeriod).Select(q => (double)q.Close).ToArray();
 
-			// 执行FFT分析
-			var fftResult = PerformFFT(priceData);
+			// 去趋势处理：计算价格变化率
+			var detrended = Detrend(prices);
 
-			// 滤波：只保留主要谐波
-			var filteredFFT = FilterHarmonics(fftResult, harmonics);
+			// 应用汉宁窗
+			var windowed = ApplyHanningWindow(detrended);
 
-			// 逆FFT重建趋势
-			var trendData = PerformInverseFFT(filteredFFT);
+			// 执行FFT
+			var fftResult = PerformFFT(windowed);
 
-			// 获取当前趋势值和斜率
-			double currentTrend = trendData[trendData.Length - 1];
-			double prevTrendValue = trendData.Length > 1 ? trendData[trendData.Length - 2] : currentTrend;
-			double currentSlope = currentTrend - prevTrendValue;
+			// 计算功率谱
+			var powerSpectrum = CalculatePowerSpectrum(fftResult);
 
-			// 归一化斜率用于绘图
-			double normalizedSlope = currentSlope / Math.Abs(priceData.Average()) * 100;
+			// 找到主导周期（在指定范围内）
+			int minFreqIdx = Math.Max(1, fftPeriod / maxCyclePeriod);
+			int maxFreqIdx = Math.Min(fftPeriod / 2 - 1, fftPeriod / minCyclePeriod);
+			var (dominantIdx, dominantPower) = FindDominantFrequency(powerSpectrum, minFreqIdx, maxFreqIdx);
+
+			// 计算主导周期
+			int dominantPeriod = dominantIdx > 0 ? fftPeriod / dominantIdx : fftPeriod / 4;
+
+			// 计算当前相位（-π 到 π）
+			double currentPhase = dominantIdx > 0 
+				? Math.Atan2(fftResult[dominantIdx].Imaginary, fftResult[dominantIdx].Real)
+				: 0;
+
+			// 归一化相位到 -1 到 1（便于判断极值）
+			double normalizedPhase = currentPhase / Math.PI;
+
+			// 归一化功率（相对于总功率）
+			double totalPower = powerSpectrum.Skip(1).Take(fftPeriod / 2 - 1).Sum();
+			double normalizedPower = totalPower > 0 ? dominantPower / totalPower : 0;
+
+			// 更新相位历史
+			state.PhaseHistory.Add(normalizedPhase);
+			if (state.PhaseHistory.Count > confirmBars + 1)
+				state.PhaseHistory.RemoveAt(0);
 
 			// 绘制指标
-			Plot("fft", "trend", PlotType.LINE, currentTrend);
-			Plot("fft", "slope", PlotType.LINE, normalizedSlope);
+			Plot("fft", "phase", PlotType.LINE, normalizedPhase);
+			Plot("fft", "power", PlotType.LINE, normalizedPower);
+			Plot("fft", "cycle", PlotType.LINE, dominantPeriod);
 
-			// 获取上一根K线的斜率
-			double? prevSlope = state.PrevSlope;
+			// 更新状态
+			double prevPhase = state.PrevPhase;
+			double prevPower = state.PrevPower;
+			state.PrevPhase = normalizedPhase;
+			state.PrevPower = normalizedPower;
+			state.DominantPeriod = dominantPeriod;
 
-			// 更新状态中的前值
-			state.PrevTrend = currentTrend;
-			state.PrevSlope = currentSlope;
-
-			// 如果没有前值，等待下一根K线
-			if (!prevSlope.HasValue)
+			// 首次运行，等待积累数据
+			if (!state.Initialized)
+			{
+				if (state.PhaseHistory.Count >= confirmBars)
+					state.Initialized = true;
 				return;
-
-			// 计算交易信号
-			bool buySignal = prevSlope.Value <= slopeThreshold && currentSlope > slopeThreshold;   // 斜率由负转正
-			bool sellSignal = prevSlope.Value >= -slopeThreshold && currentSlope < -slopeThreshold; // 斜率由正转负
+			}
 
 			// 当前价格
 			decimal currentPrice = tq.Close;
 
-			// 计算交易手数
-			decimal lots = CalculateLots(tu, tq);
-
-			// 止损检查
-			if (useStopLoss == 1 && state.Position != 0)
+			// 止损止盈检查
+			if (state.Position != 0)
 			{
-				decimal stopLossPrice = state.EntryPrice * (1 - (state.Position > 0 ? 1 : -1) * stopLossPercent / 100);
-				bool stopLossTriggered = (state.Position > 0 && currentPrice <= stopLossPrice) ||
-				                         (state.Position < 0 && currentPrice >= stopLossPrice);
-				if (stopLossTriggered)
+				bool shouldClose = false;
+				
+				// 止损检查
+				if (useStopLoss == 1)
 				{
-					// 止损平仓
-					if (state.Position > 0)
+					decimal stopPrice = state.Position > 0
+						? state.EntryPrice * (1 - stopLossPercent / 100)
+						: state.EntryPrice * (1 + stopLossPercent / 100);
+					
+					if ((state.Position > 0 && currentPrice <= stopPrice) ||
+					    (state.Position < 0 && currentPrice >= stopPrice))
 					{
-						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, currentPrice, state.Num, period, sendMode);
+						shouldClose = true;
 					}
-					else
+				}
+
+				// 止盈检查
+				if (useTakeProfit == 1 && !shouldClose)
+				{
+					decimal profitPrice = state.Position > 0
+						? state.EntryPrice * (1 + takeProfitPercent / 100)
+						: state.EntryPrice * (1 - takeProfitPercent / 100);
+					
+					if ((state.Position > 0 && currentPrice >= profitPrice) ||
+					    (state.Position < 0 && currentPrice <= profitPrice))
 					{
-						Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, currentPrice, state.Num, period, sendMode);
+						shouldClose = true;
 					}
-					state.Position = 0;
-					state.Num = 0;
-					state.EntryPrice = 0;
+				}
+
+				if (shouldClose)
+				{
+					ClosePosition(tu.MktSymbol, state, currentPrice, period, sendMode);
 					return;
 				}
 			}
 
+			// 信号判断：基于相位穿越和功率强度
+			bool powerStrong = normalizedPower >= powerThreshold;
+			
+			// 检测相位是否从谷底区域向上穿越（买入信号）
+			// 谷底区域：相位接近 -1（即 -π）
+			bool phaseAtBottom = normalizedPhase > -phaseThreshold && prevPhase <= -phaseThreshold;
+			
+			// 检测相位是否从峰顶区域向下穿越（卖出信号）
+			// 峰顶区域：相位接近 1（即 π）
+			bool phaseAtTop = normalizedPhase < phaseThreshold && prevPhase >= phaseThreshold;
+
+			// 信号确认：检查相位历史是否一致
+			bool buyConfirmed = phaseAtBottom && IsPhaseRising(state.PhaseHistory);
+			bool sellConfirmed = phaseAtTop && IsPhaseFalling(state.PhaseHistory);
+
+			bool buySignal = powerStrong && buyConfirmed;
+			bool sellSignal = powerStrong && sellConfirmed;
+
+			// 计算交易手数
+			decimal lots = CalculateLots(tu, tq);
+
 			// 交易逻辑
-			if (buySignal)
+			if (buySignal && mode != 2)
 			{
-				// 买入信号
-				if (mode != 2) // 非仅做空模式
+				// 平空仓
+				if (state.Position < 0)
 				{
-					// 如果有空仓，先平仓
-					if (state.Position < 0)
-					{
-						Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, currentPrice, state.Num, period, sendMode);
-						state.Position = 0;
-						state.Num = 0;
-					}
+					ClosePosition(tu.MktSymbol, state, currentPrice, period, sendMode);
+				}
 
-					// 开多仓
-					if (state.Position == 0)
-					{
-						Trade(tu.MktSymbol, OrderType.BUY, currentPrice, lots, period, sendMode);
-						state.Position = 1;
-						state.Num = lots;
-						state.EntryPrice = currentPrice;
-					}
+				// 开多仓
+				if (state.Position == 0)
+				{
+					Trade(tu.MktSymbol, OrderType.BUY, currentPrice, lots, period, sendMode);
+					state.Position = 1;
+					state.Num = lots;
+					state.EntryPrice = currentPrice;
 				}
 			}
-			else if (sellSignal)
+			else if (sellSignal && mode != 1)
 			{
-				// 卖出信号
-				if (mode != 1) // 非仅做多模式
+				// 平多仓
+				if (state.Position > 0)
 				{
-					// 如果有多仓，先平仓
-					if (state.Position > 0)
-					{
-						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, currentPrice, state.Num, period, sendMode);
-						state.Position = 0;
-						state.Num = 0;
-					}
+					ClosePosition(tu.MktSymbol, state, currentPrice, period, sendMode);
+				}
 
-					// 开空仓（双向模式）
-					if (state.Position == 0 && mode == 0)
-					{
-						Trade(tu.MktSymbol, OrderType.SELL, currentPrice, lots, period, sendMode);
-						state.Position = -1;
-						state.Num = lots;
-						state.EntryPrice = currentPrice;
-					}
+				// 开空仓（双向模式）
+				if (state.Position == 0 && mode == 0)
+				{
+					Trade(tu.MktSymbol, OrderType.SELL, currentPrice, lots, period, sendMode);
+					state.Position = -1;
+					state.Num = lots;
+					state.EntryPrice = currentPrice;
 				}
 			}
+		}
+
+		/// <summary>
+		/// 平仓
+		/// </summary>
+		private void ClosePosition(string mktSymbol, State state, decimal price, Period period, int sendMode)
+		{
+			if (state.Position > 0)
+			{
+				Trade(mktSymbol, OrderType.SELL_TO_COVER, price, state.Num, period, sendMode);
+			}
+			else if (state.Position < 0)
+			{
+				Trade(mktSymbol, OrderType.BUY_TO_COVER, price, state.Num, period, sendMode);
+			}
+			state.Position = 0;
+			state.Num = 0;
+			state.EntryPrice = 0;
+		}
+
+		/// <summary>
+		/// 去趋势处理：使用价格变化率
+		/// </summary>
+		private double[] Detrend(double[] prices)
+		{
+			int n = prices.Length;
+			var result = new double[n];
+			
+			for (int i = 1; i < n; i++)
+			{
+				if (prices[i - 1] != 0)
+					result[i] = (prices[i] - prices[i - 1]) / prices[i - 1] * 100;
+				else
+					result[i] = 0;
+			}
+			result[0] = result[1];
+			
+			return result;
+		}
+
+		/// <summary>
+		/// 应用汉宁窗减少频谱泄漏
+		/// </summary>
+		private double[] ApplyHanningWindow(double[] data)
+		{
+			int n = data.Length;
+			var result = new double[n];
+			
+			for (int i = 0; i < n; i++)
+			{
+				double window = 0.5 * (1 - Math.Cos(2 * Math.PI * i / (n - 1)));
+				result[i] = data[i] * window;
+			}
+			
+			return result;
 		}
 
 		/// <summary>
@@ -242,44 +354,13 @@ namespace QjySDK.Stg
 		private Complex[] PerformFFT(double[] data)
 		{
 			int n = data.Length;
-			Complex[] result = new Complex[n];
-
-			// 将实数数据转换为复数
-			for (int i = 0; i < n; i++)
-			{
-				result[i] = new Complex(data[i], 0);
-			}
-
-			// Cooley-Tukey FFT算法
-			FFT(result, false);
-
-			return result;
+			var complex = data.Select(d => new Complex(d, 0)).ToArray();
+			FFT(complex, false);
+			return complex;
 		}
 
 		/// <summary>
-		/// 执行逆快速傅里叶变换
-		/// </summary>
-		private double[] PerformInverseFFT(Complex[] data)
-		{
-			int n = data.Length;
-			Complex[] result = new Complex[n];
-			Array.Copy(data, result, n);
-
-			// 逆FFT
-			FFT(result, true);
-
-			// 提取实部并归一化
-			double[] output = new double[n];
-			for (int i = 0; i < n; i++)
-			{
-				output[i] = result[i].Real / n;
-			}
-
-			return output;
-		}
-
-		/// <summary>
-		/// Cooley-Tukey FFT算法实现
+		/// Cooley-Tukey FFT算法（迭代版本）
 		/// </summary>
 		private void FFT(Complex[] data, bool inverse)
 		{
@@ -299,24 +380,31 @@ namespace QjySDK.Stg
 				}
 			}
 
-			// Cooley-Tukey迭代
+			// 蝶形运算
 			for (int len = 2; len <= n; len *= 2)
 			{
 				double angle = 2 * Math.PI / len * (inverse ? 1 : -1);
-				Complex wlen = new Complex(Math.Cos(angle), Math.Sin(angle));
+				var wlen = new Complex(Math.Cos(angle), Math.Sin(angle));
 
 				for (int i = 0; i < n; i += len)
 				{
-					Complex w = Complex.One;
+					var w = Complex.One;
 					for (int j = 0; j < len / 2; j++)
 					{
-						Complex u = data[i + j];
-						Complex v = data[i + j + len / 2] * w;
+						var u = data[i + j];
+						var v = data[i + j + len / 2] * w;
 						data[i + j] = u + v;
 						data[i + j + len / 2] = u - v;
 						w *= wlen;
 					}
 				}
+			}
+
+			// 逆变换需要除以n
+			if (inverse)
+			{
+				for (int i = 0; i < n; i++)
+					data[i] /= n;
 			}
 		}
 
@@ -335,27 +423,73 @@ namespace QjySDK.Stg
 		}
 
 		/// <summary>
-		/// 滤波：只保留指定数量的主要谐波
+		/// 计算功率谱
 		/// </summary>
-		private Complex[] FilterHarmonics(Complex[] fftData, int harmonics)
+		private double[] CalculatePowerSpectrum(Complex[] fftResult)
 		{
-			int n = fftData.Length;
-			Complex[] filtered = new Complex[n];
-
-			// 保留DC分量和前harmonics个谐波
-			for (int i = 0; i < n; i++)
+			int n = fftResult.Length;
+			var power = new double[n / 2];
+			
+			for (int i = 0; i < n / 2; i++)
 			{
-				if (i <= harmonics || i >= n - harmonics)
+				power[i] = fftResult[i].Magnitude * fftResult[i].Magnitude;
+			}
+			
+			return power;
+		}
+
+		/// <summary>
+		/// 在指定频率范围内找到主导频率
+		/// </summary>
+		private (int index, double power) FindDominantFrequency(double[] powerSpectrum, int minIdx, int maxIdx)
+		{
+			int dominantIdx = minIdx;
+			double maxPower = 0;
+
+			for (int i = minIdx; i <= maxIdx && i < powerSpectrum.Length; i++)
+			{
+				if (powerSpectrum[i] > maxPower)
 				{
-					filtered[i] = fftData[i];
-				}
-				else
-				{
-					filtered[i] = Complex.Zero;
+					maxPower = powerSpectrum[i];
+					dominantIdx = i;
 				}
 			}
 
-			return filtered;
+			return (dominantIdx, maxPower);
+		}
+
+		/// <summary>
+		/// 检查相位是否持续上升
+		/// </summary>
+		private bool IsPhaseRising(List<double> history)
+		{
+			if (history.Count < 2) return false;
+			
+			for (int i = 1; i < history.Count; i++)
+			{
+				// 处理相位跳变（从π跳到-π）
+				double diff = history[i] - history[i - 1];
+				if (diff < -1) diff += 2; // 跳变修正
+				if (diff < 0) return false;
+			}
+			return true;
+		}
+
+		/// <summary>
+		/// 检查相位是否持续下降
+		/// </summary>
+		private bool IsPhaseFalling(List<double> history)
+		{
+			if (history.Count < 2) return false;
+			
+			for (int i = 1; i < history.Count; i++)
+			{
+				// 处理相位跳变（从-π跳到π）
+				double diff = history[i] - history[i - 1];
+				if (diff > 1) diff -= 2; // 跳变修正
+				if (diff > 0) return false;
+			}
+			return true;
 		}
 
 		/// <summary>
@@ -365,9 +499,7 @@ namespace QjySDK.Stg
 		{
 			int power = 1;
 			while (power < n)
-			{
 				power *= 2;
-			}
 			return power;
 		}
 
@@ -382,19 +514,20 @@ namespace QjySDK.Stg
 			if (lotsMode == 1)
 			{
 				var symbol = GetSymbol(tu.MktSymbol);
-				num = Convert.ToDecimal(ArgDic["money"]) / (q.Close * symbol.multiplier * symbol.margin_ratio);
+				decimal divisor = q.Close * symbol.multiplier * symbol.margin_ratio;
+				
+				if (divisor > 0)
+				{
+					num = Convert.ToDecimal(ArgDic["money"]) / divisor;
 
-				if (symbol.symbol_type == (int)SymbolType.COIN)
-				{
-					num = Math.Floor(num * 1000) / 1000m;
-				}
-				else
-				{
-					num = Math.Floor(num);
+					if (symbol.symbol_type == (int)SymbolType.COIN)
+						num = Math.Floor(num * 1000) / 1000m;
+					else
+						num = Math.Floor(num);
 				}
 			}
 
-			return num;
+			return Math.Max(num, 0);
 		}
 	}
 }
