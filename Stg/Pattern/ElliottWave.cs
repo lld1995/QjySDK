@@ -33,17 +33,18 @@ namespace QjySDK.Stg
             sd.ArgDescDic["mode"] = new ArgDesc() { Text = "Mode", Explain = "0 Standard 1 Long Only 2 Short Only" };
             sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;
-            sd.SubChartNum = 0;
+            sd.SubChartNum = 2;
 
-            // 波浪线段颜色配置
-            sd.ColorDic["main-wave-1"] = "#FF6B6B";
-            sd.ColorDic["main-wave-2"] = "#4ECDC4";
-            sd.ColorDic["main-wave-3"] = "#FFD166";
-            sd.ColorDic["main-wave-4"] = "#6A0572";
-            sd.ColorDic["main-wave-5"] = "#FF9F1C";
-            sd.ColorDic["main-wave-A"] = "#1A936F";
-            sd.ColorDic["main-wave-B"] = "#114B5F";
-            sd.ColorDic["main-wave-C"] = "#F15BB5";
+            // 开仓点颜色配置
+            sd.ColorDic["main-W3"] = "#FF9800";      // 浪3开仓点橙色
+            sd.ColorDic["main-W5"] = "#E91E63";      // 浪5开仓点粉色
+            sd.ColorDic["main-WC"] = "#00BCD4";      // 浪C开仓点青色
+
+            // 副图颜色配置
+            sd.ColorDic["sub1-Wave"] = "#2196F3";    // 当前浪蓝色
+            sd.ColorDic["sub1-Valid"] = "#0ECB81";   // 有效性绿色
+            sd.ColorDic["sub1-Trend"] = "#FF9800";   // 趋势橙色
+            sd.ColorDic["sub1-Type"] = "#9C27B0";    // 类型紫色
 
             return sd;
         }
@@ -66,19 +67,6 @@ namespace QjySDK.Stg
             public decimal WaveB { get; set; }
             public decimal WaveC { get; set; }
             public int LastPivotIndex { get; set; }  // Track last processed pivot index to avoid reprocessing
-            // 存储每个波浪点的K线索引
-            public int Wave0Index { get; set; }
-            public int Wave1Index { get; set; }
-            public int Wave2Index { get; set; }
-            public int Wave3Index { get; set; }
-            public int Wave4Index { get; set; }
-            public int Wave5Index { get; set; }
-            public int WaveAIndex { get; set; }
-            public int WaveBIndex { get; set; }
-            public int WaveCIndex { get; set; }
-            // 调整浪起点（保存浪5终点）
-            public decimal CorrectionStart { get; set; }
-            public int CorrectionStartIndex { get; set; }
         }
 
         private class TradeState
@@ -90,8 +78,6 @@ namespace QjySDK.Stg
             public decimal TakeProfit { get; set; }
             public decimal HighestPrice { get; set; }
             public decimal LowestPrice { get; set; }
-            public int LastEntryWave { get; set; }  // 记录上次开仓的波浪状态，防止重复开仓
-            public int LastEntryWaveIndex { get; set; }  // 记录上次开仓时的波浪起点索引
         }
 
         private class Pivot
@@ -132,7 +118,7 @@ namespace QjySDK.Stg
 
             var pivots = FindPivots(quotes, zigzagDepth, zigzagDeviation);
             bool isNewPivot = UpdateWaveStateMachine(wave, pivots);
-            PlotWaveInfo(wave, isNewPivot, quotes.Count);
+            PlotWaveInfo(wave, isNewPivot);
             ExecuteTrade(trade, wave, currentQuote, tu, period, mode, sendMode, num, lossRate, profitRate, trailingStop, trailingPercent);
         }
 
@@ -236,17 +222,10 @@ namespace QjySDK.Stg
             wave.IsValid = false;
             wave.Wave0 = 0; wave.Wave1 = 0; wave.Wave2 = 0; wave.Wave3 = 0; wave.Wave4 = 0; wave.Wave5 = 0;
             wave.WaveA = 0; wave.WaveB = 0; wave.WaveC = 0;
-            wave.Wave0Index = -1; wave.Wave1Index = -1; wave.Wave2Index = -1; wave.Wave3Index = -1; wave.Wave4Index = -1; wave.Wave5Index = -1;
-            wave.WaveAIndex = -1; wave.WaveBIndex = -1; wave.WaveCIndex = -1;
-            wave.CorrectionStart = 0; wave.CorrectionStartIndex = -1;
         }
 
         private void StartCorrectiveWave(WaveState wave, Pivot pivot)
         {
-            // 保存调整浪起点（浪5终点）
-            wave.CorrectionStart = wave.Wave5;
-            wave.CorrectionStartIndex = wave.Wave5Index;
-            
             wave.Type = WaveType.Corrective;
             wave.CurrentWave = 6; // A wave
             wave.IsValid = true;
@@ -258,7 +237,6 @@ namespace QjySDK.Stg
             {
                 wave.WaveA = pivot.Price; // A wave is a high in downtrend correction
             }
-            wave.WaveAIndex = pivot.Index;
             wave.WaveB = 0;
             wave.WaveC = 0;
         }
@@ -283,7 +261,6 @@ namespace QjySDK.Stg
                     if (!pivot.IsHigh)
                     {
                         wave.Wave0 = pivot.Price;
-                        wave.Wave0Index = pivot.Index;
                         wave.CurrentWave = 1;
                         wave.Type = WaveType.Impulse;
                         wave.IsValid = true;
@@ -294,14 +271,12 @@ namespace QjySDK.Stg
                     if (pivot.IsHigh && pivot.Price > wave.Wave0)
                     {
                         wave.Wave1 = pivot.Price;
-                        wave.Wave1Index = pivot.Index;
                         wave.CurrentWave = 2;
                     }
                     // If we get another low lower than Wave0, update Wave0
                     else if (!pivot.IsHigh && pivot.Price < wave.Wave0)
                     {
                         wave.Wave0 = pivot.Price;
-                        wave.Wave0Index = pivot.Index;
                     }
                     break;
 
@@ -312,7 +287,6 @@ namespace QjySDK.Stg
                         if (pivot.Price > wave.Wave0 && pivot.Price < wave.Wave1)
                         {
                             wave.Wave2 = pivot.Price;
-                            wave.Wave2Index = pivot.Index;
                             wave.CurrentWave = 3;
                         }
                         else if (pivot.Price <= wave.Wave0)
@@ -325,7 +299,6 @@ namespace QjySDK.Stg
                     else if (pivot.IsHigh && pivot.Price > wave.Wave1)
                     {
                         wave.Wave1 = pivot.Price;
-                        wave.Wave1Index = pivot.Index;
                     }
                     break;
 
@@ -333,7 +306,6 @@ namespace QjySDK.Stg
                     if (pivot.IsHigh && pivot.Price > wave.Wave1)
                     {
                         wave.Wave3 = pivot.Price;
-                        wave.Wave3Index = pivot.Index;
                         wave.CurrentWave = 4;
                     }
                     // Stay in wave 3, don't update wave 2
@@ -346,7 +318,6 @@ namespace QjySDK.Stg
                         if (pivot.Price > wave.Wave1 && pivot.Price < wave.Wave3)
                         {
                             wave.Wave4 = pivot.Price;
-                            wave.Wave4Index = pivot.Index;
                             wave.CurrentWave = 5;
                         }
                         else if (pivot.Price <= wave.Wave1)
@@ -362,7 +333,6 @@ namespace QjySDK.Stg
                     if (pivot.IsHigh && pivot.Price > wave.Wave3)
                     {
                         wave.Wave5 = pivot.Price;
-                        wave.Wave5Index = pivot.Index;
                         // Impulse complete, prepare for correction
                     }
                     // Stay in wave 5, don't update wave 4
@@ -378,7 +348,6 @@ namespace QjySDK.Stg
                     if (pivot.IsHigh)
                     {
                         wave.Wave0 = pivot.Price;
-                        wave.Wave0Index = pivot.Index;
                         wave.CurrentWave = 1;
                         wave.Type = WaveType.Impulse;
                         wave.IsValid = true;
@@ -389,13 +358,11 @@ namespace QjySDK.Stg
                     if (!pivot.IsHigh && pivot.Price < wave.Wave0)
                     {
                         wave.Wave1 = pivot.Price;
-                        wave.Wave1Index = pivot.Index;
                         wave.CurrentWave = 2;
                     }
                     else if (pivot.IsHigh && pivot.Price > wave.Wave0)
                     {
                         wave.Wave0 = pivot.Price;
-                        wave.Wave0Index = pivot.Index;
                     }
                     break;
 
@@ -405,7 +372,6 @@ namespace QjySDK.Stg
                         if (pivot.Price < wave.Wave0 && pivot.Price > wave.Wave1)
                         {
                             wave.Wave2 = pivot.Price;
-                            wave.Wave2Index = pivot.Index;
                             wave.CurrentWave = 3;
                         }
                         else if (pivot.Price >= wave.Wave0)
@@ -417,7 +383,6 @@ namespace QjySDK.Stg
                     else if (!pivot.IsHigh && pivot.Price < wave.Wave1)
                     {
                         wave.Wave1 = pivot.Price;
-                        wave.Wave1Index = pivot.Index;
                     }
                     break;
 
@@ -425,7 +390,6 @@ namespace QjySDK.Stg
                     if (!pivot.IsHigh && pivot.Price < wave.Wave1)
                     {
                         wave.Wave3 = pivot.Price;
-                        wave.Wave3Index = pivot.Index;
                         wave.CurrentWave = 4;
                     }
                     // Stay in wave 3, don't update wave 2
@@ -437,7 +401,6 @@ namespace QjySDK.Stg
                         if (pivot.Price < wave.Wave1 && pivot.Price > wave.Wave3)
                         {
                             wave.Wave4 = pivot.Price;
-                            wave.Wave4Index = pivot.Index;
                             wave.CurrentWave = 5;
                         }
                         else if (pivot.Price >= wave.Wave1)
@@ -452,7 +415,6 @@ namespace QjySDK.Stg
                     if (!pivot.IsHigh && pivot.Price < wave.Wave3)
                     {
                         wave.Wave5 = pivot.Price;
-                        wave.Wave5Index = pivot.Index;
                     }
                     // Stay in wave 5, don't update wave 4
                     break;
@@ -474,13 +436,11 @@ namespace QjySDK.Stg
                         if (!pivot.IsHigh)
                         {
                             wave.WaveA = pivot.Price;
-                            wave.WaveAIndex = pivot.Index;
                         }
                         else if (pivot.IsHigh && wave.WaveA > 0)
                         {
                             // B wave starts
                             wave.WaveB = pivot.Price;
-                            wave.WaveBIndex = pivot.Index;
                             wave.CurrentWave = 7;
                         }
                     }
@@ -489,12 +449,10 @@ namespace QjySDK.Stg
                         if (pivot.IsHigh)
                         {
                             wave.WaveA = pivot.Price;
-                            wave.WaveAIndex = pivot.Index;
                         }
                         else if (!pivot.IsHigh && wave.WaveA > 0)
                         {
                             wave.WaveB = pivot.Price;
-                            wave.WaveBIndex = pivot.Index;
                             wave.CurrentWave = 7;
                         }
                     }
@@ -506,12 +464,10 @@ namespace QjySDK.Stg
                         if (pivot.IsHigh && pivot.Price > wave.WaveB)
                         {
                             wave.WaveB = pivot.Price;
-                            wave.WaveBIndex = pivot.Index;
                         }
                         else if (!pivot.IsHigh)
                         {
                             wave.WaveC = pivot.Price;
-                            wave.WaveCIndex = pivot.Index;
                             wave.CurrentWave = 8;
                         }
                     }
@@ -520,12 +476,10 @@ namespace QjySDK.Stg
                         if (!pivot.IsHigh && pivot.Price < wave.WaveB)
                         {
                             wave.WaveB = pivot.Price;
-                            wave.WaveBIndex = pivot.Index;
                         }
                         else if (pivot.IsHigh)
                         {
                             wave.WaveC = pivot.Price;
-                            wave.WaveCIndex = pivot.Index;
                             wave.CurrentWave = 8;
                         }
                     }
@@ -537,17 +491,13 @@ namespace QjySDK.Stg
                         if (!pivot.IsHigh && pivot.Price < wave.WaveC)
                         {
                             wave.WaveC = pivot.Price;
-                            wave.WaveCIndex = pivot.Index;
                         }
                         else if (pivot.IsHigh)
                         {
                             // Correction complete, may start new impulse
                             wave.IsUpTrend = true;
-                            var waveCIdx = wave.WaveCIndex;
-                            var waveC = wave.WaveC;
                             ResetWave(wave);
-                            wave.Wave0 = waveC;
-                            wave.Wave0Index = waveCIdx;
+                            wave.Wave0 = wave.WaveC;
                             wave.CurrentWave = 1;
                             wave.Type = WaveType.Impulse;
                             wave.IsValid = true;
@@ -558,16 +508,12 @@ namespace QjySDK.Stg
                         if (pivot.IsHigh && pivot.Price > wave.WaveC)
                         {
                             wave.WaveC = pivot.Price;
-                            wave.WaveCIndex = pivot.Index;
                         }
                         else if (!pivot.IsHigh)
                         {
                             wave.IsUpTrend = false;
-                            var waveCIdx = wave.WaveCIndex;
-                            var waveC = wave.WaveC;
                             ResetWave(wave);
-                            wave.Wave0 = waveC;
-                            wave.Wave0Index = waveCIdx;
+                            wave.Wave0 = wave.WaveC;
                             wave.CurrentWave = 1;
                             wave.Type = WaveType.Impulse;
                             wave.IsValid = true;
@@ -586,10 +532,7 @@ namespace QjySDK.Stg
                 // Impulse wave trading
                 if (wave.Type == WaveType.Impulse)
                 {
-                    // 检查是否已在当前波浪周期开过仓
-                    bool alreadyTradedThisWave = (trade.LastEntryWave == wave.CurrentWave && trade.LastEntryWaveIndex == wave.Wave0Index);
-                    
-                    if (wave.IsUpTrend && mode != 2 && !alreadyTradedThisWave)
+                    if (wave.IsUpTrend && mode != 2)
                     {
                         // Enter long on wave 3 breakout
                         if (wave.CurrentWave == 3 && wave.Wave1 > 0 && wave.Wave2 > 0 && quote.Close > wave.Wave1)
@@ -598,7 +541,7 @@ namespace QjySDK.Stg
                         else if (wave.CurrentWave == 5 && wave.Wave3 > 0 && wave.Wave4 > 0 && quote.Close > wave.Wave3)
                             OpenLong(trade, tu, quote, period, sendMode, num, wave, lossRate, profitRate);
                     }
-                    else if (!wave.IsUpTrend && mode != 1 && !alreadyTradedThisWave)
+                    else if (!wave.IsUpTrend && mode != 1)
                     {
                         if (wave.CurrentWave == 3 && wave.Wave1 > 0 && wave.Wave2 > 0 && quote.Close < wave.Wave1)
                             OpenShort(trade, tu, quote, period, sendMode, num, wave, lossRate, profitRate);
@@ -609,17 +552,14 @@ namespace QjySDK.Stg
                 // Corrective wave trading - enter after C wave completes
                 else if (wave.Type == WaveType.Corrective && wave.CurrentWave == 8)
                 {
-                    bool alreadyTradedThisWave = (trade.LastEntryWave == 8 && trade.LastEntryWaveIndex == wave.CorrectionStartIndex);
-                    
-                    if (wave.IsUpTrend && mode != 2 && wave.WaveC > 0 && wave.WaveB > 0 && !alreadyTradedThisWave)
+                    if (wave.IsUpTrend && mode != 2 && wave.WaveC > 0 && wave.WaveB > 0)
                     {
-                        // 上升趋势后的调整浪完成，突破B浪高点做多
+                        // After downward correction, look for reversal
                         if (quote.Close > wave.WaveB)
                             OpenLong(trade, tu, quote, period, sendMode, num, wave, lossRate, profitRate);
                     }
-                    else if (!wave.IsUpTrend && mode != 1 && wave.WaveC > 0 && wave.WaveB > 0 && !alreadyTradedThisWave)
+                    else if (!wave.IsUpTrend && mode != 1 && wave.WaveC > 0 && wave.WaveB > 0)
                     {
-                        // 下降趋势后的调整浪完成，跌破B浪低点做空
                         if (quote.Close < wave.WaveB)
                             OpenShort(trade, tu, quote, period, sendMode, num, wave, lossRate, profitRate);
                     }
@@ -632,9 +572,6 @@ namespace QjySDK.Stg
         private void OpenLong(TradeState trade, TableUnit tu, SkQuote quote, Period period, int sendMode, decimal num, WaveState wave, decimal lossRate, decimal profitRate)
         {
             trade.Status = 1; trade.Num = num; trade.EntryPrice = quote.Close; trade.HighestPrice = quote.Close;
-            trade.LastEntryWave = wave.CurrentWave;
-            trade.LastEntryWaveIndex = wave.Type == WaveType.Impulse ? wave.Wave0Index : wave.CorrectionStartIndex;
-            
             decimal stopLevel = wave.Type == WaveType.Impulse ? wave.Wave2 : wave.WaveC;
             trade.StopLoss = stopLevel > 0 ? stopLevel * 0.99m : quote.Close * (1 - lossRate / 100);
             decimal wave1Len = wave.Wave1 > 0 && wave.Wave0 > 0 ? wave.Wave1 - wave.Wave0 : quote.Close * profitRate / 100;
@@ -645,9 +582,6 @@ namespace QjySDK.Stg
         private void OpenShort(TradeState trade, TableUnit tu, SkQuote quote, Period period, int sendMode, decimal num, WaveState wave, decimal lossRate, decimal profitRate)
         {
             trade.Status = 2; trade.Num = num; trade.EntryPrice = quote.Close; trade.LowestPrice = quote.Close;
-            trade.LastEntryWave = wave.CurrentWave;
-            trade.LastEntryWaveIndex = wave.Type == WaveType.Impulse ? wave.Wave0Index : wave.CorrectionStartIndex;
-            
             decimal stopLevel = wave.Type == WaveType.Impulse ? wave.Wave2 : wave.WaveC;
             trade.StopLoss = stopLevel > 0 ? stopLevel * 1.01m : quote.Close * (1 + lossRate / 100);
             decimal wave1Len = wave.Wave0 > 0 && wave.Wave1 > 0 ? wave.Wave0 - wave.Wave1 : quote.Close * profitRate / 100;
@@ -690,62 +624,25 @@ namespace QjySDK.Stg
             return num;
         }
 
-        private void PlotWaveInfo(WaveState wave, bool isNewPivot, int quoteCount)
+        private void PlotWaveInfo(WaveState wave, bool isNewPivot)
         {
-            if (!wave.IsValid) return;
+            Plot("sub1", "Wave", PlotType.LINE, wave.CurrentWave);
+            Plot("sub1", "Valid", PlotType.LINE, wave.IsValid ? 1 : 0);
+            Plot("sub1", "Trend", PlotType.LINE, wave.IsUpTrend ? 1 : -1);
+            Plot("sub1", "Type", PlotType.LINE, wave.Type == WaveType.Impulse ? 1 : (wave.Type == WaveType.Corrective ? -1 : 0));
 
-            // 绘制推动浪 (1-5)
-            if (wave.Type == WaveType.Impulse)
+            if (wave.IsValid && isNewPivot)
             {
-                if (wave.Wave0 > 0 && wave.Wave1 > 0 && wave.Wave0Index >= 0 && wave.Wave1Index >= 0)
+                if (wave.Type == WaveType.Impulse)
                 {
-                    PlotWaveSegment("1", wave.Wave0, wave.Wave0Index, wave.Wave1, wave.Wave1Index, quoteCount);
+                    if (wave.CurrentWave == 3 && wave.Wave2 > 0) Plot("main", "W3", PlotType.POINT, (double)wave.Wave2);
+                    if (wave.CurrentWave == 5 && wave.Wave4 > 0) Plot("main", "W5", PlotType.POINT, (double)wave.Wave4);
                 }
-                if (wave.Wave1 > 0 && wave.Wave2 > 0 && wave.Wave1Index >= 0 && wave.Wave2Index >= 0)
+                else if (wave.Type == WaveType.Corrective)
                 {
-                    PlotWaveSegment("2", wave.Wave1, wave.Wave1Index, wave.Wave2, wave.Wave2Index, quoteCount);
-                }
-                if (wave.Wave2 > 0 && wave.Wave3 > 0 && wave.Wave2Index >= 0 && wave.Wave3Index >= 0)
-                {
-                    PlotWaveSegment("3", wave.Wave2, wave.Wave2Index, wave.Wave3, wave.Wave3Index, quoteCount);
-                }
-                if (wave.Wave3 > 0 && wave.Wave4 > 0 && wave.Wave3Index >= 0 && wave.Wave4Index >= 0)
-                {
-                    PlotWaveSegment("4", wave.Wave3, wave.Wave3Index, wave.Wave4, wave.Wave4Index, quoteCount);
-                }
-                if (wave.Wave4 > 0 && wave.Wave5 > 0 && wave.Wave4Index >= 0 && wave.Wave5Index >= 0)
-                {
-                    PlotWaveSegment("5", wave.Wave4, wave.Wave4Index, wave.Wave5, wave.Wave5Index, quoteCount);
+                    if (wave.CurrentWave == 8 && wave.WaveC > 0) Plot("main", "WC", PlotType.POINT, (double)wave.WaveC);
                 }
             }
-            // 绘制调整浪 (A-B-C)
-            else if (wave.Type == WaveType.Corrective)
-            {
-                // A浪起点是调整浪起点（浪5终点）
-                if (wave.CorrectionStart > 0 && wave.WaveA > 0 && wave.CorrectionStartIndex >= 0 && wave.WaveAIndex >= 0)
-                {
-                    PlotWaveSegment("A", wave.CorrectionStart, wave.CorrectionStartIndex, wave.WaveA, wave.WaveAIndex, quoteCount);
-                }
-                if (wave.WaveA > 0 && wave.WaveB > 0 && wave.WaveAIndex >= 0 && wave.WaveBIndex >= 0)
-                {
-                    PlotWaveSegment("B", wave.WaveA, wave.WaveAIndex, wave.WaveB, wave.WaveBIndex, quoteCount);
-                }
-                if (wave.WaveB > 0 && wave.WaveC > 0 && wave.WaveBIndex >= 0 && wave.WaveCIndex >= 0)
-                {
-                    PlotWaveSegment("C", wave.WaveB, wave.WaveBIndex, wave.WaveC, wave.WaveCIndex, quoteCount);
-                }
-            }
-        }
-
-        private void PlotWaveSegment(string waveLabel, decimal startPrice, int startIndex, decimal endPrice, int endIndex, int quoteCount)
-        {
-            var plse = new PlotLineSegmentExtra();
-            plse.StartOffsetIndex = quoteCount - 1 - startIndex;
-            plse.EndOffsetIndex = quoteCount - 1 - endIndex;
-            plse.Val1 = startPrice;
-            plse.Val2 = endPrice;
-            plse.Text = waveLabel;
-            Plot("main", "wave-" + waveLabel, PlotType.LINE_SEGMENT, (double)endPrice, plse);
         }
     }
 }
