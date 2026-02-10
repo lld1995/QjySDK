@@ -99,6 +99,7 @@ namespace QjySDK.Stg
 
 		public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
 		{
+			base.OnBar(period, tu, isFinal, tq);
 			if (!isFinal) return;
 
 			var quotes = tu.QuoteList;

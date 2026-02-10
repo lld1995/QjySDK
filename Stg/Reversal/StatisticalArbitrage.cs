@@ -194,6 +194,7 @@ namespace QjySDK.Stg
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
             base.OnBar(period, tu, isFinal, tq);
+            if (!isFinal) return;
 
             if (ArgDic == null) return;
 
@@ -321,8 +322,6 @@ namespace QjySDK.Stg
                 _stateDic[sk] = new TradeState();
             }
             var state = _stateDic[sk];
-
-            if (!isFinal) return;
 
             // ==================== 绘制指标 ====================
             Plot("main", "Mean", PlotType.LINE, mean);

@@ -240,6 +240,7 @@ namespace QjySDK.Stg
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
             base.OnBar(period, tu, isFinal, tq);
+            if (!isFinal) return;
 
             if (ArgDic == null) return;
 
@@ -304,8 +305,6 @@ namespace QjySDK.Stg
             double mdiCurr = adxCurr.Mdi.Value;
             double pdiPrev = adxPrev.Pdi.Value;
             double mdiPrev = adxPrev.Mdi.Value;
-
-            if (!isFinal) return;
 
             // 绘制MACD指标
             Plot("sub0", "MACD", PlotType.LINE, macdValue);

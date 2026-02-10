@@ -139,6 +139,7 @@ namespace QjySDK.Stg
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
             base.OnBar(period, tu, isFinal, tq);
+            if (!isFinal) return;
 
             if (ArgDic == null) return;
 
@@ -185,8 +186,6 @@ namespace QjySDK.Stg
             double adxValue = adxCurr.Adx.Value;
             double pdi = adxCurr.Pdi.Value;
             double mdi = adxCurr.Mdi.Value;
-
-            if (!isFinal) return;
 
             Plot("main", "EMA_Fast", PlotType.CURVE, emaFastCurr);
             Plot("main", "EMA_Slow", PlotType.CURVE, emaSlowCurr);

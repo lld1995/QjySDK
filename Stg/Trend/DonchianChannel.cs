@@ -71,6 +71,9 @@ namespace QjySDK.Stg
 
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
+            base.OnBar(period, tu, isFinal, tq);
+            if (!isFinal) return;
+
             if (ArgDic != null)
             {
                 _entryPeriod = Convert.ToInt32(ArgDic["entryPeriod"]);
@@ -106,9 +109,6 @@ namespace QjySDK.Stg
             decimal currentClose = q.Close;
             decimal prevHigh = quotes[quotes.Count - 2].High;
             decimal prevLow = quotes[quotes.Count - 2].Low;
-
-            if (!isFinal)
-                return;
 
             Plot("main", "upperBand", PlotType.LINE, (double)upperBand);
             Plot("main", "lowerBand", PlotType.LINE, (double)lowerBand);

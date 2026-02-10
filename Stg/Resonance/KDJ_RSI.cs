@@ -205,6 +205,7 @@ namespace QjySDK.Stg
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
             base.OnBar(period, tu, isFinal, tq);
+            if (!isFinal) return;
 
             if (ArgDic == null) return;
 
@@ -259,8 +260,6 @@ namespace QjySDK.Stg
 
             double rsiValue = rsiCurr.Rsi.Value;
             double rsiPrevValue = rsiPrev.Rsi.Value;
-
-            if (!isFinal) return;
 
             // 绘制指标
             Plot("sub0", "K", PlotType.LINE, kCurr);

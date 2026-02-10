@@ -187,6 +187,7 @@ namespace QjySDK.Stg
 		public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
 		{
 			base.OnBar(period, tu, isFinal, tq);
+			if (!isFinal) return;
 			
 			State s = null;
 			var sk = tu.GetStateKey();
@@ -199,8 +200,6 @@ namespace QjySDK.Stg
 				s = new State();
 				_stateDic[sk] = s;
 			}
-
-			if (!isFinal) return;
 
 			var rsiPeriod = (int)ArgDic["rsiPeriod"];
 			var emaPeriod = (int)ArgDic["emaPeriod"];

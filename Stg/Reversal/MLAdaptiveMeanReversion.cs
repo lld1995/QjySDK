@@ -730,6 +730,7 @@ namespace QjySDK.Stg
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
             base.OnBar(period, tu, isFinal, tq);
+            if (!isFinal) return;
 
             if (ArgDic == null) return;
 
@@ -805,7 +806,7 @@ namespace QjySDK.Stg
             }
 
             bool needRetrain = !state.ProbModel.IsTrained || (state.BarCount - state.LastTrainBar >= retrainInterval);
-            if (needRetrain && isFinal)
+            if (needRetrain)
             {
                 var (probX, probY, magY) = PrepareTrainingData(quotes, lookback, maPeriod, trainPeriod);
                 if (probX.Length > 0)
@@ -829,8 +830,6 @@ namespace QjySDK.Stg
                     reversionMagnitude = state.MagModel!.Predict(features);
                 }
             }
-
-            if (!isFinal) return;
 
             // ==================== 绘制指标 ====================
             Plot("main", "MA", PlotType.LINE, ma);

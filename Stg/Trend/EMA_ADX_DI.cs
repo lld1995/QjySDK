@@ -171,6 +171,7 @@ namespace QjySDK.Stg
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
             base.OnBar(period, tu, isFinal, tq);
+            if (!isFinal) return;
 
             if (ArgDic == null) return;
 
@@ -229,8 +230,6 @@ namespace QjySDK.Stg
 
             // 计算EMA斜率
             double emaSlope = emaSlopeRef.HasValue ? (emaCurr.Value - emaSlopeRef.Value) : 0;
-
-            if (!isFinal) return;
 
             // 绘制指标
             Plot("main", "EMA", PlotType.CURVE, emaCurr);

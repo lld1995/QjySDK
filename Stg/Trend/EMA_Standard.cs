@@ -86,6 +86,7 @@ namespace QjySDK.Stg
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
             base.OnBar(period, tu, isFinal, tq);
+            if (!isFinal) return;
 
             if (ArgDic == null) return;
 
@@ -117,8 +118,6 @@ namespace QjySDK.Stg
 
             if (!emaFastCurr.HasValue || !emaSlowCurr.HasValue ||
                 !emaFastPrev.HasValue || !emaSlowPrev.HasValue) return;
-
-            if (!isFinal) return;
 
             Plot("main", "EMA_Fast", PlotType.CURVE, emaFastCurr);
             Plot("main", "EMA_Slow", PlotType.CURVE, emaSlowCurr);

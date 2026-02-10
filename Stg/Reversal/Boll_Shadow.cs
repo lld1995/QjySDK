@@ -90,6 +90,8 @@ namespace QjySDK.Stg
 		public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
 		{
 			base.OnBar(period, tu, isFinal, tq);
+			if (!isFinal) return;
+
 			State s = null;
 			var sk = tu.GetStateKey();
 			if (_stateDic.ContainsKey(sk))
@@ -102,9 +104,7 @@ namespace QjySDK.Stg
 				_stateDic[sk] = s;
 			}
 
-			if (isFinal)
-			{
-				int lookbackPeriods = (int)ArgDic["lookbackPeriods"];
+			int lookbackPeriods = (int)ArgDic["lookbackPeriods"];
 				if (tu.QuoteList.Count >= lookbackPeriods)
 				{
 					var shadowRate = (decimal)ArgDic["shadowRate"];
@@ -309,7 +309,6 @@ namespace QjySDK.Stg
 						}
 					}
 				}
-			}
 		}
 	}
 }
