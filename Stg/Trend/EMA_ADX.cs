@@ -186,6 +186,8 @@ namespace QjySDK.Stg
             double pdi = adxCurr.Pdi.Value;
             double mdi = adxCurr.Mdi.Value;
 
+            if (!isFinal) return;
+
             Plot("main", "EMA_Fast", PlotType.CURVE, emaFastCurr);
             Plot("main", "EMA_Slow", PlotType.CURVE, emaSlowCurr);
             Plot("sub0", "ADX", PlotType.CURVE, adxValue);
@@ -205,8 +207,6 @@ namespace QjySDK.Stg
                     Plot("main", "TakeProfit", PlotType.LINE, (double)state.TakeProfit);
                 }
             }
-
-            if (!isFinal) return;
 
             if (state.HasPosition)
             {

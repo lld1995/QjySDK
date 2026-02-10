@@ -141,6 +141,9 @@ namespace QjySDK.Stg
             decimal prevHigh = quotes[quotes.Count - 2].High;
             decimal prevLow = quotes[quotes.Count - 2].Low;
 
+            if (!isFinal)
+                return;
+
             Plot("main", "upperBand", PlotType.LINE, (double)upperBand);
             Plot("main", "lowerBand", PlotType.LINE, (double)lowerBand);
             Plot("main", "middleBand", PlotType.LINE, (double)middleBand);
@@ -152,9 +155,6 @@ namespace QjySDK.Stg
             {
                 Plot("main", "stopLoss", PlotType.LINE, (double)posInfo.StopLoss);
             }
-
-            if (!isFinal)
-                return;
 
             if (posInfo.Direction == 0)
             {

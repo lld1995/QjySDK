@@ -118,14 +118,14 @@ namespace QjySDK.Stg
             if (!emaFastCurr.HasValue || !emaSlowCurr.HasValue ||
                 !emaFastPrev.HasValue || !emaSlowPrev.HasValue) return;
 
+            if (!isFinal) return;
+
             Plot("main", "EMA_Fast", PlotType.CURVE, emaFastCurr);
             Plot("main", "EMA_Slow", PlotType.CURVE, emaSlowCurr);
             if (_useTrendFilter && emaTrendCurr.HasValue)
             {
                 Plot("main", "EMA_Trend", PlotType.CURVE, emaTrendCurr);
             }
-
-            if (!isFinal) return;
 
             var q = quotes.Last();
             decimal currentPrice = q.Close;

@@ -312,10 +312,19 @@ namespace QjySDK.Stg
             double bollUpper = bollLast.UpperBand.GetValueOrDefault(0);
             double bollLower = bollLast.LowerBand.GetValueOrDefault(0);
 
-            // ==================== 绘制指标 ====================
             double upperBand = mean + stdDev * dynamicEntryZ;
             double lowerBand = mean - stdDev * dynamicEntryZ;
 
+            // ==================== 获取或创建状态 ====================
+            if (!_stateDic.ContainsKey(sk))
+            {
+                _stateDic[sk] = new TradeState();
+            }
+            var state = _stateDic[sk];
+
+            if (!isFinal) return;
+
+            // ==================== 绘制指标 ====================
             Plot("main", "Mean", PlotType.LINE, mean);
             Plot("main", "UpperBand", PlotType.LINE, upperBand);
             Plot("main", "LowerBand", PlotType.LINE, lowerBand);
@@ -331,15 +340,6 @@ namespace QjySDK.Stg
             Plot("sub1", "RSI", PlotType.LINE, rsiVal);
             Plot("sub1", "Overbought", PlotType.LINE, rsiOverbought);
             Plot("sub1", "Oversold", PlotType.LINE, rsiOversold);
-
-            // ==================== 获取或创建状态 ====================
-            if (!_stateDic.ContainsKey(sk))
-            {
-                _stateDic[sk] = new TradeState();
-            }
-            var state = _stateDic[sk];
-
-            if (!isFinal) return;
 
             // 更新持仓状态
             if (state.Status != 0)

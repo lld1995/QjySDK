@@ -260,6 +260,8 @@ namespace QjySDK.Stg
             double rsiValue = rsiCurr.Rsi.Value;
             double rsiPrevValue = rsiPrev.Rsi.Value;
 
+            if (!isFinal) return;
+
             // 绘制指标
             Plot("sub0", "K", PlotType.LINE, kCurr);
             Plot("sub0", "D", PlotType.LINE, dCurr);
@@ -272,8 +274,6 @@ namespace QjySDK.Stg
                 Plot("main", "StopLoss", PlotType.LINE, (double)state.StopLoss);
                 Plot("main", "TakeProfit", PlotType.LINE, (double)state.TakeProfit);
             }
-
-            if (!isFinal) return;
 
             // 更新持仓计数
             if (state.HasPosition)

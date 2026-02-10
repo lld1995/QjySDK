@@ -230,6 +230,8 @@ namespace QjySDK.Stg
             // 计算EMA斜率
             double emaSlope = emaSlopeRef.HasValue ? (emaCurr.Value - emaSlopeRef.Value) : 0;
 
+            if (!isFinal) return;
+
             // 绘制指标
             Plot("main", "EMA", PlotType.CURVE, emaCurr);
             Plot("sub0", "ADX", PlotType.CURVE, adxValue);
@@ -242,8 +244,6 @@ namespace QjySDK.Stg
                 Plot("main", "StopLoss", PlotType.LINE, (double)state.StopLoss);
                 Plot("main", "TakeProfit", PlotType.LINE, (double)state.TakeProfit);
             }
-
-            if (!isFinal) return;
 
             // 更新持仓计数
             if (state.HasPosition)

@@ -107,6 +107,9 @@ namespace QjySDK.Stg
             decimal prevHigh = quotes[quotes.Count - 2].High;
             decimal prevLow = quotes[quotes.Count - 2].Low;
 
+            if (!isFinal)
+                return;
+
             Plot("main", "upperBand", PlotType.LINE, (double)upperBand);
             Plot("main", "lowerBand", PlotType.LINE, (double)lowerBand);
             Plot("main", "middleBand", PlotType.LINE, (double)middleBand);
@@ -116,9 +119,6 @@ namespace QjySDK.Stg
                 Plot("main", "exitUpper", PlotType.LINE, (double)exitUpper);
                 Plot("main", "exitLower", PlotType.LINE, (double)exitLower);
             }
-
-            if (!isFinal)
-                return;
 
             int position = _positionState[stateKey];
 

@@ -423,6 +423,16 @@ namespace QjySDK.Stg
                 factorScore.Composite = 50;
             }
 
+            // ==================== 获取或创建状态 ====================
+            var sk = tu.GetStateKey();
+            if (!_stateDic.ContainsKey(sk))
+            {
+                _stateDic[sk] = new TradeState();
+            }
+            var state = _stateDic[sk];
+
+            if (!isFinal) return;
+
             // ==================== 绘制指标 ====================
             Plot("main", "EMA_Fast", PlotType.LINE, emaFastVal);
             Plot("main", "EMA_Slow", PlotType.LINE, emaSlowVal);
@@ -436,22 +446,12 @@ namespace QjySDK.Stg
 
             Plot("sub1", "RSI", PlotType.LINE, rsiVal);
 
-            // ==================== 获取或创建状态 ====================
-            var sk = tu.GetStateKey();
-            if (!_stateDic.ContainsKey(sk))
-            {
-                _stateDic[sk] = new TradeState();
-            }
-            var state = _stateDic[sk];
-
             // 绘制止损止盈线
             if (state.Status != 0)
             {
                 Plot("main", "StopLoss", PlotType.LINE, (double)state.StopLoss);
                 Plot("main", "TakeProfit", PlotType.LINE, (double)state.TakeProfit);
             }
-
-            if (!isFinal) return;
 
             // 更新持仓计数
             if (state.Status != 0)

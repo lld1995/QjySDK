@@ -300,6 +300,16 @@ namespace QjySDK.Stg
             var atrList = quotes.GetAtr(atrPeriod).ToList();
             decimal atrVal = (decimal)atrList.Last().Atr.GetValueOrDefault(0);
 
+            // ==================== 获取或创建状态 ====================
+            var sk = tu.GetStateKey();
+            if (!_stateDic.ContainsKey(sk))
+            {
+                _stateDic[sk] = new TradeState();
+            }
+            var state = _stateDic[sk];
+
+            if (!isFinal) return;
+
             // ==================== 绘制指标 ====================
             Plot("main", "HighestHigh", PlotType.LINE, (double)highestHigh);
             Plot("main", "LowestLow", PlotType.LINE, (double)lowestLow);
@@ -312,22 +322,12 @@ namespace QjySDK.Stg
             Plot("sub1", "Overbought", PlotType.LINE, rsiOverbought);
             Plot("sub1", "Oversold", PlotType.LINE, rsiOversold);
 
-            // ==================== 获取或创建状态 ====================
-            var sk = tu.GetStateKey();
-            if (!_stateDic.ContainsKey(sk))
-            {
-                _stateDic[sk] = new TradeState();
-            }
-            var state = _stateDic[sk];
-
             // 绘制止损止盈线
             if (state.Status != 0)
             {
                 Plot("main", "StopLoss", PlotType.LINE, (double)state.StopLoss);
                 Plot("main", "TakeProfit", PlotType.LINE, (double)state.TakeProfit);
             }
-
-            if (!isFinal) return;
 
             // 更新持仓状态
             if (state.Status != 0)

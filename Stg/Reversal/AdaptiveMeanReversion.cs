@@ -321,6 +321,15 @@ namespace QjySDK.Stg
             var rsiList = quotes.GetRsi(rsiPeriod).ToList();
             double rsiVal = rsiList.Last().Rsi.GetValueOrDefault(50);
 
+            // ==================== 获取或创建状态 ====================
+            if (!_stateDic.ContainsKey(sk))
+            {
+                _stateDic[sk] = new TradeState();
+            }
+            var state = _stateDic[sk];
+
+            if (!isFinal) return;
+
             // ==================== 绘制指标 ====================
             Plot("main", "Boll_Upper", PlotType.LINE, bollUpper);
             Plot("main", "Boll_Lower", PlotType.LINE, bollLower);
@@ -341,13 +350,6 @@ namespace QjySDK.Stg
             Plot("sub1", "Squeeze", PlotType.LINE, isInSqueeze ? 1.0 : 0.0);
             Plot("sub1", "BollWidth", PlotType.LINE, bollWidth);
 
-            // ==================== 获取或创建状态 ====================
-            if (!_stateDic.ContainsKey(sk))
-            {
-                _stateDic[sk] = new TradeState();
-            }
-            var state = _stateDic[sk];
-
             // 绘制止损止盈线
             if (state.Status != 0)
             {
@@ -357,8 +359,6 @@ namespace QjySDK.Stg
                     Plot("main", "TakeProfit", PlotType.LINE, (double)state.TakeProfit);
                 }
             }
-
-            if (!isFinal) return;
 
             // 更新持仓状态
             if (state.Status != 0)

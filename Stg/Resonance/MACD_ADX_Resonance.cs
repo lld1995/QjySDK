@@ -305,6 +305,8 @@ namespace QjySDK.Stg
             double pdiPrev = adxPrev.Pdi.Value;
             double mdiPrev = adxPrev.Mdi.Value;
 
+            if (!isFinal) return;
+
             // 绘制MACD指标
             Plot("sub0", "MACD", PlotType.LINE, macdValue);
             Plot("sub0", "Signal", PlotType.LINE, signalValue);
@@ -325,8 +327,6 @@ namespace QjySDK.Stg
                     Plot("main", "TrailingStop", PlotType.LINE, (double)state.TrailingStopPrice);
                 }
             }
-
-            if (!isFinal) return;
 
             // 更新持仓计数
             if (state.HasPosition)
