@@ -11,37 +11,6 @@ namespace QjySDK.Stg
 {
     /// <summary>
     /// 统计套利策略 (Statistical Arbitrage Strategy)
-    /// 
-    /// 策略核心思想：
-    /// 利用价格与其统计均值之间的偏离进行交易，当价格显著偏离均值时入场，
-    /// 等待价格回归均值时获利。该策略被D.E. Shaw、Two Sigma等顶级量化机构广泛使用。
-    /// 
-    /// 核心逻辑：
-    /// 1. Z-Score计算：标准化价格偏离度 = (价格 - 均值) / 标准差
-    /// 2. 协整检验：使用半衰期判断均值回归速度
-    /// 3. 动态阈值：根据市场波动率调整入场阈值
-    /// 4. 风险控制：最大偏离度止损、时间止损
-    /// 
-    /// 入场条件（做多）：
-    /// - Z-Score < -入场阈值（价格显著低于均值）
-    /// - 半衰期在合理范围内（确保会回归）
-    /// - RSI确认超卖
-    /// 
-    /// 入场条件（做空）：
-    /// - Z-Score > 入场阈值（价格显著高于均值）
-    /// - 半衰期在合理范围内
-    /// - RSI确认超买
-    /// 
-    /// 出场条件：
-    /// - Z-Score回归到出场阈值
-    /// - 最大持仓时间
-    /// - Z-Score继续偏离超过止损阈值
-    /// 
-    /// 特色功能：
-    /// - 自适应均值周期
-    /// - 动态波动率调整
-    /// - 半衰期过滤
-    /// - 多重确认机制
     /// </summary>
     public class StatisticalArbitrage : StgBase
     {
@@ -85,6 +54,12 @@ namespace QjySDK.Stg
 
             sd.ArgDescDic["useDynamicThreshold"] = new ArgDesc { Text = "动态阈值", Explain = "1=根据波动率调整阈值 0=固定阈值" };
             sd.ArgDic["useDynamicThreshold"] = 1;
+
+            sd.ArgDescDic["targetProfitAtr"] = new ArgDesc { Text = "目标最低盈利(ATR)", Explain = "如未达此基础盈利，即使触及出场线也会死扛到彻底回归0轴(防假回归)" };
+            sd.ArgDic["targetProfitAtr"] = 0.8;
+
+            sd.ArgDescDic["trailingStopAtr"] = new ArgDesc { Text = "移动回撤(ATR)", Explain = "利润超过目标后，回落多少ATR止盈保护(0=禁用)" };
+            sd.ArgDic["trailingStopAtr"] = 1.0;
 
             // ==================== 半衰期参数 ====================
             sd.ArgDescDic["useHalfLifeFilter"] = new ArgDesc { Text = "半衰期过滤", Explain = "1=启用 0=禁用" };
@@ -142,26 +117,22 @@ namespace QjySDK.Stg
             sd.ArgDic["money"] = 10000m;
 
             // ==================== 颜色配置 ====================
-            // 主图
             sd.ColorDic["main-Mean"] = "#2196F3";
             sd.ColorDic["main-UpperBand"] = "#4CAF50";
             sd.ColorDic["main-LowerBand"] = "#F44336";
             sd.ColorDic["main-Boll_Upper"] = "#9C27B0";
             sd.ColorDic["main-Boll_Lower"] = "#9C27B0";
 
-            // 副图0：Z-Score
             sd.ColorDic["sub0-ZScore"] = "#2196F3";
             sd.ColorDic["sub0-EntryUpper"] = "#F44336";
             sd.ColorDic["sub0-EntryLower"] = "#4CAF50";
             sd.ColorDic["sub0-ExitUpper"] = "#FF9800";
             sd.ColorDic["sub0-ExitLower"] = "#FF9800";
 
-            // 副图1：RSI
             sd.ColorDic["sub1-RSI"] = "#E91E63";
             sd.ColorDic["sub1-Overbought"] = "#F44336";
             sd.ColorDic["sub1-Oversold"] = "#4CAF50";
 
-            // 中值线
             sd.MidValDic["sub0"] = 0;
             sd.MidValDic["sub1"] = 50;
 
@@ -170,21 +141,32 @@ namespace QjySDK.Stg
 
         private class TradeState
         {
-            public int Status { get; set; }           // 0=空仓 1=多头 2=空头
-            public decimal Num { get; set; }          // 持仓数量
-            public decimal EntryPrice { get; set; }   // 入场价格
-            public double EntryZScore { get; set; }   // 入场时Z-Score
-            public int HoldBars { get; set; }         // 持仓K线数
-            public double MaxZScore { get; set; }     // 持仓期间最大Z-Score绝对值
+            public int Status { get; set; }
+            public decimal Num { get; set; }
+            public decimal EntryPrice { get; set; }
+            public double EntryZScore { get; set; }
+            public int HoldBars { get; set; }
+            public double MaxZScore { get; set; }
+            public decimal MaxProfitPrice { get; set; }
+
+            public int CoolDownDir { get; set; }      // 冷却方向：1=做多冷却，2=做空冷却
+            public bool IsCoolingDown { get; set; }   // 是否处于冷却期防复开
 
             public void Reset()
             {
+                CoolDownDir = Status;
+                if (Status != 0)
+                {
+                    IsCoolingDown = true; // 平仓后，无论盈亏，先开启同向冷却！杜绝反复开。
+                }
+
                 Status = 0;
                 Num = 0;
                 EntryPrice = 0;
                 EntryZScore = 0;
                 HoldBars = 0;
                 MaxZScore = 0;
+                MaxProfitPrice = 0;
             }
         }
 
@@ -194,10 +176,10 @@ namespace QjySDK.Stg
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
             base.OnBar(period, tu, isFinal, tq);
+            if (!isFinal) return;
 
             if (ArgDic == null) return;
 
-            // 获取参数
             int lookbackPeriod = Convert.ToInt32(ArgDic["lookbackPeriod"]);
             int useAdaptivePeriod = Convert.ToInt32(ArgDic["useAdaptivePeriod"]);
             int minLookback = Convert.ToInt32(ArgDic["minLookback"]);
@@ -207,6 +189,9 @@ namespace QjySDK.Stg
             double exitZScore = Convert.ToDouble(ArgDic["exitZScore"]);
             double stopLossZScore = Convert.ToDouble(ArgDic["stopLossZScore"]);
             int useDynamicThreshold = Convert.ToInt32(ArgDic["useDynamicThreshold"]);
+
+            double targetProfitAtr = ArgDic.ContainsKey("targetProfitAtr") ? Convert.ToDouble(ArgDic["targetProfitAtr"]) : 0.8;
+            double trailingStopAtr = ArgDic.ContainsKey("trailingStopAtr") ? Convert.ToDouble(ArgDic["trailingStopAtr"]) : 1.0;
 
             int useHalfLifeFilter = Convert.ToInt32(ArgDic["useHalfLifeFilter"]);
             int minHalfLife = Convert.ToInt32(ArgDic["minHalfLife"]);
@@ -227,7 +212,6 @@ namespace QjySDK.Stg
             int mode = Convert.ToInt32(ArgDic["mode"]);
             int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
-            // 计算最小K线数
             int minBars = Math.Max(Math.Max(maxLookback, bollPeriod), Math.Max(rsiPeriod, atrPeriod)) + 10;
             if (tu.QuoteList.Count < minBars) return;
 
@@ -236,7 +220,6 @@ namespace QjySDK.Stg
             decimal currentPrice = q.Close;
             var sk = tu.GetStateKey();
 
-            // 维护价格历史
             if (!_priceHistory.ContainsKey(sk))
             {
                 _priceHistory[sk] = new List<double>();
@@ -248,22 +231,16 @@ namespace QjySDK.Stg
                 priceHist.RemoveAt(0);
             }
 
-            // ==================== 计算半衰期 ====================
             double halfLife = CalculateHalfLife(priceHist, Math.Min(priceHist.Count - 1, lookbackPeriod));
-
-            // 自适应周期调整
             int actualLookback = lookbackPeriod;
             if (useAdaptivePeriod == 1 && halfLife > 0)
             {
-                // 半衰期越长，回溯周期越长
                 actualLookback = (int)Math.Max(minLookback, Math.Min(maxLookback, halfLife * 2));
             }
 
-            // 确保actualLookback不超过可用数据量，避免指标断线
             actualLookback = Math.Min(actualLookback, priceHist.Count);
-            if (actualLookback < minLookback) return; // 数据量不足最小周期时才跳过
+            if (actualLookback < minLookback) return;
 
-            // ==================== 计算Z-Score ====================
             double mean = 0;
             for (int i = 0; i < actualLookback; i++)
             {
@@ -282,39 +259,37 @@ namespace QjySDK.Stg
 
             double zScore = stdDev > 0 ? ((double)currentPrice - mean) / stdDev : 0;
 
-            // ==================== 动态阈值调整 ====================
             double dynamicEntryZ = entryZScore;
             double dynamicExitZ = exitZScore;
             double dynamicStopZ = stopLossZScore;
 
+            var atrList = quotes.GetAtr(atrPeriod).ToList();
+            double atrVal = atrList.Last().Atr.GetValueOrDefault(0);
+
             if (useDynamicThreshold == 1)
             {
-                // 根据近期波动率调整阈值
-                var atrList = quotes.GetAtr(atrPeriod).ToList();
-                double atrVal = atrList.Last().Atr.GetValueOrDefault(0);
-                double atrPercent = atrVal / (double)currentPrice * 100;
-
-                // 波动率高时提高入场阈值，波动率低时降低入场阈值
+                double atrPercent = atrVal > 0 ? atrVal / (double)currentPrice * 100 : 0;
                 double volAdjust = Math.Max(0.5, Math.Min(1.5, atrPercent / 2.0));
                 dynamicEntryZ = entryZScore * volAdjust;
-                // 止损阈值只允许收紧，不允许放宽（波动率高时不放大止损阈值）
                 dynamicStopZ = stopLossZScore * Math.Min(1.0, volAdjust);
             }
 
-            // ==================== 计算确认指标 ====================
-            // RSI
             var rsiList = quotes.GetRsi(rsiPeriod).ToList();
             double rsiVal = rsiList.Last().Rsi.GetValueOrDefault(50);
 
-            // 布林带
             var bollList = quotes.GetBollingerBands(bollPeriod, bollStdDev).ToList();
             var bollLast = bollList.Last();
             double bollUpper = bollLast.UpperBand.GetValueOrDefault(0);
             double bollLower = bollLast.LowerBand.GetValueOrDefault(0);
 
-            // ==================== 绘制指标 ====================
             double upperBand = mean + stdDev * dynamicEntryZ;
             double lowerBand = mean - stdDev * dynamicEntryZ;
+
+            if (!_stateDic.ContainsKey(sk))
+            {
+                _stateDic[sk] = new TradeState();
+            }
+            var state = _stateDic[sk];
 
             Plot("main", "Mean", PlotType.LINE, mean);
             Plot("main", "UpperBand", PlotType.LINE, upperBand);
@@ -332,16 +307,6 @@ namespace QjySDK.Stg
             Plot("sub1", "Overbought", PlotType.LINE, rsiOverbought);
             Plot("sub1", "Oversold", PlotType.LINE, rsiOversold);
 
-            // ==================== 获取或创建状态 ====================
-            if (!_stateDic.ContainsKey(sk))
-            {
-                _stateDic[sk] = new TradeState();
-            }
-            var state = _stateDic[sk];
-
-            if (!isFinal) return;
-
-            // 更新持仓状态
             if (state.Status != 0)
             {
                 state.HoldBars++;
@@ -349,9 +314,16 @@ namespace QjySDK.Stg
                 {
                     state.MaxZScore = Math.Abs(zScore);
                 }
+                if (state.Status == 1 && currentPrice > state.MaxProfitPrice)
+                {
+                    state.MaxProfitPrice = currentPrice;
+                }
+                else if (state.Status == 2 && currentPrice < state.MaxProfitPrice)
+                {
+                    state.MaxProfitPrice = currentPrice;
+                }
             }
 
-            // ==================== 计算手数 ====================
             var num = (decimal)ArgDic["lots"];
             var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
@@ -369,7 +341,6 @@ namespace QjySDK.Stg
             }
             else if (lotsMode == 2)
             {
-                // Z-Score加权：偏离越大仓位越大
                 double zWeight = Math.Min(2.0, Math.Abs(zScore) / dynamicEntryZ);
                 var s2 = GetSymbol(tu.MktSymbol);
                 num = (decimal)(zWeight * (double)((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio)));
@@ -384,18 +355,31 @@ namespace QjySDK.Stg
             }
 
             // ==================== 信号判断 ====================
-            // 半衰期过滤
             bool halfLifeOk = useHalfLifeFilter == 0 || (halfLife >= minHalfLife && halfLife <= maxHalfLife);
 
-            // 做多信号：Z-Score显著为负（价格低于均值）
+            // 解除冷却：等到这波Z-score彻底退烧，比如进入内环，或者干脆反向穿中轴，才可以开下一单！绝对杜绝原地反抽就止损+重开！
+            if (state.Status == 0 && state.IsCoolingDown)
+            {
+                if (Math.Abs(zScore) <= dynamicExitZ ||
+                   (state.CoolDownDir == 1 && zScore >= 0) ||
+                   (state.CoolDownDir == 2 && zScore <= 0))
+                {
+                    state.IsCoolingDown = false;
+                    state.CoolDownDir = 0;
+                }
+            }
+
             bool longSignal = zScore < -dynamicEntryZ && halfLifeOk && mode != 2;
+            if (state.IsCoolingDown && state.CoolDownDir == 1) longSignal = false; // 防同向反复开仓
+
             if (useRsiConfirm == 1)
             {
                 longSignal = longSignal && rsiVal < rsiOversold;
             }
 
-            // 做空信号：Z-Score显著为正（价格高于均值）
             bool shortSignal = zScore > dynamicEntryZ && halfLifeOk && mode != 1;
+            if (state.IsCoolingDown && state.CoolDownDir == 2) shortSignal = false; // 防同向反复开仓
+
             if (useRsiConfirm == 1)
             {
                 shortSignal = shortSignal && rsiVal > rsiOverbought;
@@ -404,7 +388,6 @@ namespace QjySDK.Stg
             // ==================== 交易逻辑 ====================
             if (state.Status == 0)
             {
-                // 空仓：寻找入场信号
                 if (longSignal)
                 {
                     state.Status = 1;
@@ -413,6 +396,7 @@ namespace QjySDK.Stg
                     state.EntryZScore = zScore;
                     state.HoldBars = 0;
                     state.MaxZScore = Math.Abs(zScore);
+                    state.MaxProfitPrice = currentPrice;
                     Trade(tu.MktSymbol, OrderType.BUY, currentPrice, num, period, sendMode);
                 }
                 else if (shortSignal)
@@ -423,34 +407,56 @@ namespace QjySDK.Stg
                     state.EntryZScore = zScore;
                     state.HoldBars = 0;
                     state.MaxZScore = Math.Abs(zScore);
+                    state.MaxProfitPrice = currentPrice;
                     Trade(tu.MktSymbol, OrderType.SELL, currentPrice, num, period, sendMode);
                 }
             }
             else if (state.Status == 1)
             {
-                // 多头持仓：等待Z-Score回归
                 double currentExitZ = dynamicExitZ;
                 if (useTimeDecay == 1)
                 {
-                    // 时间衰减：持仓越久，出场阈值越宽松
                     double timeDecayFactor = 1.0 + (double)state.HoldBars / maxHoldBars;
                     currentExitZ = dynamicExitZ * timeDecayFactor;
                 }
 
                 bool exitSignal = false;
 
-                // Z-Score回归到出场阈值
+                double profitAtr = atrVal > 0 ? (double)(currentPrice - state.EntryPrice) / atrVal : 0;
+                double maxProfitAtr = atrVal > 0 ? (double)(state.MaxProfitPrice - state.EntryPrice) / atrVal : 0;
+                double drawdownAtr = atrVal > 0 ? (double)(state.MaxProfitPrice - currentPrice) / atrVal : 0;
+
+                // 核心退出逻辑重构
+                // 1. Z-Score 碰到回归线
                 if (zScore >= -currentExitZ)
                 {
-                    exitSignal = true;
+                    // 若利润可观（满足目标盈利），直接获利了结；
+                    // 若利润太小（横盘吸筹回归），强制要求等待ZScore跨越0线；
+                    // 或者到了时间衰减尽头
+                    if (profitAtr >= targetProfitAtr || zScore >= 0 || state.HoldBars >= (maxHoldBars * 0.7))
+                    {
+                        exitSignal = true;
+                    }
                 }
-                // Z-Score继续偏离超过止损阈值
-                else if (zScore < -dynamicStopZ)
+
+                // 2. 高位移动止盈保护
+                if (!exitSignal && trailingStopAtr > 0)
+                {
+                    double activationAtr = Math.Max(targetProfitAtr, trailingStopAtr);
+                    if (maxProfitAtr >= activationAtr && drawdownAtr >= trailingStopAtr)
+                    {
+                        exitSignal = true;
+                    }
+                }
+
+                // 3. 正常打护城河止损
+                if (!exitSignal && zScore < -dynamicStopZ)
                 {
                     exitSignal = true;
                 }
-                // 最大持仓时间
-                else if (state.HoldBars >= maxHoldBars)
+
+                // 4. 超时
+                else if (!exitSignal && state.HoldBars >= maxHoldBars)
                 {
                     exitSignal = true;
                 }
@@ -463,7 +469,6 @@ namespace QjySDK.Stg
             }
             else if (state.Status == 2)
             {
-                // 空头持仓：等待Z-Score回归
                 double currentExitZ = dynamicExitZ;
                 if (useTimeDecay == 1)
                 {
@@ -473,18 +478,34 @@ namespace QjySDK.Stg
 
                 bool exitSignal = false;
 
-                // Z-Score回归到出场阈值
+                double profitAtr = atrVal > 0 ? (double)(state.EntryPrice - currentPrice) / atrVal : 0;
+                double maxProfitAtr = atrVal > 0 ? (double)(state.EntryPrice - state.MaxProfitPrice) / atrVal : 0;
+                double drawdownAtr = atrVal > 0 ? (double)(currentPrice - state.MaxProfitPrice) / atrVal : 0;
+
+                // 核心退出逻辑重构
                 if (zScore <= currentExitZ)
                 {
-                    exitSignal = true;
+                    if (profitAtr >= targetProfitAtr || zScore <= 0 || state.HoldBars >= (maxHoldBars * 0.7))
+                    {
+                        exitSignal = true;
+                    }
                 }
-                // Z-Score继续偏离超过止损阈值
-                else if (zScore > dynamicStopZ)
+
+                if (!exitSignal && trailingStopAtr > 0)
+                {
+                    double activationAtr = Math.Max(targetProfitAtr, trailingStopAtr);
+                    if (maxProfitAtr >= activationAtr && drawdownAtr >= trailingStopAtr)
+                    {
+                        exitSignal = true;
+                    }
+                }
+
+                if (!exitSignal && zScore > dynamicStopZ)
                 {
                     exitSignal = true;
                 }
-                // 最大持仓时间
-                else if (state.HoldBars >= maxHoldBars)
+
+                else if (!exitSignal && state.HoldBars >= maxHoldBars)
                 {
                     exitSignal = true;
                 }
@@ -497,16 +518,9 @@ namespace QjySDK.Stg
             }
         }
 
-        /// <summary>
-        /// 计算半衰期 (Half-Life)
-        /// 使用Ornstein-Uhlenbeck过程的简化估计
-        /// 半衰期 = -ln(2) / ln(1 + beta)，其中beta是价格变化对偏离度的回归系数
-        /// </summary>
         private double CalculateHalfLife(List<double> prices, int lookback)
         {
             if (prices.Count < lookback + 1 || lookback < 10) return -1;
-
-            // 计算价格变化和滞后价格
             var deltaY = new List<double>();
             var lagY = new List<double>();
 
@@ -516,11 +530,9 @@ namespace QjySDK.Stg
                 lagY.Add(prices[i - 1]);
             }
 
-            // 计算均值
             double meanDelta = deltaY.Average();
             double meanLag = lagY.Average();
 
-            // 计算回归系数 beta = Cov(deltaY, lagY) / Var(lagY)
             double covariance = 0;
             double variance = 0;
 
@@ -534,9 +546,7 @@ namespace QjySDK.Stg
 
             double beta = covariance / variance;
 
-            // 半衰期计算
-            if (beta >= 0) return -1; // 非均值回归
-
+            if (beta >= 0) return -1;
             double halfLife = -Math.Log(2) / Math.Log(1 + beta);
 
             return halfLife > 0 ? halfLife : -1;
