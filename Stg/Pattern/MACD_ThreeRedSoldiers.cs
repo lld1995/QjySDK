@@ -130,13 +130,13 @@ namespace QjySDK.Stg
             sd.ArgDic["useStopLoss"] = 1;
 
             sd.ArgDescDic["stopLossPercent"] = new ArgDesc { Text = "止损百分比", Explain = "止损距离占入场价的百分比" };
-            sd.ArgDic["stopLossPercent"] = 2.0;
+            sd.ArgDic["stopLossPercent"] = 5.0m;
 
             sd.ArgDescDic["useTakeProfit"] = new ArgDesc { Text = "启用止盈", Explain = "1=启用 0=禁用" };
             sd.ArgDic["useTakeProfit"] = 1;
 
             sd.ArgDescDic["takeProfitPercent"] = new ArgDesc { Text = "止盈百分比", Explain = "止盈距离占入场价的百分比" };
-            sd.ArgDic["takeProfitPercent"] = 4.0;
+            sd.ArgDic["takeProfitPercent"] = 10.0m;
 
             sd.ArgDescDic["useMacdExit"] = new ArgDesc { Text = "MACD反向出场", Explain = "1=MACD反向交叉时平仓 0=禁用" };
             sd.ArgDic["useMacdExit"] = 1;
@@ -162,6 +162,7 @@ namespace QjySDK.Stg
 
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
+            base.OnBar(period, tu, isFinal, tq);
             if (!isFinal) return;
 
             var quotes = tu.QuoteList;

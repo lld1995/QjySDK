@@ -30,7 +30,6 @@ namespace QjySDK.Stg
         private int _entryPeriod = 20;
         private int _exitPeriod = 10;
         private int _exitMode = 0;
-        private decimal _positionRatio = 1.0m;
 
         private Dictionary<string, int> _positionState = new Dictionary<string, int>();
 
@@ -57,8 +56,12 @@ namespace QjySDK.Stg
             sd.ArgDescDic["exitMode"] = new ArgDesc { Text = "出场模式", Explain = "0=出场通道, 1=中轨出场" };
             sd.ArgDic["exitMode"] = 0;
 
-            sd.ArgDescDic["positionRatio"] = new ArgDesc { Text = "仓位比例", Explain = "每次交易的仓位比例(0-1)" };
-            sd.ArgDic["positionRatio"] = 1.0m;
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0:固定手数 1:固定金额" };
+            sd.ArgDic["lotsMode"] = 1;
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量" };
+            sd.ArgDic["lots"] = 1.0m;
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量" };
+            sd.ArgDic["money"] = 10000m;
 
             sd.ColorDic["main-upperBand"] = "#FF5722";
             sd.ColorDic["main-lowerBand"] = "#2196F3";
@@ -71,12 +74,14 @@ namespace QjySDK.Stg
 
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
+            base.OnBar(period, tu, isFinal, tq);
+            if (!isFinal) return;
+
             if (ArgDic != null)
             {
                 _entryPeriod = Convert.ToInt32(ArgDic["entryPeriod"]);
                 _exitPeriod = Convert.ToInt32(ArgDic["exitPeriod"]);
                 _exitMode = Convert.ToInt32(ArgDic["exitMode"]);
-                _positionRatio = Convert.ToDecimal(ArgDic["positionRatio"]);
             }
 
             var quotes = tu.QuoteList;
@@ -117,21 +122,20 @@ namespace QjySDK.Stg
                 Plot("main", "exitLower", PlotType.LINE, (double)exitLower);
             }
 
-            if (!isFinal)
-                return;
-
             int position = _positionState[stateKey];
 
             if (position == 0)
             {
                 if (currentClose > upperBand && prevHigh <= upperBand)
                 {
-                    Trade(tu.MktSymbol, OrderType.BUY, currentClose, _positionRatio, period, 0);
+                    var num = CalculateLots(tu, q);
+                    Trade(tu.MktSymbol, OrderType.BUY, currentClose, num, period, 0);
                     _positionState[stateKey] = 1;
                 }
                 else if (currentClose < lowerBand && prevLow >= lowerBand)
                 {
-                    Trade(tu.MktSymbol, OrderType.SELL, currentClose, _positionRatio, period, 0);
+                    var num = CalculateLots(tu, q);
+                    Trade(tu.MktSymbol, OrderType.SELL, currentClose, num, period, 0);
                     _positionState[stateKey] = -1;
                 }
             }
@@ -149,7 +153,7 @@ namespace QjySDK.Stg
 
                 if (exitSignal)
                 {
-                    Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, currentClose, _positionRatio, period, 0);
+                    Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, currentClose, CalculateLots(tu, q), period, 0);
                     _positionState[stateKey] = 0;
                 }
             }
@@ -167,10 +171,30 @@ namespace QjySDK.Stg
 
                 if (exitSignal)
                 {
-                    Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, currentClose, _positionRatio, period, 0);
+                    Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, currentClose, CalculateLots(tu, q), period, 0);
                     _positionState[stateKey] = 0;
                 }
             }
+        }
+
+        private decimal CalculateLots(TableUnit tu, SkQuote q)
+        {
+            var num = (decimal)ArgDic["lots"];
+            var lotsMode = (int)ArgDic["lotsMode"];
+            if (lotsMode == 1)
+            {
+                var s2 = GetSymbol(tu.MktSymbol);
+                num = ((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio));
+                if (s2.symbol_type == (int)SymbolType.COIN)
+                {
+                    num = (int)(num * 1000) / 1000.0m;
+                }
+                else
+                {
+                    num = (int)num;
+                }
+            }
+            return num;
         }
     }
 }

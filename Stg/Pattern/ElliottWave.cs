@@ -22,7 +22,7 @@ namespace QjySDK.Stg
             sd.ArgDic["zigzagDeviation"] = 3.0;
             sd.ArgDic["mode"] = 0;
             sd.ArgDic["sendMode"] = 0;
-            sd.ArgDic["lossRate"] = 3m;
+            sd.ArgDic["lossRate"] = 5m;
             sd.ArgDic["profitRate"] = 20m;
             sd.ArgDic["trailingStop"] = 1;
             sd.ArgDic["trailingPercent"] = 20m;

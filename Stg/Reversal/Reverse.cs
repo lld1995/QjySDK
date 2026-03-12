@@ -28,8 +28,8 @@ namespace QjySDK.Stg
 			sd.ArgDic["observePeriod"] = 10;
 			sd.ArgDic["observeMinRate"] = 0.01m;
 			sd.ArgDic["incRate"] = 0.005m;
-			sd.ArgDic["lossRate"] = 0.01m;
-			sd.ArgDic["maxAddNum"] = 3;
+			sd.ArgDic["lossRate"] = 0.03m;
+			sd.ArgDic["maxAddNum"] = 0;
 			sd.ArgDic["mode"] = 0;
 			sd.ArgDic["sendMode"] = 0;
 
@@ -215,6 +215,8 @@ namespace QjySDK.Stg
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
 		{
             base.OnBar(period, tu, isFinal, tq);
+			if (!isFinal) return;
+
             State s = null;
 			var sk = tu.GetStateKey();
 			if (_stateDic.ContainsKey(sk))
@@ -227,7 +229,6 @@ namespace QjySDK.Stg
 				_stateDic[sk] = s;
 			}
 
-			if (isFinal)
 			{
 				var observePeriod = (int)ArgDic["observePeriod"];
 				if (tu.QuoteList.Count > observePeriod)

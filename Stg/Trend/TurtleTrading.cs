@@ -63,15 +63,16 @@ namespace QjySDK.Stg
             sd.ArgDic["atrStopMultiplier"] = 2.0;     // 止损ATR倍数
 
             // ========== 加仓参数 ==========
-            sd.ArgDic["enablePyramiding"] = 1;        // 是否启用金字塔加仓 0:否 1:是
+            sd.ArgDic["enablePyramiding"] = 0;        // 是否启用金字塔加仓 0:否 1:是
             sd.ArgDic["pyramidingATR"] = 0.5;         // 加仓间隔ATR倍数
             sd.ArgDic["maxUnits"] = 4;                // 单品种最大单位数
 
             // ========== 仓位管理 ==========
             sd.ArgDic["riskPerTrade"] = 0.01;         // 每笔交易风险比例（账户的1%）
             sd.ArgDic["accountEquity"] = 1000000m;    // 账户权益
-            sd.ArgDic["lotsMode"] = 1;                // 0:按风险计算 1:固定手数
-            sd.ArgDic["fixedLots"] = 1.0m;            // 固定手数
+            sd.ArgDic["lotsMode"] = 1;                // 0:固定手数 1:固定金额 2:按风险计算
+            sd.ArgDic["lots"] = 1.0m;                // 固定手数
+            sd.ArgDic["money"] = 10000m;              // 固定金额
 
             // ========== 交易模式 ==========
             sd.ArgDic["mode"] = 0;                    // 0:双向 1:仅做多 2:仅做空
@@ -92,8 +93,9 @@ namespace QjySDK.Stg
             sd.ArgDescDic["maxUnits"] = new ArgDesc() { Text = "最大单位数", Explain = "单品种最大持仓单位" };
             sd.ArgDescDic["riskPerTrade"] = new ArgDesc() { Text = "单笔风险比例", Explain = "每笔交易占账户权益的比例" };
             sd.ArgDescDic["accountEquity"] = new ArgDesc() { Text = "账户权益", Explain = "用于计算仓位的账户权益" };
-            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0:按风险计算 1:固定手数" };
-            sd.ArgDescDic["fixedLots"] = new ArgDesc() { Text = "固定手数", Explain = "固定手数模式下的手数" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0:固定手数 1:固定金额 2:按风险计算" };
+            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "固定手数", Explain = "固定手数模式下的手数" };
+            sd.ArgDescDic["money"] = new ArgDesc() { Text = "固定金额", Explain = "固定金额模式下的金额" };
             sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易方向", Explain = "0:双向 1:仅做多 2:仅做空" };
             sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0:立即发单 1:下个开盘发单" };
             sd.ArgDescDic["useLastTradeFilter"] = new ArgDesc() { Text = "上次交易过滤", Explain = "系统1:上次盈利则忽略本次信号" };
@@ -239,11 +241,23 @@ namespace QjySDK.Stg
         {
             int lotsMode = (int)ArgDic["lotsMode"];
 
-            if (lotsMode == 1)
+            if (lotsMode == 0)
             {
-                return (decimal)ArgDic["fixedLots"];
+                return (decimal)ArgDic["lots"];
             }
 
+            if (lotsMode == 1)
+            {
+                var symbol2 = GetSymbol(tu.MktSymbol);
+                decimal num = (decimal)ArgDic["money"] / (q.Close * symbol2.multiplier * symbol2.margin_ratio);
+                if (symbol2.symbol_type == (int)SymbolType.COIN)
+                    num = Math.Floor(num * 1000) / 1000.0m;
+                else
+                    num = Math.Floor(num);
+                return Math.Max(num, 0);
+            }
+
+            // lotsMode == 2: 按风险计算
             decimal accountEquity = (decimal)ArgDic["accountEquity"];
             double riskPerTrade = Convert.ToDouble(ArgDic["riskPerTrade"]);
 

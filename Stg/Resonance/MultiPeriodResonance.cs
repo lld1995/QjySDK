@@ -47,7 +47,7 @@ namespace QjySDK.Stg
             sd.ArgDic["period3Weight"] = 35;       // 周期3权重
 
             // ===== EMA趋势参数 =====
-            sd.ArgDic["emaFast"] = 8;              // 快速EMA周期
+            sd.ArgDic["emaFast"] = 12;             // 快速EMA周期
             sd.ArgDic["emaMid"] = 21;              // 中速EMA周期
             sd.ArgDic["emaSlow"] = 55;             // 慢速EMA周期
             sd.ArgDic["emaTrendWeight"] = 40;      // EMA趋势权重

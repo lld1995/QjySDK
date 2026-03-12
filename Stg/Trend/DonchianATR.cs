@@ -47,7 +47,7 @@ namespace QjySDK.Stg
         private decimal _atrMultiplierForAdd = 0.5m;
         private decimal _atrMultiplierForStop = 2.0m;
         private int _maxPyramidUnits = 4;
-        private decimal _unitPositionRatio = 0.25m;
+        private int _enablePyramiding = 0;
 
         private Dictionary<string, PositionInfo> _positionInfos = new Dictionary<string, PositionInfo>();
 
@@ -83,8 +83,15 @@ namespace QjySDK.Stg
             sd.ArgDescDic["maxPyramidUnits"] = new ArgDesc { Text = "最大加仓次数", Explain = "最多允许加仓的次数（包括首次建仓）" };
             sd.ArgDic["maxPyramidUnits"] = 4;
 
-            sd.ArgDescDic["unitPositionRatio"] = new ArgDesc { Text = "单位仓位比例", Explain = "每次建仓/加仓的仓位比例(0-1)" };
-            sd.ArgDic["unitPositionRatio"] = 0.25m;
+            sd.ArgDescDic["enablePyramiding"] = new ArgDesc { Text = "启用加仓", Explain = "0:不加仓 1:金字塔加仓" };
+            sd.ArgDic["enablePyramiding"] = 0;
+
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0:固定手数 1:固定金额" };
+            sd.ArgDic["lotsMode"] = 1;
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量" };
+            sd.ArgDic["lots"] = 1.0m;
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量" };
+            sd.ArgDic["money"] = 10000m;
 
             sd.ColorDic["main-upperBand"] = "#FF5722";
             sd.ColorDic["main-lowerBand"] = "#2196F3";
@@ -99,6 +106,9 @@ namespace QjySDK.Stg
 
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
+            base.OnBar(period, tu, isFinal, tq);
+            if (!isFinal) return;
+
             if (ArgDic != null)
             {
                 _entryPeriod = Convert.ToInt32(ArgDic["entryPeriod"]);
@@ -107,7 +117,7 @@ namespace QjySDK.Stg
                 _atrMultiplierForAdd = Convert.ToDecimal(ArgDic["atrMultiplierForAdd"]);
                 _atrMultiplierForStop = Convert.ToDecimal(ArgDic["atrMultiplierForStop"]);
                 _maxPyramidUnits = Convert.ToInt32(ArgDic["maxPyramidUnits"]);
-                _unitPositionRatio = Convert.ToDecimal(ArgDic["unitPositionRatio"]);
+                _enablePyramiding = Convert.ToInt32(ArgDic["enablePyramiding"]);
             }
 
             var quotes = tu.QuoteList;
@@ -153,9 +163,6 @@ namespace QjySDK.Stg
                 Plot("main", "stopLoss", PlotType.LINE, (double)posInfo.StopLoss);
             }
 
-            if (!isFinal)
-                return;
-
             if (posInfo.Direction == 0)
             {
                 if (currentClose > upperBand && prevHigh <= upperBand)
@@ -177,7 +184,7 @@ namespace QjySDK.Stg
                 {
                     CloseAllPosition(tu.MktSymbol, period, currentClose, posInfo);
                 }
-                else if (posInfo.Units < _maxPyramidUnits)
+                else if (_enablePyramiding == 1 && posInfo.Units < _maxPyramidUnits)
                 {
                     decimal addThreshold = posInfo.LastEntryPrice + _atrMultiplierForAdd * posInfo.EntryATR;
                     if (currentClose >= addThreshold)
@@ -196,7 +203,7 @@ namespace QjySDK.Stg
                 {
                     CloseAllPosition(tu.MktSymbol, period, currentClose, posInfo);
                 }
-                else if (posInfo.Units < _maxPyramidUnits)
+                else if (_enablePyramiding == 1 && posInfo.Units < _maxPyramidUnits)
                 {
                     decimal addThreshold = posInfo.LastEntryPrice - _atrMultiplierForAdd * posInfo.EntryATR;
                     if (currentClose <= addThreshold)
@@ -210,14 +217,15 @@ namespace QjySDK.Stg
         private void OpenPosition(string mktSymbol, Period period, decimal price, decimal atr, int direction, PositionInfo posInfo)
         {
             OrderType ot = direction > 0 ? OrderType.BUY : OrderType.SELL;
-            Trade(mktSymbol, ot, price, _unitPositionRatio, period, 0);
+            var num = CalculateLots(mktSymbol, price);
+            Trade(mktSymbol, ot, price, num, period, 0);
 
             posInfo.Direction = direction;
             posInfo.Units = 1;
             posInfo.FirstEntryPrice = price;
             posInfo.LastEntryPrice = price;
             posInfo.EntryATR = atr;
-            posInfo.TotalPositionRatio = _unitPositionRatio;
+            posInfo.TotalPositionRatio = num;
 
             if (direction > 0)
             {
@@ -232,11 +240,12 @@ namespace QjySDK.Stg
         private void AddPosition(string mktSymbol, Period period, decimal price, decimal atr, PositionInfo posInfo)
         {
             OrderType ot = posInfo.Direction > 0 ? OrderType.BUY : OrderType.SELL;
-            Trade(mktSymbol, ot, price, _unitPositionRatio, period, 0);
+            var num = CalculateLots(mktSymbol, price);
+            Trade(mktSymbol, ot, price, num, period, 0);
 
             posInfo.Units++;
             posInfo.LastEntryPrice = price;
-            posInfo.TotalPositionRatio += _unitPositionRatio;
+            posInfo.TotalPositionRatio += num;
 
             if (posInfo.Direction > 0)
             {
@@ -268,6 +277,26 @@ namespace QjySDK.Stg
             int lastIdx = atrList.Count - 1;
             var atr = atrList[lastIdx].Atr;
             return atr.HasValue ? (decimal)atr.Value : 0;
+        }
+
+        private decimal CalculateLots(string mktSymbol, decimal price)
+        {
+            var num = (decimal)ArgDic["lots"];
+            var lotsMode = (int)ArgDic["lotsMode"];
+            if (lotsMode == 1)
+            {
+                var s2 = GetSymbol(mktSymbol);
+                num = ((decimal)ArgDic["money"] / (price * s2.multiplier * s2.margin_ratio));
+                if (s2.symbol_type == (int)SymbolType.COIN)
+                {
+                    num = (int)(num * 1000) / 1000.0m;
+                }
+                else
+                {
+                    num = (int)num;
+                }
+            }
+            return num;
         }
 
         private class PositionInfo

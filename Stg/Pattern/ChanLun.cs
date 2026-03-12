@@ -192,7 +192,7 @@ namespace QjySDK.Stg
 
 			// 止损设置
 			sd.ArgDic["useStopLoss"] = 1;        // 是否使用止损（0否 1是）
-			sd.ArgDic["stopLossPercent"] = 3.0m; // 止损比例（百分比，如3表示3%）
+			sd.ArgDic["stopLossPercent"] = 5.0m; // 止损比例（百分比，如3表示3%）
 
 			// 中枢偏离限制
 			sd.ArgDic["maxZhongShuDeviation"] = 5.0m; // 开仓点距离中枢的最大偏离比例（百分比，如5表示5%）

@@ -34,6 +34,13 @@ namespace QjySDK.Stg
             sd.ArgDescDic["SlowPeriod"] = new ArgDesc { Text = "慢线周期", Explain = "慢速均线的计算周期" };
             sd.ArgDic["SlowPeriod"] = 20;
 
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0:固定手数 1:固定金额" };
+            sd.ArgDic["lotsMode"] = 1;
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量" };
+            sd.ArgDic["lots"] = 1.0m;
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量" };
+            sd.ArgDic["money"] = 10000m;
+
             sd.ColorDic["main-FastMA"] = "#FF5722";
             sd.ColorDic["main-SlowMA"] = "#2196F3";
 
@@ -42,6 +49,7 @@ namespace QjySDK.Stg
 
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
+            base.OnBar(period, tu, isFinal, tq);
             if (!isFinal) return;
 
             var quotes = tu.QuoteList;
@@ -77,13 +85,14 @@ namespace QjySDK.Stg
                 bool currFastAbove = fastMA.Value > slowMA.Value;
 
                 var q = quotes.Last();
+                var num = CalculateLots(tu, q);
                 if (!prevFastAbove && currFastAbove)
                 {
-                    Trade(tu.MktSymbol, OrderType.BUY, q.Close, 1, period, 0);
+                    Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, 0);
                 }
                 else if (prevFastAbove && !currFastAbove)
                 {
-                    Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, 1, period, 0);
+                    Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, num, period, 0);
                 }
             }
 
@@ -91,5 +100,24 @@ namespace QjySDK.Stg
             _prevSlowMA[stateKey] = slowMA;
         }
 
+        private decimal CalculateLots(TableUnit tu, SkQuote q)
+        {
+            var num = (decimal)ArgDic["lots"];
+            var lotsMode = (int)ArgDic["lotsMode"];
+            if (lotsMode == 1)
+            {
+                var s2 = GetSymbol(tu.MktSymbol);
+                num = ((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio));
+                if (s2.symbol_type == (int)SymbolType.COIN)
+                {
+                    num = (int)(num * 1000) / 1000.0m;
+                }
+                else
+                {
+                    num = (int)num;
+                }
+            }
+            return num;
+        }
     }
 }

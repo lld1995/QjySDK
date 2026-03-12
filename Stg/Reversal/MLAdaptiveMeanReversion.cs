@@ -730,6 +730,7 @@ namespace QjySDK.Stg
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
             base.OnBar(period, tu, isFinal, tq);
+            if (!isFinal) return;
 
             if (ArgDic == null) return;
 
@@ -797,18 +798,6 @@ namespace QjySDK.Stg
             var adxList = quotes.GetAdx(trendPeriod).ToList();
             double adxVal = adxList.Last().Adx.GetValueOrDefault(0);
 
-            // ==================== 绘制指标 ====================
-            Plot("main", "MA", PlotType.LINE, ma);
-            Plot("main", "UpperBand", PlotType.LINE, upperBand);
-            Plot("main", "LowerBand", PlotType.LINE, lowerBand);
-
-            Plot("sub0", "ZScore", PlotType.LINE, zScore);
-            Plot("sub0", "Threshold", PlotType.LINE, deviationThreshold);
-            Plot("sub0", "Threshold", PlotType.LINE, -deviationThreshold);
-
-            Plot("sub2", "ADX", PlotType.LINE, adxVal);
-            Plot("sub2", "TrendThreshold", PlotType.LINE, trendThreshold);
-
             // ==================== ML模型训练 ====================
             if (state.ProbModel == null)
             {
@@ -817,7 +806,7 @@ namespace QjySDK.Stg
             }
 
             bool needRetrain = !state.ProbModel.IsTrained || (state.BarCount - state.LastTrainBar >= retrainInterval);
-            if (needRetrain && isFinal)
+            if (needRetrain)
             {
                 var (probX, probY, magY) = PrepareTrainingData(quotes, lookback, maPeriod, trainPeriod);
                 if (probX.Length > 0)
@@ -842,6 +831,18 @@ namespace QjySDK.Stg
                 }
             }
 
+            // ==================== 绘制指标 ====================
+            Plot("main", "MA", PlotType.LINE, ma);
+            Plot("main", "UpperBand", PlotType.LINE, upperBand);
+            Plot("main", "LowerBand", PlotType.LINE, lowerBand);
+
+            Plot("sub0", "ZScore", PlotType.LINE, zScore);
+            Plot("sub0", "Threshold", PlotType.LINE, deviationThreshold);
+            Plot("sub0", "Threshold", PlotType.LINE, -deviationThreshold);
+
+            Plot("sub2", "ADX", PlotType.LINE, adxVal);
+            Plot("sub2", "TrendThreshold", PlotType.LINE, trendThreshold);
+
             // 绘制ML预测
             Plot("sub1", "Probability", PlotType.LINE, reversionProb * 100);
             Plot("sub1", "MinProb", PlotType.LINE, minProbability * 100);
@@ -855,8 +856,6 @@ namespace QjySDK.Stg
                     Plot("main", "MLTarget", PlotType.LINE, state.MLTargetPrice);
                 }
             }
-
-            if (!isFinal) return;
 
             // 更新持仓状态
             if (state.Status != 0)

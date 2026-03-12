@@ -79,9 +79,9 @@ namespace QjySDK.Stg
 
 			// 止损止盈
 			sd.ArgDic["useStopLoss"] = 1;             // 是否使用止损
-			sd.ArgDic["stopLossPercent"] = 2.0m;      // 止损百分比
+			sd.ArgDic["stopLossPercent"] = 5.0m;      // 止损百分比
 			sd.ArgDic["useTakeProfit"] = 0;           // 是否使用止盈
-			sd.ArgDic["takeProfitPercent"] = 4.0m;    // 止盈百分比
+			sd.ArgDic["takeProfitPercent"] = 10.0m;   // 止盈百分比
 			sd.ArgDic["minHoldBars"] = 10;             // 最小持仓K线数（之前不平仓）
 
 			// 图表颜色配置
@@ -99,6 +99,7 @@ namespace QjySDK.Stg
 
 		public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
 		{
+			base.OnBar(period, tu, isFinal, tq);
 			if (!isFinal) return;
 
 			var quotes = tu.QuoteList;

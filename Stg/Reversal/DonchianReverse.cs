@@ -23,7 +23,7 @@ namespace QjySDK.Stg
         {
             var sd=new StgDesc();
             sd.ArgDic["lookbackPeriods"] = 20;
-            sd.ArgDic["lossRate"] = 0.01m;
+            sd.ArgDic["lossRate"] = 0.03m;
             sd.ArgDic["mode"] = 0;
             sd.ArgDic["sendMode"] = 0;
 
@@ -61,7 +61,7 @@ namespace QjySDK.Stg
 		public override void OnBar(Period period, TableUnit tu, bool isFinal,SkQuote tq)
         {
             base.OnBar(period, tu, isFinal, tq);
-            if (isFinal)
+            if (!isFinal) return;
 			{
 				if (tu.QuoteList.Count > 1)
 				{

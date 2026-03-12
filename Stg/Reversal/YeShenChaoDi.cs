@@ -42,15 +42,15 @@ namespace QjySDK.Stg
 			sd.ArgDic["useEmaFilter"] = 0;  // 0: 不使用均线过滤 1: 价格需在均线下方才抄底
 			
 			// 止损止盈参数
-			sd.ArgDic["stopLossRate"] = 0.02m;      // 止损比例 2%
-			sd.ArgDic["takeProfitRate"] = 0.05m;   // 止盈比例 5%
+			sd.ArgDic["stopLossRate"] = 0.05m;      // 止损比例 5%
+			sd.ArgDic["takeProfitRate"] = 0.10m;   // 止盈比例 10%
 			sd.ArgDic["useRsiExit"] = 1;            // 是否使用RSI超买止盈
 			
 			// 回看周期（用于寻找近期最低点）
 			sd.ArgDic["lookbackPeriod"] = 10;
 			
 			// 加仓参数
-			sd.ArgDic["maxAddNum"] = 2;
+			sd.ArgDic["maxAddNum"] = 0;
 			sd.ArgDic["addThreshold"] = 0.01m;     // 加仓阈值：价格上涨1%后可加仓
 			
 			// 模式控制
@@ -187,6 +187,7 @@ namespace QjySDK.Stg
 		public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
 		{
 			base.OnBar(period, tu, isFinal, tq);
+			if (!isFinal) return;
 			
 			State s = null;
 			var sk = tu.GetStateKey();
@@ -199,8 +200,6 @@ namespace QjySDK.Stg
 				s = new State();
 				_stateDic[sk] = s;
 			}
-
-			if (!isFinal) return;
 
 			var rsiPeriod = (int)ArgDic["rsiPeriod"];
 			var emaPeriod = (int)ArgDic["emaPeriod"];

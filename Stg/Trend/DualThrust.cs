@@ -62,9 +62,9 @@ namespace QjySDK.Stg
 
             // 止损止盈参数
             sd.ArgDic["useStopLoss"] = 0;         // 是否使用止损 0:否 1:是
-            sd.ArgDic["stopLossRatio"] = 0.02;    // 止损比例(相对入场价)
+            sd.ArgDic["stopLossRatio"] = 0.05;    // 止损比例(相对入场价)
             sd.ArgDic["useTakeProfit"] = 0;       // 是否使用止盈 0:否 1:是
-            sd.ArgDic["takeProfitRatio"] = 0.04;  // 止盈比例(相对入场价)
+            sd.ArgDic["takeProfitRatio"] = 0.10;  // 止盈比例(相对入场价)
 
             // 时间过滤
             sd.ArgDic["startHour"] = 9;           // 开始交易时间(小时)

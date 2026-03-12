@@ -70,8 +70,8 @@ namespace QjySDK.Stg
             sd.ArgDic["useAtrStop"] = 1;                // 是否使用ATR止损止盈
 
             // 固定止损止盈
-            sd.ArgDic["stopLossPercent"] = 2.0;         // 止损百分比
-            sd.ArgDic["takeProfitPercent"] = 4.0;       // 止盈百分比
+            sd.ArgDic["stopLossPercent"] = 5.0;         // 止损百分比
+            sd.ArgDic["takeProfitPercent"] = 10.0;      // 止盈百分比
 
             // 移动止损
             sd.ArgDic["useTrailingStop"] = 1;           // 是否使用移动止损

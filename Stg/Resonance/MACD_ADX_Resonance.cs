@@ -91,7 +91,6 @@ namespace QjySDK.Stg
         private decimal _trailingActivationMultiplier;
 
         // 交易参数
-        private decimal _tradeAmount;
         private int _tradeMode;
         private int _sendMode;
         private int _maxHoldBars;
@@ -167,8 +166,12 @@ namespace QjySDK.Stg
             sd.ArgDic["TrailingActivationMultiplier"] = 1.0;
 
             // ========== 交易参数 ==========
-            sd.ArgDescDic["TradeAmount"] = new ArgDesc { Text = "交易数量", Explain = "每次交易的数量" };
-            sd.ArgDic["TradeAmount"] = 1.0;
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0:固定手数 1:固定金额" };
+            sd.ArgDic["lotsMode"] = 1;
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量" };
+            sd.ArgDic["lots"] = 1.0m;
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量" };
+            sd.ArgDic["money"] = 10000m;
 
             sd.ArgDescDic["TradeMode"] = new ArgDesc { Text = "交易模式", Explain = "0=双向 1=仅做多 2=仅做空" };
             sd.ArgDic["TradeMode"] = 0;
@@ -231,7 +234,6 @@ namespace QjySDK.Stg
             _trailingActivationMultiplier = Convert.ToDecimal(ArgDic["TrailingActivationMultiplier"]);
 
             // 交易参数
-            _tradeAmount = Convert.ToDecimal(ArgDic["TradeAmount"]);
             _tradeMode = Convert.ToInt32(ArgDic["TradeMode"]);
             _sendMode = Convert.ToInt32(ArgDic["SendMode"]);
             _maxHoldBars = Convert.ToInt32(ArgDic["MaxHoldBars"]);
@@ -240,6 +242,7 @@ namespace QjySDK.Stg
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
             base.OnBar(period, tu, isFinal, tq);
+            if (!isFinal) return;
 
             if (ArgDic == null) return;
 
@@ -325,8 +328,6 @@ namespace QjySDK.Stg
                     Plot("main", "TrailingStop", PlotType.LINE, (double)state.TrailingStopPrice);
                 }
             }
-
-            if (!isFinal) return;
 
             // 更新持仓计数
             if (state.HasPosition)
@@ -728,12 +729,13 @@ namespace QjySDK.Stg
         private void OpenLongPosition(TradeState state, string mktSymbol, decimal price, decimal atr,
             Period period, double macdValue, double adxValue)
         {
-            Trade(mktSymbol, OrderType.BUY, price, _tradeAmount, period, _sendMode);
+            var num = CalculateLots(mktSymbol, price);
+            Trade(mktSymbol, OrderType.BUY, price, num, period, _sendMode);
 
             state.HasPosition = true;
             state.IsLong = true;
             state.EntryPrice = price;
-            state.PositionSize = _tradeAmount;
+            state.PositionSize = num;
             state.EntryAtr = atr;
             state.StopLoss = price - atr * _stopLossAtrMultiplier;
             state.TakeProfit = price + atr * _takeProfitAtrMultiplier;
@@ -752,12 +754,13 @@ namespace QjySDK.Stg
         private void OpenShortPosition(TradeState state, string mktSymbol, decimal price, decimal atr,
             Period period, double macdValue, double adxValue)
         {
-            Trade(mktSymbol, OrderType.SELL, price, _tradeAmount, period, _sendMode);
+            var num = CalculateLots(mktSymbol, price);
+            Trade(mktSymbol, OrderType.SELL, price, num, period, _sendMode);
 
             state.HasPosition = true;
             state.IsLong = false;
             state.EntryPrice = price;
-            state.PositionSize = _tradeAmount;
+            state.PositionSize = num;
             state.EntryAtr = atr;
             state.StopLoss = price + atr * _stopLossAtrMultiplier;
             state.TakeProfit = price - atr * _takeProfitAtrMultiplier;
@@ -838,6 +841,22 @@ namespace QjySDK.Stg
         /// <summary>
         /// 交易状态
         /// </summary>
+        private decimal CalculateLots(string mktSymbol, decimal price)
+        {
+            var num = (decimal)ArgDic["lots"];
+            var lotsMode = (int)ArgDic["lotsMode"];
+            if (lotsMode == 1)
+            {
+                var s2 = GetSymbol(mktSymbol);
+                num = ((decimal)ArgDic["money"] / (price * s2.multiplier * s2.margin_ratio));
+                if (s2.symbol_type == (int)SymbolType.COIN)
+                    num = (int)(num * 1000) / 1000.0m;
+                else
+                    num = (int)num;
+            }
+            return num;
+        }
+
         private class TradeState
         {
             public bool HasPosition { get; set; } = false;

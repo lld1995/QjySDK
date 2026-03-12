@@ -61,7 +61,7 @@ namespace QjySDK.Stg
 
 			// 止损设置
 			sd.ArgDic["useStopLoss"] = 0;      // 是否使用止损
-			sd.ArgDic["stopLossPercent"] = 2.0m; // 止损百分比
+			sd.ArgDic["stopLossPercent"] = 5.0m; // 止损百分比
 
 			// 过滤设置
 			sd.ArgDic["minBarCount"] = 35;     // 最少K线数（需要足够数据计算MACD）
@@ -82,6 +82,7 @@ namespace QjySDK.Stg
 
 		public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
 		{
+			base.OnBar(period, tu, isFinal, tq);
 			if (!isFinal) return;
 
 			var quotes = tu.QuoteList;

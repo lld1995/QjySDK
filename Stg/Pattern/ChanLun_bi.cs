@@ -192,7 +192,7 @@ namespace QjySDK.Stg
 
 			// 止损设置
 			sd.ArgDic["useStopLoss"] = 1;        // 是否使用止损（0否 1是）
-			sd.ArgDic["stopLossPercent"] = 3.0m; // 止损比例（百分比，如3表示3%）
+			sd.ArgDic["stopLossPercent"] = 5.0m; // 止损比例（百分比，如3表示3%）
 
 			//sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0 标准 1 仅做多 2 仅做空" };
 			//sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };

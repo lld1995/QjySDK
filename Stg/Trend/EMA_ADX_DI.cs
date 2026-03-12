@@ -63,7 +63,6 @@ namespace QjySDK.Stg
         private int _atrPeriod;
         private decimal _stopLossAtrMultiplier;
         private decimal _takeProfitAtrMultiplier;
-        private decimal _tradeAmount;
         private bool _useTrailingStop;
         private decimal _trailingStopAtrMultiplier;
         private int _maxHoldBars;
@@ -116,8 +115,12 @@ namespace QjySDK.Stg
             sd.ArgDic["TakeProfitAtrMultiplier"] = 3.0;
 
             // 交易参数
-            sd.ArgDescDic["TradeAmount"] = new ArgDesc { Text = "交易数量", Explain = "每次交易的数量/比例" };
-            sd.ArgDic["TradeAmount"] = 1.0;
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0:固定手数 1:固定金额" };
+            sd.ArgDic["lotsMode"] = 1;
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量" };
+            sd.ArgDic["lots"] = 1.0m;
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量" };
+            sd.ArgDic["money"] = 10000m;
 
             sd.ArgDescDic["UseTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "是否启用移动止损(1=启用,0=禁用)" };
             sd.ArgDic["UseTrailingStop"] = 1;
@@ -160,7 +163,6 @@ namespace QjySDK.Stg
             _atrPeriod = Convert.ToInt32(ArgDic["AtrPeriod"]);
             _stopLossAtrMultiplier = Convert.ToDecimal(ArgDic["StopLossAtrMultiplier"]);
             _takeProfitAtrMultiplier = Convert.ToDecimal(ArgDic["TakeProfitAtrMultiplier"]);
-            _tradeAmount = Convert.ToDecimal(ArgDic["TradeAmount"]);
             _useTrailingStop = Convert.ToInt32(ArgDic["UseTrailingStop"]) == 1;
             _trailingStopAtrMultiplier = Convert.ToDecimal(ArgDic["TrailingStopAtrMultiplier"]);
             _maxHoldBars = Convert.ToInt32(ArgDic["MaxHoldBars"]);
@@ -171,6 +173,7 @@ namespace QjySDK.Stg
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
             base.OnBar(period, tu, isFinal, tq);
+            if (!isFinal) return;
 
             if (ArgDic == null) return;
 
@@ -242,8 +245,6 @@ namespace QjySDK.Stg
                 Plot("main", "StopLoss", PlotType.LINE, (double)state.StopLoss);
                 Plot("main", "TakeProfit", PlotType.LINE, (double)state.TakeProfit);
             }
-
-            if (!isFinal) return;
 
             // 更新持仓计数
             if (state.HasPosition)
@@ -418,12 +419,13 @@ namespace QjySDK.Stg
 
         private void OpenLongPosition(TradeState state, string mktSymbol, decimal price, decimal atr, Period period)
         {
-            Trade(mktSymbol, OrderType.BUY, price, _tradeAmount, period, 0);
+            var num = CalculateLots(mktSymbol, price);
+            Trade(mktSymbol, OrderType.BUY, price, num, period, 0);
 
             state.HasPosition = true;
             state.IsLong = true;
             state.EntryPrice = price;
-            state.PositionSize = _tradeAmount;
+            state.PositionSize = num;
             state.EntryAtr = atr;
             state.StopLoss = price - atr * _stopLossAtrMultiplier;
             state.TakeProfit = price + atr * _takeProfitAtrMultiplier;
@@ -434,12 +436,13 @@ namespace QjySDK.Stg
 
         private void OpenShortPosition(TradeState state, string mktSymbol, decimal price, decimal atr, Period period)
         {
-            Trade(mktSymbol, OrderType.SELL, price, _tradeAmount, period, 0);
+            var num = CalculateLots(mktSymbol, price);
+            Trade(mktSymbol, OrderType.SELL, price, num, period, 0);
 
             state.HasPosition = true;
             state.IsLong = false;
             state.EntryPrice = price;
-            state.PositionSize = _tradeAmount;
+            state.PositionSize = num;
             state.EntryAtr = atr;
             state.StopLoss = price + atr * _stopLossAtrMultiplier;
             state.TakeProfit = price - atr * _takeProfitAtrMultiplier;
@@ -468,6 +471,22 @@ namespace QjySDK.Stg
             int lastIdx = atrList.Count - 1;
             var atr = atrList[lastIdx].Atr;
             return atr.HasValue ? (decimal)atr.Value : 0;
+        }
+
+        private decimal CalculateLots(string mktSymbol, decimal price)
+        {
+            var num = (decimal)ArgDic["lots"];
+            var lotsMode = (int)ArgDic["lotsMode"];
+            if (lotsMode == 1)
+            {
+                var s2 = GetSymbol(mktSymbol);
+                num = ((decimal)ArgDic["money"] / (price * s2.multiplier * s2.margin_ratio));
+                if (s2.symbol_type == (int)SymbolType.COIN)
+                    num = (int)(num * 1000) / 1000.0m;
+                else
+                    num = (int)num;
+            }
+            return num;
         }
 
         private class TradeState

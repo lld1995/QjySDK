@@ -40,6 +40,14 @@ namespace QjySDK.Stg
 			sd.ArgDic["dynamicGrid"] = 0;
 			sd.ArgDic["atrPeriod"] = 14;
 
+			// 止损参数
+			sd.ArgDic["useStopLoss"] = 1;
+			sd.ArgDic["stopLossPercent"] = 10.0m;
+
+			// 网格重置参数（网格随时间变动）
+			sd.ArgDic["autoRecenter"] = 1;
+			sd.ArgDic["recenterBars"] = 20;
+
 			sd.ArgDescDic["basePrice"] = new ArgDesc() { Text = "基准价格", Explain = "0表示使用第一个K线收盘价" };
 			sd.ArgDescDic["gridPercent"] = new ArgDesc() { Text = "网格间距%", Explain = "每格价格变动百分比" };
 			sd.ArgDescDic["gridCount"] = new ArgDesc() { Text = "网格数量", Explain = "上下各多少格" };
@@ -47,6 +55,10 @@ namespace QjySDK.Stg
 			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
 			sd.ArgDescDic["dynamicGrid"] = new ArgDesc() { Text = "动态网格", Explain = "0 关闭 1 启用ATR动态调整" };
 			sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "动态网格使用的ATR周期" };
+			sd.ArgDescDic["useStopLoss"] = new ArgDesc() { Text = "启用止损", Explain = "0 关闭 1 启用" };
+			sd.ArgDescDic["stopLossPercent"] = new ArgDesc() { Text = "止损百分比", Explain = "价格偏离基准超过此百分比时全部止损" };
+			sd.ArgDescDic["autoRecenter"] = new ArgDesc() { Text = "自动重置网格", Explain = "0 关闭 1 启用，每隔N根K线以当前价格为中心重建网格" };
+			sd.ArgDescDic["recenterBars"] = new ArgDesc() { Text = "重置周期", Explain = "每隔多少根K线重新以当前价格为中心重建网格" };
 
 			sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;
@@ -72,6 +84,8 @@ namespace QjySDK.Stg
 			public decimal TotalPosition { get; set; }
 			public List<GridLevel> GridLevels { get; set; } = new List<GridLevel>();
 			public decimal LastGridPercent { get; set; }
+			public bool IsStopped { get; set; }
+			public int BarsSinceRecenter { get; set; }
 		}
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -146,6 +160,10 @@ namespace QjySDK.Stg
 			int sendMode = (int)ArgDic["sendMode"];
 			int dynamicGrid = (int)ArgDic["dynamicGrid"];
 			int atrPeriod = (int)ArgDic["atrPeriod"];
+			int useStopLoss = (int)ArgDic["useStopLoss"];
+			decimal stopLossPercent = (decimal)ArgDic["stopLossPercent"];
+			int autoRecenter = (int)ArgDic["autoRecenter"];
+			int recenterBars = (int)ArgDic["recenterBars"];
 
 			// 动态网格：使用ATR计算网格间距
 			if (dynamicGrid == 1 && tu.QuoteList.Count >= atrPeriod)
@@ -160,6 +178,9 @@ namespace QjySDK.Stg
 					Plot("sub0", "GridPercent", PlotType.LINE, (double)gridPercent);
 				}
 			}
+
+			// 止损后停止交易
+			if (s.IsStopped) return;
 
 			// 初始化网格
 			if (!s.IsInitialized)
@@ -179,6 +200,37 @@ namespace QjySDK.Stg
 				if (percentChange > 0.2m)
 				{
 					InitializeGrid(s, q.Close, gridPercent, gridCount);
+				}
+			}
+
+			// 止损检查：价格偏离基准超过止损百分比，全部平仓
+			if (useStopLoss == 1 && s.TotalPosition > 0)
+			{
+				decimal deviation = Math.Abs(q.Close - s.BasePrice) / s.BasePrice * 100m;
+				if (deviation >= stopLossPercent)
+				{
+					Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.TotalPosition, period, sendMode);
+					s.TotalPosition = 0;
+					s.IsStopped = true;
+					foreach (var gl in s.GridLevels) gl.IsBought = false;
+					return;
+				}
+			}
+
+			// 网格自动重置：每隔N根K线以当前价格为中心重建网格
+			if (autoRecenter == 1 && recenterBars > 0)
+			{
+				s.BarsSinceRecenter++;
+				if (s.BarsSinceRecenter >= recenterBars)
+				{
+					// 先平掉所有持仓
+					if (s.TotalPosition > 0)
+					{
+						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.TotalPosition, period, sendMode);
+					}
+					// 重建网格
+					InitializeGrid(s, q.Close, gridPercent, gridCount);
+					s.BarsSinceRecenter = 0;
 				}
 			}
 
