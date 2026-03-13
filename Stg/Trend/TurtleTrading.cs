@@ -207,11 +207,15 @@ namespace QjySDK.Stg
             // 获取或创建状态
             TurtleState state = GetOrCreateState(stateKey);
 
+            decimal prevHigh = tu.QuoteList[tu.QuoteList.Count - 2].High;
+            decimal prevLow = tu.QuoteList[tu.QuoteList.Count - 2].Low;
+
             // 执行交易逻辑
             ExecuteTurtleLogic(tu, period, q, state, unitSize, atr,
                 entryChannel, exitChannel, mode, sendMode,
                 enablePyramiding, pyramidingATR, maxUnits,
-                atrStopMultiplier, useLastTradeFilter, systemType);
+                atrStopMultiplier, useLastTradeFilter, systemType,
+                prevHigh, prevLow);
 
         }
 
@@ -333,7 +337,8 @@ namespace QjySDK.Stg
         private void ExecuteTurtleLogic(TableUnit tu, Period period, SkQuote q, TurtleState state,
             decimal unitSize, decimal atr, DonchianResult entryChannel, DonchianResult exitChannel,
             int mode, int sendMode, int enablePyramiding, double pyramidingATR, int maxUnits,
-            double atrStopMultiplier, int useLastTradeFilter, int systemType)
+            double atrStopMultiplier, int useLastTradeFilter, int systemType,
+            decimal prevHigh, decimal prevLow)
         {
             if (entryChannel == null || exitChannel == null) return;
             if (entryChannel.UpperBand == null || entryChannel.LowerBand == null) return;
@@ -344,7 +349,7 @@ namespace QjySDK.Stg
             {
                 HandleEntrySignal(tu, period, q, state, unitSize, atr,
                     entryChannel, mode, sendMode, atrStopMultiplier,
-                    useLastTradeFilter, systemType);
+                    useLastTradeFilter, systemType, prevHigh, prevLow);
             }
             // 多头持仓
             else if (state.Direction == 1)
@@ -367,26 +372,28 @@ namespace QjySDK.Stg
         /// </summary>
         private void HandleEntrySignal(TableUnit tu, Period period, SkQuote q, TurtleState state,
             decimal unitSize, decimal atr, DonchianResult entryChannel, int mode, int sendMode,
-            double atrStopMultiplier, int useLastTradeFilter, int systemType)
+            double atrStopMultiplier, int useLastTradeFilter, int systemType,
+            decimal prevHigh, decimal prevLow)
         {
             decimal upperBand = (decimal)(entryChannel.UpperBand ?? 0);
             decimal lowerBand = (decimal)(entryChannel.LowerBand ?? 0);
+            decimal currentClose = q.Close;
 
             // 系统1过滤规则：如果上次交易盈利，则跳过本次信号
             if (systemType == 1 && useLastTradeFilter == 1 && state.SkipNextSignal)
             {
                 // 检查是否有突破信号（用于重置跳过标志）
-                if (q.High > upperBand || q.Low < lowerBand)
+                if (currentClose > upperBand || currentClose < lowerBand)
                 {
                     state.SkipNextSignal = false; // 已跳过一次，下次不再跳过
                 }
                 return;
             }
 
-            // 突破上轨做多
-            if (q.High > upperBand && mode != 2)
+            // 突破上轨做多（当前Close突破且前一根High未突破）
+            if (currentClose > upperBand && prevHigh <= upperBand && mode != 2)
             {
-                decimal entryPrice = upperBand;
+                decimal entryPrice = currentClose;
                 decimal stopPrice = entryPrice - (decimal)atrStopMultiplier * atr;
 
                 state.Direction = 1;
@@ -405,10 +412,10 @@ namespace QjySDK.Stg
                 // 绘制止损线
                 Plot("main", "stopLoss", PlotType.LINE, (double)stopPrice);
             }
-            // 突破下轨做空
-            else if (q.Low < lowerBand && mode != 1)
+            // 突破下轨做空（当前Close跌破且前一根Low未跌破）
+            else if (currentClose < lowerBand && prevLow >= lowerBand && mode != 1)
             {
-                decimal entryPrice = lowerBand;
+                decimal entryPrice = currentClose;
                 decimal stopPrice = entryPrice + (decimal)atrStopMultiplier * atr;
 
                 state.Direction = -1;
@@ -437,10 +444,11 @@ namespace QjySDK.Stg
             int sendMode, int enablePyramiding, double pyramidingATR, int maxUnits, double atrStopMultiplier)
         {
             decimal exitLower = (decimal)(exitChannel.LowerBand ?? 0);
+            decimal currentClose = q.Close;
 
             // 1. 检查止损
             decimal lowestStop = state.Units.Min(u => u.StopPrice);
-            if (q.Low <= lowestStop)
+            if (currentClose <= lowestStop)
             {
                 // 触发止损，平掉所有仓位
                 CloseAllPositions(tu, period, q, state, sendMode, false);
@@ -448,7 +456,7 @@ namespace QjySDK.Stg
             }
 
             // 2. 检查出场信号（跌破出场通道下轨）
-            if (q.Low < exitLower)
+            if (currentClose < exitLower)
             {
                 CloseAllPositions(tu, period, q, state, sendMode, true);
                 return;
@@ -460,9 +468,9 @@ namespace QjySDK.Stg
                 decimal lastEntryPrice = state.Units.Last().EntryPrice;
                 decimal pyramidThreshold = lastEntryPrice + (decimal)pyramidingATR * state.LastATR;
 
-                if (q.High >= pyramidThreshold)
+                if (currentClose >= pyramidThreshold)
                 {
-                    decimal entryPrice = pyramidThreshold;
+                    decimal entryPrice = currentClose;
                     decimal stopPrice = entryPrice - (decimal)atrStopMultiplier * atr;
 
                     state.Units.Add(new PositionUnit
@@ -495,10 +503,11 @@ namespace QjySDK.Stg
             int sendMode, int enablePyramiding, double pyramidingATR, int maxUnits, double atrStopMultiplier)
         {
             decimal exitUpper = (decimal)(exitChannel.UpperBand ?? 0);
+            decimal currentClose = q.Close;
 
             // 1. 检查止损
             decimal highestStop = state.Units.Max(u => u.StopPrice);
-            if (q.High >= highestStop)
+            if (currentClose >= highestStop)
             {
                 // 触发止损，平掉所有仓位
                 CloseAllPositions(tu, period, q, state, sendMode, false);
@@ -506,7 +515,7 @@ namespace QjySDK.Stg
             }
 
             // 2. 检查出场信号（突破出场通道上轨）
-            if (q.High > exitUpper)
+            if (currentClose > exitUpper)
             {
                 CloseAllPositions(tu, period, q, state, sendMode, true);
                 return;
@@ -518,9 +527,9 @@ namespace QjySDK.Stg
                 decimal lastEntryPrice = state.Units.Last().EntryPrice;
                 decimal pyramidThreshold = lastEntryPrice - (decimal)pyramidingATR * state.LastATR;
 
-                if (q.Low <= pyramidThreshold)
+                if (currentClose <= pyramidThreshold)
                 {
-                    decimal entryPrice = pyramidThreshold;
+                    decimal entryPrice = currentClose;
                     decimal stopPrice = entryPrice + (decimal)atrStopMultiplier * atr;
 
                     state.Units.Add(new PositionUnit
