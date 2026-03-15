@@ -58,6 +58,8 @@ namespace QjySDK.Stg
 			public int Status { get; set; }
 
 			public decimal Num { get; set; }
+
+			public int LastCloseBarIndex { get; set; } = -1;
 		}
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -237,15 +239,15 @@ namespace QjySDK.Stg
 							var ml1 = macd[mli1];
 							var ml2 = macd[mli2];
 
-
-							if (l1.Low < l2.Low && ml1.Macd > ml2.Macd && mode != 2)
+							if (l1.Low < l2.Low && ml1.Macd > ml2.Macd && mode != 2
+								&& li1 > s.LastCloseBarIndex)
 							{
 								s.Status = 1;
 								s.Num = num;
 								Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
 							}
 						}
-						if (highList.Count > 1 && macdHighList.Count > 1)
+						if (s.Status == 0 && highList.Count > 1 && macdHighList.Count > 1)
 						{
 							var hi1 = highList[highList.Count - 1];
 							var hi2 = highList[highList.Count - 2];
@@ -257,7 +259,8 @@ namespace QjySDK.Stg
 							var mh1 = macd[mhi1];
 							var mh2 = macd[mhi2];
 
-							if (h1.High > h2.High && mh1.Macd < mh2.Macd && mode != 1)
+							if (h1.High > h2.High && mh1.Macd < mh2.Macd && mode != 1
+								&& hi1 > s.LastCloseBarIndex)
 							{
 								s.Status = 2;
 								s.Num = num;
@@ -292,18 +295,9 @@ namespace QjySDK.Stg
 							{
                                 var oriNum = s.Num;
                                 Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oriNum, period, sendMode);
-
-                                if (mode != 1)
-                                {
-                                    s.Status = 2;
-                                    s.Num = num;
-                                    Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
-                                }
-                                else
-                                {
-                                    s.Status = 0;
-                                    s.Num = 0;
-                                }
+                                s.Status = 0;
+                                s.Num = 0;
+                                s.LastCloseBarIndex = tu.QuoteList.Count - 1;
                             }
 						}
 					}
@@ -334,17 +328,9 @@ namespace QjySDK.Stg
 							{
 								var oriNum = s.Num;
 								Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oriNum, period, sendMode);
-								if (mode != 2)
-								{
-									s.Status = 1;
-									s.Num = num;
-									Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
-								}
-								else
-								{
-									s.Status = 0;
-									s.Num = 0;
-								}
+								s.Status = 0;
+								s.Num = 0;
+								s.LastCloseBarIndex = tu.QuoteList.Count - 1;
 							}
 						}
 					}
