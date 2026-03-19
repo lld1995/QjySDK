@@ -58,7 +58,7 @@ namespace QjySDK.Stg
             sd.ArgDic["rumiPeriod"] = 14;             // RUMI计算周期
             sd.ArgDic["rumiSmooth"] = 5;              // RUMI平滑周期
             sd.ArgDic["signalPeriod"] = 9;            // 信号线周期
-            sd.ArgDic["rumiThreshold"] = 0.0;         // RUMI阈值（过滤弱信号）
+            sd.ArgDic["rumiThreshold"] = 0.5;         // RUMI阈值（过滤弱信号）
 
             // ========== 均线参数 ==========
             sd.ArgDic["fastEMA"] = 12;                // 快速EMA周期
@@ -68,7 +68,7 @@ namespace QjySDK.Stg
 
             // ========== ATR参数 ==========
             sd.ArgDic["atrPeriod"] = 14;              // ATR计算周期
-            sd.ArgDic["atrStopMultiplier"] = 2.0;     // 止损ATR倍数
+            sd.ArgDic["atrStopMultiplier"] = 2.5;     // 止损ATR倍数
             sd.ArgDic["atrProfitMultiplier"] = 3.0;   // 止盈ATR倍数
             sd.ArgDic["useTrailingStop"] = 1;         // 是否使用移动止损 0:否 1:是
             sd.ArgDic["trailingATR"] = 1.5;           // 移动止损ATR倍数
@@ -85,7 +85,7 @@ namespace QjySDK.Stg
             sd.ArgDic["sendMode"] = 0;                // 发单模式
 
             // ========== 信号确认 ==========
-            sd.ArgDic["confirmBars"] = 1;             // 信号确认K线数
+            sd.ArgDic["confirmBars"] = 2;             // 信号确认K线数
             sd.ArgDic["useVolumeFilter"] = 0;         // 是否使用成交量过滤 0:否 1:是
             sd.ArgDic["volumeMultiplier"] = 1.5;      // 成交量倍数阈值
 
@@ -542,11 +542,11 @@ namespace QjySDK.Stg
             // 成交量过滤
             bool volumeOk = useVolumeFilter == 0 || q.Volume > avgVolume * (decimal)volumeMultiplier;
 
-            // 做多信号
-            bool longSignal = (rumiCrossUp || emaCrossUp) && upTrend && trendFilterLong && rumiStrengthLong && volumeOk;
+            // 做多信号（要求RUMI交叉和EMA交叉同时确认）
+            bool longSignal = rumiCrossUp && emaCrossUp && upTrend && trendFilterLong && rumiStrengthLong && volumeOk;
             
-            // 做空信号
-            bool shortSignal = (rumiCrossDown || emaCrossDown) && downTrend && trendFilterShort && rumiStrengthShort && volumeOk;
+            // 做空信号（要求RUMI交叉和EMA交叉同时确认）
+            bool shortSignal = rumiCrossDown && emaCrossDown && downTrend && trendFilterShort && rumiStrengthShort && volumeOk;
 
             // 信号确认逻辑
             if (confirmBars > 1)

@@ -32,14 +32,14 @@ namespace QjySDK.Stg
             var sd = new StgDesc();
 
             // 均线参数
-            sd.ArgDic["fastPeriod"] = 10;            // 快线周期
-            sd.ArgDic["slowPeriod"] = 30;            // 慢线周期
+            sd.ArgDic["fastPeriod"] = 20;            // 快线周期
+            sd.ArgDic["slowPeriod"] = 60;            // 慢线周期
             sd.ArgDic["trendPeriod"] = 60;           // 趋势线周期（用于趋势过滤）
 
             // 交易控制
             sd.ArgDic["mode"] = 0;                   // 交易模式: 0双向 1仅多 2仅空
             sd.ArgDic["sendMode"] = 0;              // 发单模式: 0立即 1下个开盘
-            sd.ArgDic["useTrendFilter"] = 0;        // 是否启用趋势过滤: 0关闭 1开启
+            sd.ArgDic["useTrendFilter"] = 1;        // 是否启用趋势过滤: 0关闭 1开启
             sd.ArgDic["usePriceConfirm"] = 0;       // 是否启用价格确认: 0关闭 1开启
 
             // 手数控制
