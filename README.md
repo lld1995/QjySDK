@@ -31,6 +31,7 @@
   - [反转策略类 (Reversal)](#反转策略类-reversal)
   - [量化因子类 (Quant)](#量化因子类-quant)
   - [共振策略类 (Resonance)](#共振策略类-resonance)
+  - [套利策略类 (Arbitrage)](#套利策略类-arbitrage)
   - [网格交易类 (Grid)](#网格交易类-grid)
   - [机器学习类 (MachineLearning)](#机器学习类-machinelearning)
 - [泉金盈客户端功能演示](#泉金盈客户端功能演示)
@@ -150,6 +151,20 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 | 三重因子共振 | `ThreeFactorResonance.cs` | MA趋势+MACD动量+OBV成交量三因子共振交易系统 |
 | CCI + MACD + 傅里叶 | `CCI_MACD_Fourier.cs` | CCI+MACD+傅里叶变换三重共振交易策略，频谱分析识别周期与相位 |
 | RSI + 布林带 + 傅里叶 | `RSI_Boll_Fourier.cs` | RSI+布林带+傅里叶变换三重信号共振策略，提高交易胜率 |
+
+#### ![](images/icons/arbitrage.svg) 套利策略类 (Arbitrage)
+
+> 套利策略通过 `OnGlobalIndicator` 全局计算接口，在同一时刻获取所有品种数据进行跨品种分析，实现真正的多品种套利交易。所有套利策略均设置 `UseGlobalCalc = 1`。
+
+| 策略名称 | 文件 | 简介 |
+|---------|------|------|
+| 配对交易 | `PairTrading.cs` | 经典配对套利策略，计算品种间价格比值/价差的Z-Score，结合协整半衰期和相关系数过滤，自适应回溯周期做均值回归 |
+| 跨品种动量套利 | `CrossSymbolMomentum.cs` | 计算所有品种的综合动量得分(ROC+RSI+EMA)并排名，做多最强品种、做空最弱品种，定期再平衡，市场中性策略 |
+| 价差套利 | `SpreadArbitrage.cs` | 构建全局基准线，计算每个品种相对基准的累积偏离度Z-Score，偏离过大时反向交易等待回归，天然多空平衡 |
+| 蝶式套利 | `ButterflyArbitrage.cs` | 三品种蝶式价差(A+C-2B)均值回归，自动选择最优中间腿，支持标准化价差消除量纲差异 |
+| 领先滞后套利 | `LeadLagArbitrage.cs` | 交叉相关分析发现品种间领先-滞后关系，领先品种出现大幅变动时提前布局滞后品种 |
+| 篮子均值回归 | `MeanReversionBasket.cs` | 按收益率排名构建赢家/输家篮子，分化度过高时赌反转，基于短期反转效应(Jegadeesh & Titman) |
+| 协整套利 | `CointegrationArbitrage.cs` | Engle-Granger两步法，OLS回归计算最优对冲比例(hedge ratio)，残差平稳性检验+方差比检验 |
 
 #### ![](images/icons/grid.svg) 网格交易类 (Grid)
 | 策略名称 | 文件 | 简介 |

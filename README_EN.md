@@ -31,6 +31,7 @@
   - [Reversal Strategies (Reversal)](#reversal-strategies-reversal)
   - [Quantitative Factors (Quant)](#quantitative-factors-quant)
   - [Resonance Strategies (Resonance)](#resonance-strategies-resonance)
+  - [Arbitrage Strategies (Arbitrage)](#arbitrage-strategies-arbitrage)
   - [Grid Trading (Grid)](#grid-trading-grid)
   - [Machine Learning (MachineLearning)](#machine-learning-machinelearning)
 - [Client Feature Demos](#client-feature-demos)
@@ -150,6 +151,20 @@ The SDK includes a rich set of quantitative trading strategies, categorized as f
 | Three Factor Resonance | `ThreeFactorResonance.cs` | MA trend + MACD momentum + OBV volume three-factor resonance |
 | CCI + MACD + Fourier | `CCI_MACD_Fourier.cs` | CCI + MACD + Fourier transform triple resonance, spectrum analysis for cycle and phase |
 | RSI + Bollinger + Fourier | `RSI_Boll_Fourier.cs` | RSI + Bollinger + Fourier transform triple signal resonance for higher win rate |
+
+#### ![](images/icons/arbitrage.svg) Arbitrage Strategies (Arbitrage)
+
+> Arbitrage strategies leverage the `OnGlobalIndicator` global calculation interface to access all symbol data simultaneously for cross-symbol analysis, enabling true multi-symbol arbitrage trading. All arbitrage strategies set `UseGlobalCalc = 1`.
+
+| Strategy Name | File | Description |
+|--------------|------|-------------|
+| Pair Trading | `PairTrading.cs` | Classic pair trading strategy, calculates price ratio/spread Z-Score between symbols with cointegration half-life and correlation filtering, adaptive lookback period for mean reversion |
+| Cross-Symbol Momentum | `CrossSymbolMomentum.cs` | Calculates composite momentum score (ROC+RSI+EMA) for all symbols and ranks them, long strongest and short weakest with periodic rebalancing, market-neutral strategy |
+| Spread Arbitrage | `SpreadArbitrage.cs` | Builds global benchmark, calculates cumulative deviation Z-Score for each symbol vs benchmark, trades reversals on extreme deviations, naturally balanced long/short |
+| Butterfly Arbitrage | `ButterflyArbitrage.cs` | Three-symbol butterfly spread (A+C-2B) mean reversion, auto-selects optimal middle leg, supports normalized spread to eliminate scale differences |
+| Lead-Lag Arbitrage | `LeadLagArbitrage.cs` | Cross-correlation analysis discovers lead-lag relationships between symbols, positions in lagging symbols when leading symbols show significant moves |
+| Mean Reversion Basket | `MeanReversionBasket.cs` | Builds winner/loser baskets by return ranking, bets on reversal when divergence is excessive, based on short-term reversal effect (Jegadeesh & Titman) |
+| Cointegration Arbitrage | `CointegrationArbitrage.cs` | Engle-Granger two-step method, OLS regression for optimal hedge ratio, residual stationarity test + variance ratio test |
 
 #### ![](images/icons/grid.svg) Grid Trading (Grid)
 | Strategy Name | File | Description |
