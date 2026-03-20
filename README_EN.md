@@ -33,7 +33,7 @@
   - [Resonance Strategies (Resonance)](#resonance-strategies-resonance)
   - [Grid Trading (Grid)](#grid-trading-grid)
   - [Machine Learning (MachineLearning)](#machine-learning-machinelearning)
-- [Client Features](#client-features)
+- [Client Feature Demos](#client-feature-demos)
 - [SDK Features](#sdk-features)
 - [System Requirements](#system-requirements)
 - [Quick Start](#quick-start)
@@ -169,95 +169,40 @@ The SDK includes a rich set of quantitative trading strategies, categorized as f
 
 ---
 
-## Client Features
+## Client Feature Demos
 
-This SDK requires the QuanJinYing client. QuanJinYing client is a professional intelligent quantitative trading platform with the following core features:
+This SDK requires the QuanJinYing client. QuanJinYing client is a professional intelligent quantitative trading platform. Here are the core feature demos:
 
-### Watchlist
+### 📋 Watchlist Management
 
-| Feature | Description |
-|---------|-------------|
-| **Symbol Management** | Add, delete, sort watchlist symbols |
-| **Real-Time Quotes** | Real-time price changes and percentage updates |
-| **Quick Filter** | Filter by name or code |
+Add, delete, sort watchlist symbols with real-time price changes and percentage updates.
 
 <p align="center">
-  <img src="images/zixuan.png" alt="Watchlist" width="800">
+  <img src="images/zixuan.gif" alt="Watchlist Management" width="600">
 </p>
 
-### Strategy Center
+### 🤖 AI Analysis
 
-| Feature | Description |
-|---------|-------------|
-| **Strategy Market** | Massive public strategies, one-click subscription |
-| **Strategy Backtest** | Historical data backtesting to verify strategy performance |
-| **Parameter Optimization** | Intelligent parameter optimization and tuning suggestions |
-| **Strategy Upload** | Upload custom strategies to the cloud |
+AI-powered multi-dimensional market analysis, generating professional investment reports with one click.
 
 <p align="center">
-  <img src="images/celuezhongxin.png" alt="Strategy Center" width="800">
+  <img src="images/ai.gif" alt="AI Analysis" width="600">
 </p>
 
-### My Strategies
+### 📊 Fast Backtesting
 
-| Feature | Description |
-|---------|-------------|
-| **Cloud Strategies** | Manage cloud-hosted running strategies |
-| **Local Strategies** | Manage locally developed and debugged strategies |
-| **Run Control** | Start, pause, stop strategy execution |
-| **Performance Report** | Detailed strategy performance and profit reports |
-| **Trade Details** | Complete trade order history query |
+Historical data backtesting to verify strategy performance, multi-strategy multi-symbol batch comparison.
 
 <p align="center">
-  <img src="images/wodecelue1.png" alt="My Strategies" width="800">
-</p>
-<p align="center">
-  <img src="images/wodecelue2.png" alt="Strategy Details" width="800">
-</p>
-<p align="center">
-  <img src="images/wodecelue3.png" alt="Strategy Charts" width="800">
-</p>
-<p align="center">
-  <img src="images/wodecelue4.png" alt="Trade Details" width="800">
+  <img src="images/huice.gif" alt="Strategy Backtesting" width="600">
 </p>
 
-### Real-Time Monitoring
+### 📡 Live Running
 
-| Feature | Description |
-|---------|-------------|
-| **Position Summary** | Summarize positions by symbol |
-| **P&L Analysis** | Real-time floating P&L and return calculation |
-| **Strategy Link** | Quick jump to associated strategy details |
+Cloud-based live strategy execution with real-time position and signal monitoring, push notifications.
 
 <p align="center">
-  <img src="images/shishijiankong1.png" alt="Real-Time Monitoring" width="800">
-</p>
-<p align="center">
-  <img src="images/shishijiankong2.png" alt="Monitoring Details" width="800">
-</p>
-
-### Message Center
-
-| Feature | Description |
-|---------|-------------|
-| **System Notifications** | Platform announcements and system messages |
-| **Trade Alerts** | Strategy signals and trade notifications |
-| **Message Management** | Read marking and message deletion |
-
-<p align="center">
-  <img src="images/xiaoxizhongxin.png" alt="Message Center" width="800">
-</p>
-
-### System Settings
-
-| Feature | Description |
-|---------|-------------|
-| **Language Switch** | Chinese/English interface toggle |
-| **Version Update** | Online check and download updates |
-| **Feedback** | Submit suggestions and bug reports |
-
-<p align="center">
-  <img src="images/xitongshezhi.png" alt="System Settings" width="800">
+  <img src="images/shishi.gif" alt="Live Running" width="600">
 </p>
 
 ---

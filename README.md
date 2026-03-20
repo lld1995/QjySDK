@@ -33,7 +33,7 @@
   - [共振策略类 (Resonance)](#共振策略类-resonance)
   - [网格交易类 (Grid)](#网格交易类-grid)
   - [机器学习类 (MachineLearning)](#机器学习类-machinelearning)
-- [泉金盈客户端功能](#泉金盈客户端功能)
+- [泉金盈客户端功能演示](#泉金盈客户端功能演示)
 - [SDK 功能特性](#sdk-功能特性)
 - [系统要求](#系统要求)
 - [快速开始](#快速开始)
@@ -169,95 +169,40 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 
 ---
 
-## 泉金盈客户端功能
+## 泉金盈客户端功能演示
 
-本 SDK 需配合泉金盈客户端使用。泉金盈客户端是一款专业的智能量化交易平台，提供以下核心功能：
+本 SDK 需配合泉金盈客户端使用。泉金盈客户端是一款专业的智能量化交易平台，以下为核心功能演示：
 
-### 自选列表
+### 📋 自选管理
 
-| 功能 | 描述 |
-|------|------|
-| **品种管理** | 添加、删除、排序自选品种 |
-| **实时行情** | 实时推送价格变动与涨跌幅 |
-| **快速筛选** | 支持按名称、代码快速过滤 |
+添加、删除、排序自选品种，实时推送价格变动与涨跌幅。
 
 <p align="center">
-  <img src="images/zixuan.png" alt="自选列表" width="800">
+  <img src="images/zixuan.gif" alt="自选管理" width="600">
 </p>
 
-### 策略中心
+### 🤖 AI 智能分析
 
-| 功能 | 描述 |
-|------|------|
-| **策略市场** | 海量公开策略，一键订阅使用 |
-| **策略回测** | 历史数据回测验证策略效果 |
-| **参数调优** | 智能参数优化与调参建议 |
-| **策略上传** | 支持上传自研策略至云端 |
+AI 驱动的多维度市场分析，一键生成专业投资报告。
 
 <p align="center">
-  <img src="images/celuezhongxin.png" alt="策略中心" width="800">
+  <img src="images/ai.gif" alt="AI智能分析" width="600">
 </p>
 
-### 我的策略
+### 📊 极速回测
 
-| 功能 | 描述 |
-|------|------|
-| **云端策略** | 云端托管运行的策略管理 |
-| **本地策略** | 本地开发调试的策略管理 |
-| **运行控制** | 启动、暂停、停止策略运行 |
-| **绩效报告** | 详细的策略绩效与收益报告 |
-| **交易明细** | 完整的交易订单记录查询 |
+历史数据回测验证策略效果，多策略多标的批量回测对比。
 
 <p align="center">
-  <img src="images/wodecelue1.png" alt="我的策略" width="800">
-</p>
-<p align="center">
-  <img src="images/wodecelue2.png" alt="策略详情" width="800">
-</p>
-<p align="center">
-  <img src="images/wodecelue3.png" alt="策略图表" width="800">
-</p>
-<p align="center">
-  <img src="images/wodecelue4.png" alt="交易明细" width="800">
+  <img src="images/huice.gif" alt="策略回测" width="600">
 </p>
 
-### 实时监控
+### 📡 实时运行
 
-| 功能 | 描述 |
-|------|------|
-| **持仓汇总** | 按品种汇总显示持仓情况 |
-| **盈亏分析** | 实时浮动盈亏与收益率计算 |
-| **策略关联** | 快速跳转至关联策略详情 |
+策略云端实时运行，实时监控持仓与信号，支持消息推送通知。
 
 <p align="center">
-  <img src="images/shishijiankong1.png" alt="实时监控" width="800">
-</p>
-<p align="center">
-  <img src="images/shishijiankong2.png" alt="监控详情" width="800">
-</p>
-
-### 消息中心
-
-| 功能 | 描述 |
-|------|------|
-| **系统通知** | 平台公告与系统消息 |
-| **交易提醒** | 策略信号与成交通知 |
-| **消息管理** | 已读标记与消息删除 |
-
-<p align="center">
-  <img src="images/xiaoxizhongxin.png" alt="消息中心" width="800">
-</p>
-
-### 系统设置
-
-| 功能 | 描述 |
-|------|------|
-| **语言切换** | 中文/英文界面切换 |
-| **版本更新** | 在线检查与下载更新 |
-| **问题反馈** | 建议、Bug 反馈提交 |
-
-<p align="center">
-  <img src="images/xitongshezhi.png" alt="系统设置" width="800">
+  <img src="images/shishi.gif" alt="实时运行" width="600">
 </p>
 
 ---
