@@ -32,6 +32,7 @@
   - [量化因子类 (Quant)](#量化因子类-quant)
   - [共振策略类 (Resonance)](#共振策略类-resonance)
   - [套利策略类 (Arbitrage)](#套利策略类-arbitrage)
+  - [波动率策略类 (Volatility)](#波动率策略类-volatility)
   - [网格交易类 (Grid)](#网格交易类-grid)
   - [机器学习类 (MachineLearning)](#机器学习类-machinelearning)
 - [泉金盈客户端功能演示](#泉金盈客户端功能演示)
@@ -166,10 +167,21 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 | 篮子均值回归 | `MeanReversionBasket.cs` | 按收益率排名构建赢家/输家篮子，分化度过高时赌反转，基于短期反转效应(Jegadeesh & Titman) |
 | 协整套利 | `CointegrationArbitrage.cs` | Engle-Granger两步法，OLS回归计算最优对冲比例(hedge ratio)，残差平稳性检验+方差比检验 |
 
+#### ![](images/icons/volatility.svg) 波动率策略类 (Volatility)
+| 策略名称 | 文件 | 简介 |
+|---------|------|------|
+| 波动率突破 | `VolatilityBreakout.cs` | 布林带宽度Squeeze检测+ATR扩张确认的波动率突破策略，波动率从低位急剧扩张时顺势入场 |
+| 波动率均值回归 | `VolatilityMeanReversion.cs` | 基于历史波动率百分位排名的交易策略，高波动率时逆向均值回归、低波动率时等待突破 |
+| 波动率锥 | `VolatilityCone.cs` | 多时间窗口(短/中/长)波动率分位数分析，多周期一致性极端信号产生高置信度交易机会 |
+| 波动率自适应趋势 | `VolatilityAdaptiveTrend.cs` | 基于Kaufman自适应均线(KAMA)，根据波动率水平动态调整趋势参数和止损距离 |
+
 #### ![](images/icons/grid.svg) 网格交易类 (Grid)
 | 策略名称 | 文件 | 简介 |
 |---------|------|------|
 | 网格交易 | `GridTrading.cs` | 经典网格交易策略，支持动态网格（ATR自适应间距） |
+| 马丁格尔网格 | `MartingaleGrid.cs` | 马丁格尔加仓网格策略，价格每下跌一格加倍手数买入，回到均价止盈，设最大层数和总体止损保护 |
+| 趋势网格 | `TrendGrid.cs` | EMA趋势判断+网格交易，上升趋势仅做多网格、下降趋势仅做空网格，趋势反转时自动切换方向 |
+| 无限网格 | `InfinityGrid.cs` | 等比例(几何)网格策略，每格按固定百分比递增，每格等额投资，适合长期运行的宽幅波动品种 |
 
 #### ![](images/icons/ml.svg) 机器学习类 (MachineLearning)
 | 策略名称 | 文件 | 简介 |

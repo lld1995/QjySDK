@@ -32,6 +32,7 @@
   - [Quantitative Factors (Quant)](#quantitative-factors-quant)
   - [Resonance Strategies (Resonance)](#resonance-strategies-resonance)
   - [Arbitrage Strategies (Arbitrage)](#arbitrage-strategies-arbitrage)
+  - [Volatility Strategies (Volatility)](#volatility-strategies-volatility)
   - [Grid Trading (Grid)](#grid-trading-grid)
   - [Machine Learning (MachineLearning)](#machine-learning-machinelearning)
 - [Client Feature Demos](#client-feature-demos)
@@ -166,10 +167,21 @@ The SDK includes a rich set of quantitative trading strategies, categorized as f
 | Mean Reversion Basket | `MeanReversionBasket.cs` | Builds winner/loser baskets by return ranking, bets on reversal when divergence is excessive, based on short-term reversal effect (Jegadeesh & Titman) |
 | Cointegration Arbitrage | `CointegrationArbitrage.cs` | Engle-Granger two-step method, OLS regression for optimal hedge ratio, residual stationarity test + variance ratio test |
 
+#### ![](images/icons/volatility.svg) Volatility Strategies (Volatility)
+| Strategy Name | File | Description |
+|--------------|------|-------------|
+| Volatility Breakout | `VolatilityBreakout.cs` | Bollinger Band Width Squeeze detection + ATR expansion confirmation, enters on trend when volatility expands sharply from low levels |
+| Volatility Mean Reversion | `VolatilityMeanReversion.cs` | Trading based on historical volatility percentile ranking, contrarian mean reversion at high volatility, breakout at low volatility |
+| Volatility Cone | `VolatilityCone.cs` | Multi-window (short/mid/long) volatility percentile analysis, high-confidence signals when multiple timeframes show consistent extremes |
+| Volatility Adaptive Trend | `VolatilityAdaptiveTrend.cs` | Kaufman Adaptive Moving Average (KAMA) based, dynamically adjusts trend parameters and stop-loss distance based on volatility level |
+
 #### ![](images/icons/grid.svg) Grid Trading (Grid)
 | Strategy Name | File | Description |
 |--------------|------|-------------|
 | Grid Trading | `GridTrading.cs` | Classic grid trading, supports dynamic grid (ATR adaptive spacing) |
+| Martingale Grid | `MartingaleGrid.cs` | Martingale position sizing grid, doubles lot size on each grid level down, takes profit at average price, with max layers and total stop-loss protection |
+| Trend Grid | `TrendGrid.cs` | EMA trend detection + grid trading, long-only grid in uptrends, short-only grid in downtrends, auto-switches on trend reversal |
+| Infinity Grid | `InfinityGrid.cs` | Geometric (proportional) grid strategy, each level spaced by fixed percentage, equal investment per grid, ideal for wide-ranging volatile assets |
 
 #### ![](images/icons/ml.svg) Machine Learning (MachineLearning)
 | Strategy Name | File | Description |
