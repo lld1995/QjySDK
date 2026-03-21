@@ -59,17 +59,17 @@ namespace QjySDK.Stg
             sd.ArgDic["residualZPeriod"] = 40;
 
             sd.ArgDescDic["updateInterval"] = new ArgDesc { Text = "更新间隔", Explain = "每隔多少根K线重新计算hedge ratio(0=每根都算)" };
-            sd.ArgDic["updateInterval"] = 5;
+            sd.ArgDic["updateInterval"] = 3;
 
             // ==================== Z-Score阈值 ====================
             sd.ArgDescDic["entryZScore"] = new ArgDesc { Text = "入场Z-Score", Explain = "残差Z-Score绝对值超过此值入场" };
             sd.ArgDic["entryZScore"] = 2.0;
 
             sd.ArgDescDic["exitZScore"] = new ArgDesc { Text = "出场Z-Score", Explain = "残差Z-Score绝对值低于此值出场" };
-            sd.ArgDic["exitZScore"] = 0.5;
+            sd.ArgDic["exitZScore"] = 0.3;
 
             sd.ArgDescDic["stopLossZScore"] = new ArgDesc { Text = "止损Z-Score", Explain = "残差Z-Score绝对值超过此值止损" };
-            sd.ArgDic["stopLossZScore"] = 3.5;
+            sd.ArgDic["stopLossZScore"] = 2.5;
 
             // ==================== 协整过滤参数 ====================
             sd.ArgDescDic["maxHalfLife"] = new ArgDesc { Text = "最大半衰期", Explain = "残差半衰期超过此值不交易(回归太慢)" };
@@ -89,10 +89,10 @@ namespace QjySDK.Stg
 
             // ==================== 风控参数 ====================
             sd.ArgDescDic["confirmBars"] = new ArgDesc { Text = "确认K线数", Explain = "连续N根K线信号一致才入场" };
-            sd.ArgDic["confirmBars"] = 2;
+            sd.ArgDic["confirmBars"] = 1;
 
             sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "超过此数量强制平仓" };
-            sd.ArgDic["maxHoldBars"] = 50;
+            sd.ArgDic["maxHoldBars"] = 15;
 
             sd.ArgDescDic["useTimeDecay"] = new ArgDesc { Text = "时间衰减", Explain = "1=持仓越久出场阈值越宽松 0=固定" };
             sd.ArgDic["useTimeDecay"] = 1;

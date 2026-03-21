@@ -46,8 +46,8 @@ namespace QjySDK.Stg
 			sd.ArgDic["rankLookback"] = 252;
 
 			// 信号阈值
-			sd.ArgDic["extremeHighPct"] = 90.0;
-			sd.ArgDic["extremeLowPct"] = 10.0;
+			sd.ArgDic["extremeHighPct"] = 85.0;
+			sd.ArgDic["extremeLowPct"] = 15.0;
 
 			// 均线
 			sd.ArgDic["smaPeriod"] = 50;
@@ -55,8 +55,8 @@ namespace QjySDK.Stg
 
 			// 止损止盈
 			sd.ArgDic["atrPeriod"] = 14;
-			sd.ArgDic["stopLossAtr"] = 2.5;
-			sd.ArgDic["takeProfitAtr"] = 3.0;
+			sd.ArgDic["stopLossAtr"] = 2.0;
+			sd.ArgDic["takeProfitAtr"] = 4.0;
 
 			// 交易模式
 			sd.ArgDic["mode"] = 0;

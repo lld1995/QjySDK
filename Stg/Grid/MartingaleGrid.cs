@@ -39,12 +39,12 @@ namespace QjySDK.Stg
 
 			// 网格参数
 			sd.ArgDic["gridPercent"] = 2.0m;
-			sd.ArgDic["maxLayers"] = 5;
-			sd.ArgDic["multiplier"] = 1.5;
+			sd.ArgDic["maxLayers"] = 3;
+			sd.ArgDic["multiplier"] = 1.2;
 
 			// 止盈止损
 			sd.ArgDic["takeProfitPercent"] = 1.5m;
-			sd.ArgDic["totalStopLossPercent"] = 15.0m;
+			sd.ArgDic["totalStopLossPercent"] = 8.0m;
 
 			// 方向
 			sd.ArgDic["direction"] = 0;
@@ -56,7 +56,7 @@ namespace QjySDK.Stg
 			sd.ArgDic["money"] = 10000m;
 
 			// 冷却
-			sd.ArgDic["cooldownBars"] = 0;
+			sd.ArgDic["cooldownBars"] = 3;
 
 			sd.ArgDescDic["gridPercent"] = new ArgDesc() { Text = "网格间距%", Explain = "每层加仓的价格间距百分比" };
 			sd.ArgDescDic["maxLayers"] = new ArgDesc() { Text = "最大加仓层数", Explain = "最多加仓次数，防止无限加仓" };

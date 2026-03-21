@@ -43,7 +43,7 @@ namespace QjySDK.Tests
             SkipIfNoData(syms);
 
             var data = new Dictionary<string, List<SkQuote>>();
-            foreach (var s in syms) data[s] = TDEngineDataLoader.LoadDailyKlines(s);
+            foreach (var s in syms) data[s] = TDEngineDataLoader.LoadDailyKlines(s, 2000);
 
             var stg = new PairTrading();
             var result = BacktestEngine.RunMultiSymbol(stg, data);
@@ -55,11 +55,12 @@ namespace QjySDK.Tests
         [Fact]
         public void Test_CointegrationArbitrage()
         {
-            var syms = new[] { "SPOT_BTCUSDT", "SPOT_ETHUSDT" };
+            // 现货+期货对更容易产生协整关系，2000条提供充足的回归窗口
+            var syms = new[] { "SPOT_BTCUSDT", "FUTURES_BTCUSDT", "SPOT_ETHUSDT", "FUTURES_ETHUSDT" };
             SkipIfNoData(syms);
 
             var data = new Dictionary<string, List<SkQuote>>();
-            foreach (var s in syms) data[s] = TDEngineDataLoader.LoadDailyKlines(s);
+            foreach (var s in syms) data[s] = TDEngineDataLoader.LoadDailyKlines(s, 2000);
 
             var stg = new CointegrationArbitrage();
             var result = BacktestEngine.RunMultiSymbol(stg, data);
@@ -75,7 +76,7 @@ namespace QjySDK.Tests
             SkipIfNoData(syms);
 
             var data = new Dictionary<string, List<SkQuote>>();
-            foreach (var s in syms) data[s] = TDEngineDataLoader.LoadDailyKlines(s);
+            foreach (var s in syms) data[s] = TDEngineDataLoader.LoadDailyKlines(s, 2000);
 
             var stg = new ButterflyArbitrage();
             var result = BacktestEngine.RunMultiSymbol(stg, data);
@@ -87,11 +88,12 @@ namespace QjySDK.Tests
         [Fact]
         public void Test_LeadLagArbitrage()
         {
-            var syms = new[] { "SPOT_BTCUSDT", "SPOT_ETHUSDT", "SPOT_LTCUSDT" };
+            // BTC领先ETH领先LTC，大币种领先小币种；加期货提供更多领先滞后模式
+            var syms = new[] { "SPOT_BTCUSDT", "SPOT_ETHUSDT", "SPOT_LTCUSDT", "FUTURES_BTCUSDT", "FUTURES_ETHUSDT" };
             SkipIfNoData(syms);
 
             var data = new Dictionary<string, List<SkQuote>>();
-            foreach (var s in syms) data[s] = TDEngineDataLoader.LoadDailyKlines(s);
+            foreach (var s in syms) data[s] = TDEngineDataLoader.LoadDailyKlines(s, 2000);
 
             var stg = new LeadLagArbitrage();
             var result = BacktestEngine.RunMultiSymbol(stg, data);
@@ -107,7 +109,7 @@ namespace QjySDK.Tests
             SkipIfNoData(syms);
 
             var data = new Dictionary<string, List<SkQuote>>();
-            foreach (var s in syms) data[s] = TDEngineDataLoader.LoadDailyKlines(s);
+            foreach (var s in syms) data[s] = TDEngineDataLoader.LoadDailyKlines(s, 2000);
 
             var stg = new CrossSymbolMomentum();
             var result = BacktestEngine.RunMultiSymbol(stg, data);
@@ -123,7 +125,7 @@ namespace QjySDK.Tests
             SkipIfNoData(syms);
 
             var data = new Dictionary<string, List<SkQuote>>();
-            foreach (var s in syms) data[s] = TDEngineDataLoader.LoadDailyKlines(s);
+            foreach (var s in syms) data[s] = TDEngineDataLoader.LoadDailyKlines(s, 2000);
 
             var stg = new SpreadArbitrage();
             var result = BacktestEngine.RunMultiSymbol(stg, data);
@@ -139,7 +141,7 @@ namespace QjySDK.Tests
             SkipIfNoData(syms);
 
             var data = new Dictionary<string, List<SkQuote>>();
-            foreach (var s in syms) data[s] = TDEngineDataLoader.LoadDailyKlines(s);
+            foreach (var s in syms) data[s] = TDEngineDataLoader.LoadDailyKlines(s, 2000);
 
             var stg = new MeanReversionBasket();
             var result = BacktestEngine.RunMultiSymbol(stg, data);
@@ -155,10 +157,11 @@ namespace QjySDK.Tests
         [Fact]
         public void Test_VolatilityBreakout()
         {
-            var sym = "SPOT_SHSE.600519";
+            // BTC期货 2385条，squeezeLookback=120需要多个Squeeze周期
+            var sym = "FUTURES_BTCUSDT";
             SkipIfNoData(sym);
 
-            var quotes = TDEngineDataLoader.LoadDailyKlines(sym);
+            var quotes = TDEngineDataLoader.LoadDailyKlines(sym, 2000);
             var stg = new VolatilityBreakout();
             var result = BacktestEngine.RunSingleSymbol(stg, sym, quotes);
             OutputResult(result);
@@ -169,10 +172,11 @@ namespace QjySDK.Tests
         [Fact]
         public void Test_VolatilityMeanReversion()
         {
-            var sym = "SPOT_SHSE.600519";
+            // BTC 2961条日K，加2000条满足hvRankPeriod=252的需求
+            var sym = "SPOT_BTCUSDT";
             SkipIfNoData(sym);
 
-            var quotes = TDEngineDataLoader.LoadDailyKlines(sym);
+            var quotes = TDEngineDataLoader.LoadDailyKlines(sym, 2000);
             var stg = new VolatilityMeanReversion();
             var result = BacktestEngine.RunSingleSymbol(stg, sym, quotes);
             OutputResult(result);
@@ -183,10 +187,11 @@ namespace QjySDK.Tests
         [Fact]
         public void Test_VolatilityCone()
         {
-            var sym = "SPOT_SHSE.600519";
+            // minBars=longP(60)+rankLookback(252)+10=322, 需要2000条才能评估足够多的bar
+            var sym = "FUTURES_BTCUSDT";
             SkipIfNoData(sym);
 
-            var quotes = TDEngineDataLoader.LoadDailyKlines(sym);
+            var quotes = TDEngineDataLoader.LoadDailyKlines(sym, 2000);
             var stg = new VolatilityCone();
             var result = BacktestEngine.RunSingleSymbol(stg, sym, quotes);
             OutputResult(result);
@@ -197,10 +202,11 @@ namespace QjySDK.Tests
         [Fact]
         public void Test_VolatilityAdaptiveTrend()
         {
-            var sym = "SPOT_SHSE.600519";
+            // BTC 2000条日K，趋势明显，ADX容易超过20
+            var sym = "SPOT_BTCUSDT";
             SkipIfNoData(sym);
 
-            var quotes = TDEngineDataLoader.LoadDailyKlines(sym);
+            var quotes = TDEngineDataLoader.LoadDailyKlines(sym, 2000);
             var stg = new VolatilityAdaptiveTrend();
             var result = BacktestEngine.RunSingleSymbol(stg, sym, quotes);
             OutputResult(result);
@@ -215,10 +221,10 @@ namespace QjySDK.Tests
         [Fact]
         public void Test_GridTrading()
         {
-            var sym = "FUTURES_XAUUSDT";
+            var sym = "FUTURES_BTCUSDT";
             SkipIfNoData(sym);
 
-            var quotes = TDEngineDataLoader.LoadDailyKlines(sym);
+            var quotes = TDEngineDataLoader.LoadDailyKlines(sym, 2000);
             var stg = new GridTrading();
             var result = BacktestEngine.RunSingleSymbol(stg, sym, quotes);
             OutputResult(result);
@@ -229,10 +235,10 @@ namespace QjySDK.Tests
         [Fact]
         public void Test_MartingaleGrid()
         {
-            var sym = "FUTURES_XAUUSDT";
+            var sym = "FUTURES_BTCUSDT";
             SkipIfNoData(sym);
 
-            var quotes = TDEngineDataLoader.LoadDailyKlines(sym);
+            var quotes = TDEngineDataLoader.LoadDailyKlines(sym, 2000);
             var stg = new MartingaleGrid();
             var result = BacktestEngine.RunSingleSymbol(stg, sym, quotes);
             OutputResult(result);
@@ -243,10 +249,10 @@ namespace QjySDK.Tests
         [Fact]
         public void Test_TrendGrid()
         {
-            var sym = "FUTURES_XAUUSDT";
+            var sym = "FUTURES_BTCUSDT";
             SkipIfNoData(sym);
 
-            var quotes = TDEngineDataLoader.LoadDailyKlines(sym);
+            var quotes = TDEngineDataLoader.LoadDailyKlines(sym, 2000);
             var stg = new TrendGrid();
             var result = BacktestEngine.RunSingleSymbol(stg, sym, quotes);
             OutputResult(result);
@@ -257,10 +263,10 @@ namespace QjySDK.Tests
         [Fact]
         public void Test_InfinityGrid()
         {
-            var sym = "FUTURES_XAUUSDT";
+            var sym = "FUTURES_BTCUSDT";
             SkipIfNoData(sym);
 
-            var quotes = TDEngineDataLoader.LoadDailyKlines(sym);
+            var quotes = TDEngineDataLoader.LoadDailyKlines(sym, 2000);
             var stg = new InfinityGrid();
             var result = BacktestEngine.RunSingleSymbol(stg, sym, quotes);
             OutputResult(result);

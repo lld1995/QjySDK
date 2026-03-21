@@ -56,14 +56,14 @@ namespace QjySDK.Stg
             sd.ArgDic["correlationPeriod"] = 60;
 
             sd.ArgDescDic["minLeadCorrelation"] = new ArgDesc { Text = "最小领先相关系数", Explain = "滞后相关系数低于此值不视为有效领先关系" };
-            sd.ArgDic["minLeadCorrelation"] = 0.3;
+            sd.ArgDic["minLeadCorrelation"] = 0.2;
 
             sd.ArgDescDic["minLeadAdvantage"] = new ArgDesc { Text = "最小领先优势", Explain = "滞后相关系数需比同期相关系数高出此值" };
-            sd.ArgDic["minLeadAdvantage"] = 0.1;
+            sd.ArgDic["minLeadAdvantage"] = 0.05;
 
             // ==================== 信号参数 ====================
             sd.ArgDescDic["signalThreshold"] = new ArgDesc { Text = "信号阈值", Explain = "领先品种收益率Z-Score超过此值触发信号" };
-            sd.ArgDic["signalThreshold"] = 1.5;
+            sd.ArgDic["signalThreshold"] = 1.0;
 
             sd.ArgDescDic["returnPeriod"] = new ArgDesc { Text = "收益率周期", Explain = "计算领先品种变化率的K线间隔" };
             sd.ArgDic["returnPeriod"] = 1;

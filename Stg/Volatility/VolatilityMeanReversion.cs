@@ -42,21 +42,22 @@ namespace QjySDK.Stg
 			sd.ArgDic["hvRankPeriod"] = 252;
 
 			// 百分位阈值
-			sd.ArgDic["highVolPercentile"] = 90.0;
-			sd.ArgDic["lowVolPercentile"] = 10.0;
+			sd.ArgDic["highVolPercentile"] = 85.0;
+			sd.ArgDic["lowVolPercentile"] = 15.0;
 
 			// RSI参数
 			sd.ArgDic["rsiPeriod"] = 14;
-			sd.ArgDic["rsiOverbought"] = 70.0;
-			sd.ArgDic["rsiOversold"] = 30.0;
+			sd.ArgDic["rsiOverbought"] = 75.0;
+			sd.ArgDic["rsiOversold"] = 25.0;
 
 			// 均线回归参数
 			sd.ArgDic["smaPeriod"] = 20;
+			sd.ArgDic["maxSmaDeviation"] = 3.0;
 
 			// 止损止盈
 			sd.ArgDic["atrPeriod"] = 14;
-			sd.ArgDic["stopLossAtr"] = 2.0;
-			sd.ArgDic["takeProfitAtr"] = 2.5;
+			sd.ArgDic["stopLossAtr"] = 1.5;
+			sd.ArgDic["takeProfitAtr"] = 3.5;
 
 			// 交易模式
 			sd.ArgDic["mode"] = 0;
@@ -74,7 +75,8 @@ namespace QjySDK.Stg
 			sd.ArgDescDic["rsiPeriod"] = new ArgDesc() { Text = "RSI周期", Explain = "RSI指标计算周期" };
 			sd.ArgDescDic["rsiOverbought"] = new ArgDesc() { Text = "RSI超买", Explain = "RSI超买线" };
 			sd.ArgDescDic["rsiOversold"] = new ArgDesc() { Text = "RSI超卖", Explain = "RSI超卖线" };
-			sd.ArgDescDic["smaPeriod"] = new ArgDesc() { Text = "均线周期", Explain = "均值回归目标均线周期" };
+			sd.ArgDescDic["smaPeriod"] = new ArgDesc() { Text = "均线周期", Explain = "均线回归目标的SMA周期" };
+			sd.ArgDescDic["maxSmaDeviation"] = new ArgDesc() { Text = "最大均线偏离%", Explain = "价格偏离SMA超过此ATR倍数时不做均值回归(趋势太强)" };
 			sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期" };
 			sd.ArgDescDic["stopLossAtr"] = new ArgDesc() { Text = "止损ATR倍数", Explain = "止损距离=ATR*此倍数" };
 			sd.ArgDescDic["takeProfitAtr"] = new ArgDesc() { Text = "止盈ATR倍数", Explain = "止盈距离=ATR*此倍数" };
@@ -231,8 +233,11 @@ namespace QjySDK.Stg
 
 			if (s.Status == 0)
 			{
-				// 高波动率 + RSI极端 → 逆向均值回归交易
-				if (percentile >= highVolPct)
+				double maxSmaDev = (double)ArgDic["maxSmaDeviation"];
+				double smaDeviation = Math.Abs((double)q.Close - sma.Sma.Value) / atr.Atr.Value;
+
+				// 高波动率 + RSI极端 + 偏离不过大 → 逆向均值回归交易
+				if (percentile >= highVolPct && smaDeviation <= maxSmaDev)
 				{
 					if (mode != 2 && rsi.Rsi.Value <= rsiOS && q.Close < (decimal)sma.Sma.Value)
 					{

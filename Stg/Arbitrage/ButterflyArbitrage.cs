@@ -72,7 +72,7 @@ namespace QjySDK.Stg
             sd.ArgDic["exitZScore"] = 0.5;
 
             sd.ArgDescDic["stopLossZScore"] = new ArgDesc { Text = "止损Z-Score", Explain = "蝶式价差Z-Score绝对值超过此值止损" };
-            sd.ArgDic["stopLossZScore"] = 3.5;
+            sd.ArgDic["stopLossZScore"] = 2.5;
 
             // ==================== 过滤参数 ====================
             sd.ArgDescDic["minCorrelation"] = new ArgDesc { Text = "最小相关系数", Explain = "三品种两两相关系数最小值" };
@@ -88,11 +88,11 @@ namespace QjySDK.Stg
             sd.ArgDic["maxHalfLife"] = 50;
 
             sd.ArgDescDic["confirmBars"] = new ArgDesc { Text = "确认K线数", Explain = "连续N根K线偏离才入场" };
-            sd.ArgDic["confirmBars"] = 2;
+            sd.ArgDic["confirmBars"] = 1;
 
             // ==================== 风控参数 ====================
             sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "超过此数量强制平仓" };
-            sd.ArgDic["maxHoldBars"] = 40;
+            sd.ArgDic["maxHoldBars"] = 20;
 
             sd.ArgDescDic["useTimeDecay"] = new ArgDesc { Text = "时间衰减", Explain = "1=持仓越久出场阈值越宽松 0=固定" };
             sd.ArgDic["useTimeDecay"] = 1;

@@ -41,12 +41,13 @@ namespace QjySDK.Stg
 			sd.ArgDic["bbStdDev"] = 2.0;
 
 			// Squeeze检测参数
-			sd.ArgDic["squeezeLookback"] = 120;
-			sd.ArgDic["squeezeThreshold"] = 0.8;
+			sd.ArgDic["squeezeLookback"] = 60;
+			sd.ArgDic["squeezeThreshold"] = 1.2;
+			sd.ArgDic["squeezeGraceBars"] = 5;
 
 			// ATR参数
 			sd.ArgDic["atrPeriod"] = 14;
-			sd.ArgDic["atrExpansionRatio"] = 1.2;
+			sd.ArgDic["atrExpansionRatio"] = 1.1;
 
 			// 止损止盈
 			sd.ArgDic["atrStopMultiplier"] = 2.0;
@@ -67,6 +68,7 @@ namespace QjySDK.Stg
 			sd.ArgDescDic["bbStdDev"] = new ArgDesc() { Text = "布林带标准差", Explain = "布林带标准差倍数" };
 			sd.ArgDescDic["squeezeLookback"] = new ArgDesc() { Text = "Squeeze回溯期", Explain = "检测BBW最低值的回溯周期" };
 			sd.ArgDescDic["squeezeThreshold"] = new ArgDesc() { Text = "Squeeze阈值", Explain = "BBW低于历史最低值*此倍数判定为Squeeze" };
+			sd.ArgDescDic["squeezeGraceBars"] = new ArgDesc() { Text = "Squeeze缓冲K线", Explain = "Squeeze结束后允许多少根K线内触发突破" };
 			sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期" };
 			sd.ArgDescDic["atrExpansionRatio"] = new ArgDesc() { Text = "ATR扩张比", Explain = "当前ATR/前一ATR超过此值确认扩张" };
 			sd.ArgDescDic["atrStopMultiplier"] = new ArgDesc() { Text = "ATR止损倍数", Explain = "止损距离=ATR*此倍数" };
@@ -100,6 +102,7 @@ namespace QjySDK.Stg
 			public decimal HighSinceEntry { get; set; }
 			public decimal LowSinceEntry { get; set; }
 			public bool WasSqueeze { get; set; }
+			public int SqueezeEndBars { get; set; }
 			public decimal Num { get; set; }
 		}
 
@@ -194,16 +197,26 @@ namespace QjySDK.Stg
 			decimal num = CalcNum(tu, q.Close);
 			decimal atrVal = (decimal)atr.Atr.Value;
 
+			int squeezeGraceBars = (int)ArgDic["squeezeGraceBars"];
+
 			if (s.Status == 0)
 			{
 				// 记录Squeeze状态
 				if (isSqueeze)
 				{
 					s.WasSqueeze = true;
+					s.SqueezeEndBars = 0;
 				}
 
-				// Squeeze结束 + ATR扩张 + 价格突破布林带
-				if (s.WasSqueeze && !isSqueeze && atrExpanding)
+				// Squeeze结束后计数
+				if (s.WasSqueeze && !isSqueeze)
+				{
+					s.SqueezeEndBars++;
+				}
+
+				// Squeeze结束(缓冲期内) + ATR扩张 + 价格突破布林带
+				bool inGrace = s.WasSqueeze && !isSqueeze && s.SqueezeEndBars <= squeezeGraceBars;
+				if (inGrace && atrExpanding)
 				{
 					if (mode != 2 && q.Close > (decimal)bb.UpperBand.Value)
 					{
@@ -233,10 +246,11 @@ namespace QjySDK.Stg
 					}
 				}
 
-				// 长时间无突破则重置Squeeze状态
-				if (s.WasSqueeze && !isSqueeze && !atrExpanding)
+				// 超过缓冲期仍无突破则重置Squeeze状态
+				if (s.WasSqueeze && !isSqueeze && s.SqueezeEndBars > squeezeGraceBars)
 				{
 					s.WasSqueeze = false;
+					s.SqueezeEndBars = 0;
 				}
 			}
 			else if (s.Status == 1)

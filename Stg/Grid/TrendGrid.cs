@@ -41,10 +41,11 @@ namespace QjySDK.Stg
 			// 趋势判断
 			sd.ArgDic["fastEmaPeriod"] = 20;
 			sd.ArgDic["slowEmaPeriod"] = 60;
+			sd.ArgDic["trendGapPercent"] = 1.0;
 
 			// 网格参数
 			sd.ArgDic["gridPercent"] = 2.0m;
-			sd.ArgDic["gridCount"] = 4;
+			sd.ArgDic["gridCount"] = 3;
 			sd.ArgDic["sendMode"] = 0;
 
 			// 动态网格
@@ -58,10 +59,11 @@ namespace QjySDK.Stg
 
 			// 止损
 			sd.ArgDic["useStopLoss"] = 1;
-			sd.ArgDic["stopLossPercent"] = 8.0m;
+			sd.ArgDic["stopLossPercent"] = 6.0m;
 
 			sd.ArgDescDic["fastEmaPeriod"] = new ArgDesc() { Text = "快EMA周期", Explain = "趋势判断快速均线" };
 			sd.ArgDescDic["slowEmaPeriod"] = new ArgDesc() { Text = "慢EMA周期", Explain = "趋势判断慢速均线" };
+			sd.ArgDescDic["trendGapPercent"] = new ArgDesc() { Text = "趋势确认间距%", Explain = "快EMA与慢EMA差距超过慢EMA的此百分比才确认趋势，低于则为中性区" };
 			sd.ArgDescDic["gridPercent"] = new ArgDesc() { Text = "网格间距%", Explain = "每格价格变动百分比" };
 			sd.ArgDescDic["gridCount"] = new ArgDesc() { Text = "网格数量", Explain = "单方向网格层数" };
 			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
@@ -198,14 +200,22 @@ namespace QjySDK.Stg
 			Plot("main", "FastEMA", PlotType.LINE, fastEma.Ema);
 			Plot("main", "SlowEMA", PlotType.LINE, slowEma.Ema);
 
-			int newTrend = fastEma.Ema.Value > slowEma.Ema.Value ? 1 : 2;
+			double trendGapPct = (double)ArgDic["trendGapPercent"] / 100.0;
+			double emaGap = (fastEma.Ema.Value - slowEma.Ema.Value) / slowEma.Ema.Value;
+			int newTrend;
+			if (emaGap > trendGapPct) newTrend = 1;       // 明确上升趋势
+			else if (emaGap < -trendGapPct) newTrend = 2;  // 明确下降趋势
+			else newTrend = 0;                              // 中性区，不交易
 
-			// 趋势反转 → 清仓重建
+			// 趋势反转或进入中性区 → 清仓
 			if (s.Trend != 0 && s.Trend != newTrend)
 			{
 				CloseAllPositions(s, tu, q, period, sendMode);
 			}
 			s.Trend = newTrend;
+
+			// 中性区不建网格
+			if (newTrend == 0) return;
 
 			// 初始化网格
 			if (!s.Initialized)

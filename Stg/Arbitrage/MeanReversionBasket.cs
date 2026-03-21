@@ -70,18 +70,18 @@ namespace QjySDK.Stg
             sd.ArgDic["exitZScore"] = 0.3;
 
             sd.ArgDescDic["stopLossZScore"] = new ArgDesc { Text = "止损Z-Score", Explain = "分化度Z-Score超过此值止损" };
-            sd.ArgDic["stopLossZScore"] = 3.5;
+            sd.ArgDic["stopLossZScore"] = 2.5;
 
             // ==================== 确认与过滤 ====================
             sd.ArgDescDic["confirmBars"] = new ArgDesc { Text = "确认K线数", Explain = "连续N根K线分化度超阈值才入场" };
-            sd.ArgDic["confirmBars"] = 2;
+            sd.ArgDic["confirmBars"] = 1;
 
             sd.ArgDescDic["minRankStability"] = new ArgDesc { Text = "最小排名稳定度", Explain = "近N根K线排名不变化的比例(0-1)，太不稳定不入场" };
             sd.ArgDic["minRankStability"] = 0.5;
 
             // ==================== 风控参数 ====================
             sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "超过此数量强制平仓" };
-            sd.ArgDic["maxHoldBars"] = 20;
+            sd.ArgDic["maxHoldBars"] = 15;
 
             sd.ArgDescDic["useTimeDecay"] = new ArgDesc { Text = "时间衰减", Explain = "1=持仓越久出场阈值越宽松 0=固定" };
             sd.ArgDic["useTimeDecay"] = 1;
