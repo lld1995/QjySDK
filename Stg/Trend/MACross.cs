@@ -88,11 +88,13 @@ namespace QjySDK.Stg
                 var num = CalculateLots(tu, q);
                 if (!prevFastAbove && currFastAbove)
                 {
+                    Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, num, period, 0);
                     Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, 0);
                 }
                 else if (prevFastAbove && !currFastAbove)
                 {
                     Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, num, period, 0);
+                    Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, 0);
                 }
             }
 

@@ -117,7 +117,7 @@ namespace QjySDK.Stg
 					num = (int)(num * 1000) / 1000.0m;
 				else
 					num = (int)num;
-				return Math.Max(num, 1m);
+				return Math.Max(num, 0.001m);
 			}
 			return (decimal)ArgDic["lots"];
 		}
@@ -235,7 +235,7 @@ namespace QjySDK.Stg
 							lots = (int)(lots * 1000) / 1000.0m;
 						else
 							lots = (int)lots;
-						lots = Math.Max(lots, 1m);
+						lots = Math.Max(lots, 0.001m);
 
 						AddLayer(s, q.Close, lots);
 						Trade(tu.MktSymbol, OrderType.BUY, q.Close, lots, period, sendMode);
@@ -273,7 +273,7 @@ namespace QjySDK.Stg
 							lots = (int)(lots * 1000) / 1000.0m;
 						else
 							lots = (int)lots;
-						lots = Math.Max(lots, 1m);
+						lots = Math.Max(lots, 0.001m);
 
 						AddLayer(s, q.Close, lots);
 						Trade(tu.MktSymbol, OrderType.SELL, q.Close, lots, period, sendMode);

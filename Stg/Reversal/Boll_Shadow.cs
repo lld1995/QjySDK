@@ -1,4 +1,4 @@
-﻿using Common;
+using Common;
 using Model;
 using Skender.Stock.Indicators;
 using stgInterface;
@@ -195,21 +195,7 @@ namespace QjySDK.Stg
 									status = 1;
 								}
 							}
-							if (status == 0)
-							{
 
-							}
-							else
-							{
-								if (q.Close > qlp.Close)
-								{
-									status = 1;
-								}
-								else
-								{
-									status = 2;
-								}
-							}
 						}
 						else
 						{

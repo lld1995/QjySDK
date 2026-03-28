@@ -1,4 +1,4 @@
-﻿using Common;
+using Common;
 using Model;
 using OpenAI.Graders;
 using stgInterface;
@@ -64,6 +64,12 @@ namespace QjySDK.Stg
 
         public void Trade(string mktSymbol, OrderType ot, decimal price, decimal num, Period p, int sendMode)
         {
+            if (ArgDic != null && ArgDic.ContainsKey("mode"))
+            {
+                int mode = Convert.ToInt32(ArgDic["mode"]);
+                if (mode == 1 && (ot == OrderType.SELL || ot == OrderType.BUY_TO_COVER)) return;
+                if (mode == 2 && (ot == OrderType.BUY || ot == OrderType.SELL_TO_COVER)) return;
+            }
             var isSame = false;
             foreach (var item in _rtr)
             {
