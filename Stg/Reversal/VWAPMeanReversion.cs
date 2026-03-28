@@ -1,4 +1,4 @@
-using Common;
+﻿using Common;
 using Model;
 using Skender.Stock.Indicators;
 using stgInterface;
