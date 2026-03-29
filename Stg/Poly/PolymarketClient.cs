@@ -231,7 +231,7 @@ namespace QjySDK.Stg
             return result;
         }
 
-        public async Task<RedeemResult> RedeemPositionsAsync(string conditionId, bool isNegRisk = false)
+        public async Task<RedeemResult> RedeemPositionsAsync(string conditionId, BigInteger[] indexSets, bool isNegRisk = false)
         {
             if (string.IsNullOrWhiteSpace(_privateKey))
                 throw new InvalidOperationException("PolymarketService is not initialized");
@@ -255,7 +255,6 @@ namespace QjySDK.Stg
                 var parentCollectionId = new byte[32];
                 var hexStr = conditionId.StartsWith("0x") ? conditionId.Substring(2) : conditionId;
                 var conditionIdBytes = Convert.FromHexString(hexStr);
-                var indexSets = new BigInteger[] { 1, 2 };
 
                 var txHash = await redeemFunc.SendTransactionAsync(
                     account.Address,
@@ -272,6 +271,74 @@ namespace QjySDK.Stg
             {
                 return new RedeemResult { Success = false, Message = ex.Message };
             }
+        }
+
+        private BigInteger[] GetWinningIndexSets(PolymarketGammaMarket market, string[] jobTokenIds, Dictionary<string, BigInteger> balances)
+        {
+            var winningIndexSets = new List<BigInteger>();
+            var clobTokenIds = market.ClobTokenIds;
+            var outcomePrices = market.OutcomePrices;
+
+            if (clobTokenIds == null || outcomePrices == null)
+                return Array.Empty<BigInteger>();
+
+            for (int i = 0; i < clobTokenIds.Length && i < outcomePrices.Length; i++)
+            {
+                var tokenId = clobTokenIds[i];
+                if (string.IsNullOrWhiteSpace(tokenId)) continue;
+
+                // outcome price > 0 means this side won (1 = full win)
+                if (outcomePrices[i] <= 0) continue;
+
+                // check user holds this token
+                if (balances.TryGetValue(tokenId, out var bal) && bal > 0)
+                {
+                    // index set: outcome 0 -> 1 (binary 01), outcome 1 -> 2 (binary 10)
+                    winningIndexSets.Add(new BigInteger(1 << i));
+                }
+            }
+
+            return winningIndexSets.ToArray();
+        }
+
+        private async Task<Dictionary<string, BigInteger>> CheckTokenBalances(string[] tokenIds)
+        {
+            var result = new Dictionary<string, BigInteger>();
+            if (string.IsNullOrWhiteSpace(_privateKey) || tokenIds.Length == 0)
+                return result;
+
+            try
+            {
+                var account = new Account(_privateKey, 137);
+                var handler = new System.Net.Http.HttpClientHandler
+                {
+                    Proxy = new System.Net.WebProxy(PROXY_URL),
+                    UseProxy = true
+                };
+                var httpClient = new System.Net.Http.HttpClient(handler);
+                var rpcClient = new RpcClient(new Uri(POLYGON_RPC), httpClient);
+                var web3 = new Web3(account, rpcClient);
+
+                var contract = web3.Eth.GetContract(BALANCE_OF_ABI, CTF_ADDRESS);
+                var balanceOfFunc = contract.GetFunction("balanceOf");
+
+                foreach (var tokenId in tokenIds)
+                {
+                    if (string.IsNullOrWhiteSpace(tokenId)) continue;
+                    try
+                    {
+                        var tokenIdBig = BigInteger.Parse(tokenId);
+                        var balance = await balanceOfFunc.CallAsync<BigInteger>(account.Address, tokenIdBig);
+                        result[tokenId] = balance;
+                    }
+                    catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PolyRedeem] Balance check error: {ex.Message}");
+            }
+            return result;
         }
 
         // ═══════════════════════════════════════════
@@ -335,16 +402,13 @@ namespace QjySDK.Stg
                     }
 
                     // Check if market is settled via Gamma API
-                    var markets = _restClient!.GammaApi.GetMarketsAsync(conditionIds: new[] { job.ConditionId })
+                    var marketsResp = _restClient!.GammaApi.GetMarketsAsync(conditionIds: new[] { job.ConditionId })
                         .GetAwaiter().GetResult();
-                    bool isClosed = false;
-                    if (markets.Success && markets.Data != null)
-                    {
-                        var market = markets.Data.FirstOrDefault(m => m.ConditionId == job.ConditionId);
-                        isClosed = market?.Closed ?? false;
-                    }
+                    PolymarketGammaMarket? settledMarket = null;
+                    if (marketsResp.Success && marketsResp.Data != null)
+                        settledMarket = marketsResp.Data.FirstOrDefault(m => m.ConditionId == job.ConditionId);
 
-                    if (!isClosed)
+                    if (settledMarket == null || !settledMarket.Closed)
                     {
                         // Not settled yet, put back and wait
                         _redeemQueue.Enqueue(job);
@@ -353,18 +417,20 @@ namespace QjySDK.Stg
                         continue;
                     }
 
-                    // Market is settled — check on-chain balance
-                    var hasBalance = CheckOnChainBalance(job.TokenIds).GetAwaiter().GetResult();
-                    if (!hasBalance)
+                    // Market is settled — determine winning index sets
+                    var winningIndexSets = GetWinningIndexSets(settledMarket, job.TokenIds,
+                        CheckTokenBalances(job.TokenIds).GetAwaiter().GetResult());
+
+                    if (winningIndexSets.Length == 0)
                     {
-                        Console.WriteLine($"[PolyRedeem] {job.ConditionId[..10]}... no on-chain balance, skip.");
+                        Console.WriteLine($"[PolyRedeem] {job.ConditionId[..10]}... no winning position or no balance, skip.");
                         continue;
                     }
 
                     // Try redeem: CTF first, then NegRisk fallback
-                    var result = RedeemPositionsAsync(job.ConditionId, isNegRisk: false).GetAwaiter().GetResult();
+                    var result = RedeemPositionsAsync(job.ConditionId, winningIndexSets, isNegRisk: false).GetAwaiter().GetResult();
                     if (!result.Success)
-                        result = RedeemPositionsAsync(job.ConditionId, isNegRisk: true).GetAwaiter().GetResult();
+                        result = RedeemPositionsAsync(job.ConditionId, winningIndexSets, isNegRisk: true).GetAwaiter().GetResult();
 
                     if (result.Success)
                         Console.WriteLine($"[PolyRedeem] OK: {job.ConditionId[..10]}... tx={result.TransactionHash}");
