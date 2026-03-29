@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Channels;
 
 namespace QjySDK.Stg
 {
@@ -21,12 +22,19 @@ namespace QjySDK.Stg
         private Dictionary<string, TableUnit> _tuDic = new Dictionary<string, TableUnit>();
         private Dictionary<string, TaskCompletionSource<Symbol>> _pendingGetSymbol = new Dictionary<string, TaskCompletionSource<Symbol>>();
         private Dictionary<string, string> _lastFinalBarHashDic = new Dictionary<string, string>();
+        private readonly Channel<List<RemoteCall>> _rcChannel = Channel.CreateUnbounded<List<RemoteCall>>();
 
         private static readonly int[] ReconnectDelays = { 3000, 5000, 10000, 30000 };
 
         public SimpleTcpClient(StgBase sb)
         {
             _sb = sb;
+            var t = new Thread(() => RcConsumerLoop().Wait())
+            {
+                IsBackground = true,
+                Name = "RcConsumer"
+            };
+            t.Start();
         }
 
         public void SetStartMessage(string message)
@@ -88,79 +96,7 @@ namespace QjySDK.Stg
                         if (nt == EnumDef.NotifyType.REMOTE_CALL)
                         {
                             var rcList = dic["data"].ToString().ToJsonObj<List<RemoteCall>>();
-                            ThreadPool.QueueUserWorkItem(async o =>
-                            {
-                                try
-                                {
-                                    foreach (var rc in rcList)
-                                    {
-                                        if (rc.Name == "OnBar")
-                                        {
-                                            var mktSymbol = rc.ArgList[0].ToString();
-                                            var period = Enum.Parse<EnumDef.Period>(rc.ArgList[1].ToString());
-                                            var q = ((JsonElement)rc.ArgList[2]).ToJsonObj<SkQuote>();
-                                            var isFinal = ((JsonElement)rc.ArgList[3]).GetBoolean();
-                                            var tableName = Tools.GetTableName(Tools.GetSP(mktSymbol, period));
-                                            TableUnit tu = null;
-                                            if (_tuDic.ContainsKey(tableName))
-                                            {
-                                                tu = _tuDic[tableName];
-                                            }
-                                            else
-                                            {
-                                                tu = new TableUnit();
-                                                tu.QuoteList = new List<SkQuote>();
-                                                tu.MktSymbol = mktSymbol;
-                                                tu.Period = period;
-                                                _tuDic[tableName] = tu;
-                                            }
-                                            if (isFinal)
-                                            {
-                                                var qHash = BuildFinalBarHash(mktSymbol, period, isFinal, q);
-                                                if (_lastFinalBarHashDic.TryGetValue(tableName, out var lastHash) && lastHash == qHash)
-                                                {
-                                                    continue;
-                                                }
-                                                _lastFinalBarHashDic[tableName] = qHash;
-                                                tu.QuoteList.Add(q);
-                                            }
-                                            _sb.OnBar(period, tu, isFinal, q);
-                                        }
-                                        else if (rc.Name == "OnGlobalIndicator")
-                                        {
-                                            _sb.OnGlobalIndicator(_tuDic.Values.ToList());
-                                        }
-                                        else if (rc.Name == "OnPeriodEnd")
-                                        {
-                                            var mktSymbol = rc.ArgList[0].ToString();
-                                            var period = Enum.Parse<EnumDef.Period>(rc.ArgList[1].ToString());
-                                            var q = ((JsonElement)rc.ArgList[2]).ToJsonObj<SkQuote>();
-                                            _sb.OnPeriodEnd(period, q, mktSymbol);
-                                        }
-                                        else if (rc.Name == "OnSendOrder")
-                                        {
-                                            var mktSymbol = rc.ArgList[0].ToString();
-                                            var period = Enum.Parse<EnumDef.Period>(rc.ArgList[1].ToString());
-                                            var price = ((JsonElement)rc.ArgList[2]).GetDecimal();
-                                            var tableName = Tools.GetTableName(Tools.GetSP(mktSymbol, period));
-                                            TableUnit tu = null;
-                                            if (_tuDic.ContainsKey(tableName))
-                                            {
-                                                tu = _tuDic[tableName];
-                                                _sb.OnSendOrder(tu, price);
-                                            }
-                                        }
-                                    }
-                                }
-                                catch (Exception e)
-                                {
-                                    Console.WriteLine(e);
-                                }
-                                finally { 
-                                    await _sb.PushAndClear();
-								}
-							});
-                           
+                            await _rcChannel.Writer.WriteAsync(rcList);
                         }
                         else if (nt == EnumDef.NotifyType.STG)
                         {
@@ -279,6 +215,7 @@ namespace QjySDK.Stg
         public void Close()
         {
             _disposed = true;
+            _rcChannel.Writer.TryComplete();
             if (_isConnected)
             {
                 _isConnected = false;
@@ -287,6 +224,83 @@ namespace QjySDK.Stg
                 try { _client?.Close(); } catch { }
             }
             Console.WriteLine("客户端已关闭");
+        }
+
+        private async Task RcConsumerLoop()
+        {
+            await foreach (var rcList in _rcChannel.Reader.ReadAllAsync())
+            {
+                try
+                {
+                    foreach (var rc in rcList)
+                    {
+                        if (rc.Name == "OnBar")
+                        {
+                            var mktSymbol = rc.ArgList[0].ToString();
+                            var period = Enum.Parse<EnumDef.Period>(rc.ArgList[1].ToString());
+                            var q = ((JsonElement)rc.ArgList[2]).ToJsonObj<SkQuote>();
+                            var isFinal = ((JsonElement)rc.ArgList[3]).GetBoolean();
+                            var tableName = Tools.GetTableName(Tools.GetSP(mktSymbol, period));
+                            TableUnit tu = null;
+                            if (_tuDic.ContainsKey(tableName))
+                            {
+                                tu = _tuDic[tableName];
+                            }
+                            else
+                            {
+                                tu = new TableUnit();
+                                tu.QuoteList = new List<SkQuote>();
+                                tu.MktSymbol = mktSymbol;
+                                tu.Period = period;
+                                _tuDic[tableName] = tu;
+                            }
+                            if (isFinal)
+                            {
+                                var qHash = BuildFinalBarHash(mktSymbol, period, isFinal, q);
+                                if (_lastFinalBarHashDic.TryGetValue(tableName, out var lastHash) && lastHash == qHash)
+                                {
+                                    continue;
+                                }
+                                _lastFinalBarHashDic[tableName] = qHash;
+                                tu.QuoteList.Add(q);
+                            }
+                            _sb.OnBar(period, tu, isFinal, q);
+                        }
+                        else if (rc.Name == "OnGlobalIndicator")
+                        {
+                            _sb.OnGlobalIndicator(_tuDic.Values.ToList());
+                        }
+                        else if (rc.Name == "OnPeriodEnd")
+                        {
+                            var mktSymbol = rc.ArgList[0].ToString();
+                            var period = Enum.Parse<EnumDef.Period>(rc.ArgList[1].ToString());
+                            var q = ((JsonElement)rc.ArgList[2]).ToJsonObj<SkQuote>();
+                            _sb.OnPeriodEnd(period, q, mktSymbol);
+                        }
+                        else if (rc.Name == "OnSendOrder")
+                        {
+                            var mktSymbol = rc.ArgList[0].ToString();
+                            var period = Enum.Parse<EnumDef.Period>(rc.ArgList[1].ToString());
+                            var price = ((JsonElement)rc.ArgList[2]).GetDecimal();
+                            var tableName = Tools.GetTableName(Tools.GetSP(mktSymbol, period));
+                            TableUnit tu = null;
+                            if (_tuDic.ContainsKey(tableName))
+                            {
+                                tu = _tuDic[tableName];
+                                _sb.OnSendOrder(tu, price);
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+                finally
+                {
+                    await _sb.PushAndClear();
+                }
+            }
         }
 
         private static string BuildFinalBarHash(string mktSymbol, EnumDef.Period period, bool isFinal, SkQuote q)
