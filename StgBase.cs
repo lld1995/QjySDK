@@ -25,6 +25,7 @@ namespace QjySDK.Stg
 		public abstract StgDesc GetStgDesc();
 		protected Dictionary<string, object> ArgDic { get; set; }
 		public string Id;
+        public bool IsBacktest { get; set; } = true;
         private SimpleTcpClient _stc = null;
 
         private List<RemoteTradeRecord> _rtr = new List<RemoteTradeRecord>();
@@ -142,7 +143,9 @@ namespace QjySDK.Stg
             dic["oper"] = "start";
             dic["id"] = Id;
             dic["sd"] = sd;
-            await _stc.SendMessageAsync(dic.ToJson());
+            var startMsg = dic.ToJson();
+            _stc.SetStartMessage(startMsg);
+            await _stc.SendMessageAsync(startMsg);
         }
     }
 }
