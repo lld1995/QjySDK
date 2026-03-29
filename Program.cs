@@ -5,7 +5,7 @@ using QjySDK.Stg;
 GlobalDef.Init();
 
 {
-    var sd = new ElliottWave("3a24200de12547f18ee0588cee46f4a4");
+    var sd = new PolyRsiAdx("1d1563c4a9d2425c9de8f538ae8ee393");
     await sd.Run();
     
     Console.ReadLine();
