@@ -30,6 +30,7 @@ namespace QjySDK.Stg
 
         private List<RemoteTradeRecord> _rtr = new List<RemoteTradeRecord>();
         private List<PlotRecord> _pr = new List<PlotRecord>();
+        private Dictionary<string, Symbol> _symbolCache = new Dictionary<string, Symbol>();
 
         public virtual void OnSendOrder(TableUnit tu, decimal price)
         {
@@ -121,7 +122,11 @@ namespace QjySDK.Stg
 
         public Symbol GetSymbol(string mktSymbol)
         {
-            return GetSymbolAsync(mktSymbol).GetAwaiter().GetResult();
+            if (_symbolCache.TryGetValue(mktSymbol, out var cached))
+                return cached;
+            var sym = GetSymbolAsync(mktSymbol).GetAwaiter().GetResult();
+            _symbolCache[mktSymbol] = sym;
+            return sym;
         }
 
         public async Task Run()
