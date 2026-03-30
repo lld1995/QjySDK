@@ -13,6 +13,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -236,8 +237,18 @@ namespace QjySDK.Stg
             if (string.IsNullOrWhiteSpace(_privateKey))
                 throw new InvalidOperationException("PolymarketService is not initialized");
 
+            var sourceName = isNegRisk ? "NegRisk" : "CTF";
             try
             {
+                var hexStr = conditionId.StartsWith("0x") ? conditionId.Substring(2) : conditionId;
+                var conditionIdBytes = Convert.FromHexString(hexStr);
+
+                // Step 1: Pre-check if condition is resolved on-chain
+                var preCheckError = await PreCheckConditionResolved(hexStr);
+                if (preCheckError != null)
+                    return new RedeemResult { Success = false, Message = preCheckError };
+
+                // Step 2: Send on-chain transaction
                 var account = new Account(_privateKey, 137);
                 var handler = new System.Net.Http.HttpClientHandler
                 {
@@ -253,8 +264,6 @@ namespace QjySDK.Stg
                 var redeemFunc = contract.GetFunction("redeemPositions");
 
                 var parentCollectionId = new byte[32];
-                var hexStr = conditionId.StartsWith("0x") ? conditionId.Substring(2) : conditionId;
-                var conditionIdBytes = Convert.FromHexString(hexStr);
 
                 var txHash = await redeemFunc.SendTransactionAsync(
                     account.Address,
@@ -265,12 +274,76 @@ namespace QjySDK.Stg
                     conditionIdBytes,
                     indexSets);
 
-                return new RedeemResult { Success = true, TransactionHash = txHash };
+                // Step 3: Wait for receipt
+                var receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(txHash);
+                int waitCount = 0;
+                while (receipt == null && waitCount < 20)
+                {
+                    await Task.Delay(2000);
+                    receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(txHash);
+                    waitCount++;
+                }
+
+                if (receipt == null)
+                    return new RedeemResult { Success = false, TransactionHash = txHash, Message = $"{sourceName}: 已提交但未确认(超时)" };
+
+                if (receipt.Status.Value == 1)
+                    return new RedeemResult { Success = true, TransactionHash = txHash };
+                else
+                    return new RedeemResult { Success = false, TransactionHash = txHash, Message = $"{sourceName}: 交易链上 revert" };
             }
             catch (Exception ex)
             {
-                return new RedeemResult { Success = false, Message = ex.Message };
+                return new RedeemResult { Success = false, Message = $"{sourceName}: {ex.Message}" };
             }
+        }
+
+        // Pre-check: query CTF.payoutDenominator(conditionId) to verify condition is resolved on-chain.
+        // If payoutDenominator == 0, oracle hasn't reported results yet → skip redemption.
+        private async Task<string?> PreCheckConditionResolved(string conditionIdHex)
+        {
+            using var httpClient = new System.Net.Http.HttpClient();
+            httpClient.Timeout = TimeSpan.FromSeconds(10);
+
+            var calldata = "0xdd34de67" + conditionIdHex.ToLowerInvariant();
+            var rpcBody = Newtonsoft.Json.JsonConvert.SerializeObject(new
+            {
+                jsonrpc = "2.0",
+                method = "eth_call",
+                @params = new object[] {
+                    new { to = CTF_ADDRESS, data = calldata, gas = "0x30D40" },
+                    "latest"
+                },
+                id = 1
+            });
+
+            for (int attempt = 0; attempt < 2; attempt++)
+            {
+                try
+                {
+                    var resp = await httpClient.PostAsync(POLYGON_RPC,
+                        new System.Net.Http.StringContent(rpcBody, Encoding.UTF8, "application/json"));
+                    var json = await resp.Content.ReadAsStringAsync();
+                    var obj = Newtonsoft.Json.Linq.JObject.Parse(json);
+
+                    if (obj["error"] != null)
+                        return "预检RPC错误";
+
+                    var result = obj["result"]?.ToString() ?? "0x";
+                    var cleaned = result.StartsWith("0x") ? result.Substring(2) : result;
+                    cleaned = cleaned.TrimStart('0');
+                    if (string.IsNullOrEmpty(cleaned) || cleaned == "0")
+                        return "oracle 尚未报告结果(payoutDenominator=0)";
+
+                    return null; // condition is resolved, can redeem
+                }
+                catch
+                {
+                    if (attempt == 0) { await Task.Delay(1000); continue; }
+                    return "预检网络错误(跳过以保护nonce)";
+                }
+            }
+            return "预检网络错误(跳过以保护nonce)";
         }
 
         private BigInteger[] GetWinningIndexSets(PolymarketGammaMarket market, string[] jobTokenIds, Dictionary<string, BigInteger> balances)

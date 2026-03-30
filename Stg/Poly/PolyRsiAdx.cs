@@ -301,6 +301,10 @@ namespace QjySDK.Stg
                 return false;
             if (remainSeconds > 1 * 60 && price.Value * 100m >= 85m)
                 return false;
+            if(price.Value * 100m >= 90m)
+            {
+                return false;
+            }
 
             if (isLongSignal)
             {

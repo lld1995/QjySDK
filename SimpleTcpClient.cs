@@ -42,11 +42,6 @@ namespace QjySDK.Stg
             _startMessage = message;
         }
 
-        public void SetStartMessage(string message)
-        {
-            _startMessage = message;
-        }
-
         public async Task ConnectAsync(string ip,int port)
         {
             _ip = ip;
