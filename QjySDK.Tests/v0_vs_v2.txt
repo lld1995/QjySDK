@@ -1,0 +1,111 @@
+生成启动时间为 2026/4/3 13:39:58。
+E:\project\qjy\QjySdk\QjySDK.Tests\bin\Debug\net9.0\QjySDK.Tests.dll (.NETCoreApp,Version=v9.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+E:\project\qjy\QjySdk\QjySDK.Tests\bin\Debug\net9.0\QjySDK.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 9.0.14)
+[xUnit.net 00:00:00.13]   Discovering: QjySDK.Tests
+[xUnit.net 00:00:00.19]   Discovered:  QjySDK.Tests
+[xUnit.net 00:00:00.19]   Starting:    QjySDK.Tests
+[SymbolLoader] FUTURES_BTCUSDT �� multiplier=1.000, margin_ratio=1.000, symbol_type=1
+[SymbolLoader] FUTURES_ETHUSDT �� multiplier=1.000, margin_ratio=1.000, symbol_type=1
+[SymbolLoader] FUTURES_XAUUSDT �� multiplier=1.000, margin_ratio=1.000, symbol_type=1
+[SymbolLoader] SPOT_SZSE.000001 �� multiplier=100.000, margin_ratio=1.000, symbol_type=2
+[SymbolLoader] SPOT_SHSE.510300 �� multiplier=100.000, margin_ratio=1.000, symbol_type=2
+[SymbolLoader] FUTURES_SHFE.au2605 �� multiplier=1000.000, margin_ratio=0.190, symbol_type=3
+[SymbolLoader] FUTURES_DCE.c2605 �� multiplier=10.000, margin_ratio=0.070, symbol_type=3
+[xUnit.net 00:06:48.49]   Finished:    QjySDK.Tests
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_V0_vs_V2 [6 m 48 s]
+  标准输出消息:
+ ========== V0(无优化) vs V2(当前) 对比 ==========
+ 
+[DATA] COIN_FUTURES_BTCUSDT TIME_1D K线数:365
+   [V0-ChanLun] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V2-ChanLun] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V0-ChanLunBi] 交易:1 胜率:0.0% 收益:-4291.04 回撤:4291.04 夏普:0.0000 盈亏比:0.00
+   [V2-ChanLunBi] 交易:2 胜率:50.0% 收益:-780.05 回撤:849.94 夏普:-9.5191 盈亏比:0.08
+ 
+[DATA] COIN_FUTURES_BTCUSDT TIME_15M K线数:8640
+   [V0-ChanLun] 交易:17 胜率:47.1% 收益:-694.54 回撤:2285.77 夏普:-1.1409 盈亏比:0.94
+   [V2-ChanLun] 交易:19 胜率:31.6% 收益:-2318.67 回撤:2363.76 夏普:-6.2346 盈亏比:0.79
+   [V0-ChanLunBi] 交易:32 胜率:43.8% 收益:1915.15 回撤:2669.77 夏普:2.0976 盈亏比:1.86
+   [V2-ChanLunBi] 交易:36 胜率:33.3% 收益:449.22 回撤:1057.49 夏普:0.6214 盈亏比:2.21
+ 
+[DATA] COIN_FUTURES_ETHUSDT TIME_1D K线数:365
+   [V0-ChanLun] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V2-ChanLun] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V0-ChanLunBi] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V2-ChanLunBi] 交易:3 胜率:66.7% 收益:1249.02 回撤:827.45 夏普:6.0471 盈亏比:1.25
+ 
+[DATA] COIN_FUTURES_ETHUSDT TIME_15M K线数:8640
+   [V0-ChanLun] 交易:13 胜率:7.7% 收益:-5238.08 回撤:6971.82 夏普:-5.5964 盈亏比:4.41
+   [V2-ChanLun] 交易:15 胜率:20.0% 收益:-3058.88 回撤:3666.67 夏普:-8.4914 盈亏比:1.21
+   [V0-ChanLunBi] 交易:27 胜率:29.6% 收益:-4264.75 回撤:5556.92 夏普:-3.6047 盈亏比:1.09
+   [V2-ChanLunBi] 交易:31 胜率:32.3% 收益:-1019.85 回撤:3705.94 夏普:-1.1750 盈亏比:1.74
+ 
+[DATA] COIN_FUTURES_XAUUSDT TIME_1D K线数:113
+   [V0-ChanLun] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V2-ChanLun] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V0-ChanLunBi] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V2-ChanLunBi] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+ 
+[DATA] COIN_FUTURES_XAUUSDT TIME_15M K线数:8640
+   [V0-ChanLun] 交易:15 胜率:60.0% 收益:3009.03 回撤:1022.30 夏普:5.6953 盈亏比:1.89
+   [V2-ChanLun] 交易:18 胜率:61.1% 收益:3707.29 回撤:530.64 夏普:6.7022 盈亏比:2.22
+   [V0-ChanLunBi] 交易:29 胜率:65.5% 收益:3818.35 回撤:574.97 夏普:7.9919 盈亏比:2.93
+   [V2-ChanLunBi] 交易:28 胜率:46.4% 收益:472.46 回撤:1688.63 夏普:0.8122 盈亏比:1.37
+ 
+[DATA] STOCK_SPOT_SZSE.000001 TIME_1D K线数:365
+   [V0-ChanLun] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V2-ChanLun] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V0-ChanLunBi] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V2-ChanLunBi] 交易:1 胜率:0.0% 收益:-2.79 回撤:2.79 夏普:0.0000 盈亏比:0.00
+ 
+[DATA] STOCK_SPOT_SZSE.000001 TIME_15M K线数:6080
+   [V0-ChanLun] 交易:11 胜率:45.5% 收益:-6.56 回撤:8.80 夏普:-4.9032 盈亏比:0.44
+   [V2-ChanLun] 交易:5 胜率:60.0% 收益:10.42 回撤:2.38 夏普:10.0182 盈亏比:3.59
+   [V0-ChanLunBi] 交易:12 胜率:41.7% 收益:7.38 回撤:17.48 夏普:1.3154 盈亏比:1.83
+   [V2-ChanLunBi] 交易:12 胜率:50.0% 收益:-2.71 回撤:12.51 夏普:-0.7267 盈亏比:0.88
+ 
+[DATA] STOCK_SPOT_SHSE.510300 TIME_1D K线数:365
+   [V0-ChanLun] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V2-ChanLun] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V0-ChanLunBi] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V2-ChanLunBi] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+ 
+[DATA] STOCK_SPOT_SHSE.510300 TIME_15M K线数:6107
+   [V0-ChanLun] 交易:5 胜率:60.0% 收益:19.35 回撤:4.48 夏普:6.7727 盈亏比:3.55
+   [V2-ChanLun] 交易:7 胜率:71.4% 收益:10.96 回撤:9.17 夏普:4.6345 盈亏比:0.88
+   [V0-ChanLunBi] 交易:25 胜率:40.0% 收益:-26.82 回撤:31.95 夏普:-3.1238 盈亏比:0.71
+   [V2-ChanLunBi] 交易:26 胜率:34.6% 收益:-26.57 回撤:28.86 夏普:-3.4641 盈亏比:0.82
+ [SKIP] FUTURES_FUTURES_SHFE.au2605 TIME_1D 数据不足
+ 
+[DATA] FUTURES_FUTURES_SHFE.au2605 TIME_15M K线数:1042
+   [V0-ChanLun] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V2-ChanLun] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V0-ChanLunBi] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V2-ChanLunBi] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+ 
+[DATA] FUTURES_FUTURES_DCE.c2605 TIME_1D K线数:193
+   [V0-ChanLun] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V2-ChanLun] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V0-ChanLunBi] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+   [V2-ChanLunBi] 交易:0 胜率:0.0% 收益:0.00 回撤:0.00 夏普:0.0000 盈亏比:0.00
+ 
+[DATA] FUTURES_FUTURES_DCE.c2605 TIME_15M K线数:4885
+   [V0-ChanLun] 交易:8 胜率:50.0% 收益:-204.00 回撤:426.00 夏普:-2.4105 盈亏比:0.68
+   [V2-ChanLun] 交易:9 胜率:55.6% 收益:492.00 回撤:294.00 夏普:3.9117 盈亏比:1.62
+   [V0-ChanLunBi] 交易:5 胜率:40.0% 收益:-1554.00 回撤:1680.00 夏普:-10.3871 盈亏比:0.12
+   [V2-ChanLunBi] 交易:6 胜率:33.3% 收益:-1020.00 回撤:1146.00 夏普:-9.3431 盈亏比:0.23
+
+
+
+测试运行成功。
+测试总数: 1
+     通过数: 1
+总时间: 6.8254 分钟
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:06:50.99

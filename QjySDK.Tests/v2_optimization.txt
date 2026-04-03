@@ -1,0 +1,84 @@
+生成启动时间为 2026/4/2 17:13:04。
+E:\project\qjy\QjySdk\QjySDK.Tests\bin\Debug\net9.0\QjySDK.Tests.dll (.NETCoreApp,Version=v9.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 9.0.14)
+[xUnit.net 00:00:00.16]   Discovering: QjySDK.Tests
+[xUnit.net 00:00:00.27]   Discovered:  QjySDK.Tests
+[xUnit.net 00:00:00.29]   Starting:    QjySDK.Tests
+[SymbolLoader] FUTURES_XAUUSDT �� multiplier=1.000, margin_ratio=1.000, symbol_type=1
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_15M(rawSymbol: "COIN_FUTURES_XAUUSDT", limit: 8640) [26 s]
+[SymbolLoader] SPOT_SHSE.510300 �� multiplier=100.000, margin_ratio=1.000, symbol_type=2
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_15M(rawSymbol: "STOCK_SPOT_SHSE.510300", limit: 8640) [10 s]
+[SymbolLoader] FUTURES_SHFE.au2605 �� multiplier=1000.000, margin_ratio=0.190, symbol_type=3
+[SymbolLoader] SPOT_SZSE.000001 �� multiplier=100.000, margin_ratio=1.000, symbol_type=2
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_15M(rawSymbol: "FUTURES_FUTURES_SHFE.au2605", limit: 8640) [476 ms]
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_15M(rawSymbol: "STOCK_SPOT_SZSE.000001", limit: 8640) [8 s]
+[SymbolLoader] FUTURES_ETHUSDT �� multiplier=1.000, margin_ratio=1.000, symbol_type=1
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_15M(rawSymbol: "COIN_FUTURES_ETHUSDT", limit: 8640) [25 s]
+[SymbolLoader] FUTURES_BTCUSDT �� multiplier=1.000, margin_ratio=1.000, symbol_type=1
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_15M(rawSymbol: "COIN_FUTURES_BTCUSDT", limit: 8640) [25 s]
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(rawSymbol: "COIN_FUTURES_ETHUSDT", limit: 365) [521 ms]
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(rawSymbol: "STOCK_SPOT_SZSE.000001", limit: 365) [715 ms]
+[xUnit.net 00:01:40.21]     QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(rawSymbol: "FUTURES_FUTURES_SHFE.au2605", limit: 365) [FAIL]
+[xUnit.net 00:01:40.21]       [SKIP] 标的 FUTURES_FUTURES_SHFE.au2605 周期 TIME_1D 数据不足 60 条
+[xUnit.net 00:01:40.21]       Stack Trace:
+[xUnit.net 00:01:40.21]         E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs(38,0): at QjySDK.Tests.ChanLunBacktestTests.SkipIfNoData(String rawSymbol, Period period, Int32 minBars)
+[xUnit.net 00:01:40.21]         E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs(119,0): at QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(String rawSymbol, Int32 limit)
+[xUnit.net 00:01:40.21]            at InvokeStub_ChanLunBacktestTests.Test_ChanLunBi_1D(Object, Span`1)
+[xUnit.net 00:01:40.21]            at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(rawSymbol: "STOCK_SPOT_SHSE.510300", limit: 365) [759 ms]
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(rawSymbol: "COIN_FUTURES_XAUUSDT", limit: 365) [307 ms]
+  失败 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(rawSymbol: "FUTURES_FUTURES_SHFE.au2605", limit: 365) [176 ms]
+  错误消息:
+   [SKIP] 标的 FUTURES_FUTURES_SHFE.au2605 周期 TIME_1D 数据不足 60 条
+  堆栈跟踪:
+     at QjySDK.Tests.ChanLunBacktestTests.SkipIfNoData(String rawSymbol, Period period, Int32 minBars) in E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs:line 38
+   at QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(String rawSymbol, Int32 limit) in E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs:line 119
+   at InvokeStub_ChanLunBacktestTests.Test_ChanLunBi_1D(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(rawSymbol: "COIN_FUTURES_BTCUSDT", limit: 365) [543 ms]
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(rawSymbol: "COIN_FUTURES_XAUUSDT", limit: 365) [301 ms]
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(rawSymbol: "STOCK_SPOT_SZSE.000001", limit: 365) [754 ms]
+[xUnit.net 00:01:42.67]     QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(rawSymbol: "FUTURES_FUTURES_SHFE.au2605", limit: 365) [FAIL]
+[xUnit.net 00:01:42.67]       [SKIP] 标的 FUTURES_FUTURES_SHFE.au2605 周期 TIME_1D 数据不足 60 条
+[xUnit.net 00:01:42.67]       Stack Trace:
+[xUnit.net 00:01:42.67]         E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs(38,0): at QjySDK.Tests.ChanLunBacktestTests.SkipIfNoData(String rawSymbol, Period period, Int32 minBars)
+[xUnit.net 00:01:42.67]         E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs(81,0): at QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(String rawSymbol, Int32 limit)
+[xUnit.net 00:01:42.67]            at InvokeStub_ChanLunBacktestTests.Test_ChanLun_1D(Object, Span`1)
+[xUnit.net 00:01:42.67]            at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(rawSymbol: "STOCK_SPOT_SHSE.510300", limit: 365) [731 ms]
+  失败 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(rawSymbol: "FUTURES_FUTURES_SHFE.au2605", limit: 365) [138 ms]
+  错误消息:
+   [SKIP] 标的 FUTURES_FUTURES_SHFE.au2605 周期 TIME_1D 数据不足 60 条
+  堆栈跟踪:
+     at QjySDK.Tests.ChanLunBacktestTests.SkipIfNoData(String rawSymbol, Period period, Int32 minBars) in E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs:line 38
+   at QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(String rawSymbol, Int32 limit) in E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs:line 81
+   at InvokeStub_ChanLunBacktestTests.Test_ChanLun_1D(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(rawSymbol: "COIN_FUTURES_ETHUSDT", limit: 365) [587 ms]
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(rawSymbol: "COIN_FUTURES_BTCUSDT", limit: 365) [513 ms]
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_15M(rawSymbol: "FUTURES_FUTURES_SHFE.au2605", limit: 8640) [494 ms]
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_15M(rawSymbol: "COIN_FUTURES_ETHUSDT", limit: 8640) [22 s]
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_15M(rawSymbol: "COIN_FUTURES_BTCUSDT", limit: 8640) [24 s]
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_15M(rawSymbol: "STOCK_SPOT_SHSE.510300", limit: 8640) [12 s]
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_15M(rawSymbol: "COIN_FUTURES_XAUUSDT", limit: 8640) [26 s]
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_15M(rawSymbol: "STOCK_SPOT_SZSE.000001", limit: 8640) [12 s]
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_Diagnose_ZhongShu_Structure [31 s]
+[xUnit.net 00:06:57.94]   Finished:    QjySDK.Tests
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_Baseline_All [3 m 5 s]
+
+测试运行失败。
+测试总数: 26
+     通过数: 24
+     失败数: 2
+总时间: 6.9763 分钟
+     1>项目“E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj”在节点 1 上(VSTest 个目标)。
+     1>_VSTestConsole:
+         MSB4181: “VSTestTask”任务返回了 false，但未记录错误。
+     1>已完成生成项目“E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj”(VSTest 个目标)的操作 - 失败。
+
+生成失败。
+    0 个警告
+    0 个错误
+
+已用时间 00:06:59.50

@@ -1,0 +1,443 @@
+E:\project\qjy\QjySdk\QjySDK.Tests\bin\Debug\net9.0\QjySDK.Tests.dll (.NETCoreApp,Version=v9.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+E:\project\qjy\QjySdk\QjySDK.Tests\bin\Debug\net9.0\QjySDK.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 9.0.14)
+[xUnit.net 00:00:00.09]   Discovering: QjySDK.Tests
+[xUnit.net 00:00:00.14]   Discovered:  QjySDK.Tests
+[xUnit.net 00:00:00.15]   Starting:    QjySDK.Tests
+[SymbolLoader] FUTURES_BTCUSDT �� multiplier=1.000, margin_ratio=1.000, symbol_type=1
+[SymbolLoader] FUTURES_ETHUSDT �� multiplier=1.000, margin_ratio=1.000, symbol_type=1
+[SymbolLoader] FUTURES_XAUUSDT �� multiplier=1.000, margin_ratio=1.000, symbol_type=1
+[SymbolLoader] SPOT_SZSE.000001 �� multiplier=100.000, margin_ratio=1.000, symbol_type=2
+[SymbolLoader] SPOT_SHSE.510300 �� multiplier=100.000, margin_ratio=1.000, symbol_type=2
+[SymbolLoader] FUTURES_SHFE.au2605 �� multiplier=1000.000, margin_ratio=0.190, symbol_type=3
+[SymbolLoader] FUTURES_DCE.c2605 �� multiplier=10.000, margin_ratio=0.070, symbol_type=3
+[xUnit.net 00:03:20.63]   Finished:    QjySDK.Tests
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_Baseline_All [3 m 20 s]
+  标准输出消息:
+ ========== 缠论策略基准测试 ==========
+ 
+ [ChanLun] COIN_FUTURES_BTCUSDT TIME_1D 加载了 365 根K线
+ 
+ ========== ChanLun ==========
+ 品种: FUTURES_BTCUSDT
+ 周期: TIME_1D
+ K线数: 365
+ 交易次数: 0
+ 胜: 0  负: 0
+ 胜率: 0.0%
+ 总收益: 0.00
+ 最大回撤: 0.00
+ 平均盈利: 0.00  平均亏损: 0.00
+ 盈亏比: 0.00
+ 夏普率: 0.0000
+ 买卖点统计: Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=1
+ ====================================
+ [ChanLunBi] COIN_FUTURES_BTCUSDT TIME_1D 加载了 365 根K线
+ 
+ ========== ChanLunBi ==========
+ 品种: FUTURES_BTCUSDT
+ 周期: TIME_1D
+ K线数: 365
+ 交易次数: 4
+ 胜: 2  负: 2
+ 胜率: 50.0%
+ 总收益: -1047.94
+ 最大回撤: 1353.20
+ 平均盈利: 152.63  平均亏损: -676.60
+ 盈亏比: 0.23
+ 夏普率: -8.2553
+ 买卖点统计: Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=1 Sell3=4
+ ====================================
+ [ChanLun] COIN_FUTURES_BTCUSDT TIME_15M 加载了 8640 根K线
+ 
+ ========== ChanLun ==========
+ 品种: FUTURES_BTCUSDT
+ 周期: TIME_15M
+ K线数: 8640
+ 交易次数: 20
+ 胜: 7  负: 13
+ 胜率: 35.0%
+ 总收益: -1999.62
+ 最大回撤: 1999.62
+ 平均盈利: 177.91  平均亏损: -249.62
+ 盈亏比: 0.71
+ 夏普率: -5.9378
+ 买卖点统计: Buy1=11 Sell1=7 Buy2=49 Sell2=24 Buy3=56 Sell3=50
+ ====================================
+ [ChanLunBi] COIN_FUTURES_BTCUSDT TIME_15M 加载了 8640 根K线
+ 
+ ========== ChanLunBi ==========
+ 品种: FUTURES_BTCUSDT
+ 周期: TIME_15M
+ K线数: 8640
+ 交易次数: 54
+ 胜: 20  负: 34
+ 胜率: 37.0%
+ 总收益: 215.46
+ 最大回撤: 2008.81
+ 平均盈利: 310.06  平均亏损: -176.05
+ 盈亏比: 1.76
+ 夏普率: 0.2218
+ 买卖点统计: Buy1=22 Sell1=14 Buy2=59 Sell2=58 Buy3=70 Sell3=74
+ ====================================
+ [ChanLun] COIN_FUTURES_ETHUSDT TIME_1D 加载了 365 根K线
+ 
+ ========== ChanLun ==========
+ 品种: FUTURES_ETHUSDT
+ 周期: TIME_1D
+ K线数: 365
+ 交易次数: 0
+ 胜: 0  负: 0
+ 胜率: 0.0%
+ 总收益: 0.00
+ 最大回撤: 0.00
+ 平均盈利: 0.00  平均亏损: 0.00
+ 盈亏比: 0.00
+ 夏普率: 0.0000
+ 买卖点统计: Buy1=7 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=6
+ ====================================
+ [ChanLunBi] COIN_FUTURES_ETHUSDT TIME_1D 加载了 365 根K线
+ 
+ ========== ChanLunBi ==========
+ 品种: FUTURES_ETHUSDT
+ 周期: TIME_1D
+ K线数: 365
+ 交易次数: 4
+ 胜: 3  负: 1
+ 胜率: 75.0%
+ 总收益: 1051.40
+ 最大回撤: 827.45
+ 平均盈利: 626.28  平均亏损: -827.45
+ 盈亏比: 0.76
+ 夏普率: 4.8916
+ 买卖点统计: Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=2 Sell3=4
+ ====================================
+ [ChanLun] COIN_FUTURES_ETHUSDT TIME_15M 加载了 8640 根K线
+ 
+ ========== ChanLun ==========
+ 品种: FUTURES_ETHUSDT
+ 周期: TIME_15M
+ K线数: 8640
+ 交易次数: 18
+ 胜: 6  负: 12
+ 胜率: 33.3%
+ 总收益: -1278.18
+ 最大回撤: 2285.31
+ 平均盈利: 420.41  平均亏损: -316.72
+ 盈亏比: 1.33
+ 夏普率: -2.6579
+ 买卖点统计: Buy1=14 Sell1=24 Buy2=0 Sell2=90 Buy3=93 Sell3=36
+ ====================================
+ [ChanLunBi] COIN_FUTURES_ETHUSDT TIME_15M 加载了 8640 根K线
+ 
+ ========== ChanLunBi ==========
+ 品种: FUTURES_ETHUSDT
+ 周期: TIME_15M
+ K线数: 8640
+ 交易次数: 52
+ 胜: 26  负: 26
+ 胜率: 50.0%
+ 总收益: 5301.44
+ 最大回撤: 1859.44
+ 平均盈利: 412.43  平均亏损: -208.53
+ 盈亏比: 1.98
+ 夏普率: 3.8931
+ 买卖点统计: Buy1=14 Sell1=5 Buy2=59 Sell2=72 Buy3=76 Sell3=80
+ ====================================
+ [ChanLun] COIN_FUTURES_XAUUSDT TIME_1D 加载了 112 根K线
+ 
+ ========== ChanLun ==========
+ 品种: FUTURES_XAUUSDT
+ 周期: TIME_1D
+ K线数: 112
+ 交易次数: 0
+ 胜: 0  负: 0
+ 胜率: 0.0%
+ 总收益: 0.00
+ 最大回撤: 0.00
+ 平均盈利: 0.00  平均亏损: 0.00
+ 盈亏比: 0.00
+ 夏普率: 0.0000
+ 买卖点统计: Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+ [ChanLunBi] COIN_FUTURES_XAUUSDT TIME_1D 加载了 112 根K线
+ 
+ ========== ChanLunBi ==========
+ 品种: FUTURES_XAUUSDT
+ 周期: TIME_1D
+ K线数: 112
+ 交易次数: 0
+ 胜: 0  负: 0
+ 胜率: 0.0%
+ 总收益: 0.00
+ 最大回撤: 0.00
+ 平均盈利: 0.00  平均亏损: 0.00
+ 盈亏比: 0.00
+ 夏普率: 0.0000
+ 买卖点统计: Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+ [ChanLun] COIN_FUTURES_XAUUSDT TIME_15M 加载了 8640 根K线
+ 
+ ========== ChanLun ==========
+ 品种: FUTURES_XAUUSDT
+ 周期: TIME_15M
+ K线数: 8640
+ 交易次数: 25
+ 胜: 15  负: 10
+ 胜率: 60.0%
+ 总收益: 2867.44
+ 最大回撤: 765.00
+ 平均盈利: 290.97  平均亏损: -149.72
+ 盈亏比: 1.94
+ 夏普率: 5.0408
+ 买卖点统计: Buy1=17 Sell1=28 Buy2=54 Sell2=38 Buy3=79 Sell3=75
+ ====================================
+ [ChanLunBi] COIN_FUTURES_XAUUSDT TIME_15M 加载了 8640 根K线
+ 
+ ========== ChanLunBi ==========
+ 品种: FUTURES_XAUUSDT
+ 周期: TIME_15M
+ K线数: 8640
+ 交易次数: 56
+ 胜: 21  负: 35
+ 胜率: 37.5%
+ 总收益: 1807.44
+ 最大回撤: 1727.57
+ 平均盈利: 235.41  平均亏损: -89.60
+ 盈亏比: 2.63
+ 夏普率: 2.3853
+ 买卖点统计: Buy1=9 Sell1=16 Buy2=22 Sell2=62 Buy3=92 Sell3=62
+ ====================================
+ [ChanLun] STOCK_SPOT_SZSE.000001 TIME_1D 加载了 365 根K线
+ 
+ ========== ChanLun ==========
+ 品种: SPOT_SZSE.000001
+ 周期: TIME_1D
+ K线数: 365
+ 交易次数: 0
+ 胜: 0  负: 0
+ 胜率: 0.0%
+ 总收益: 0.00
+ 最大回撤: 0.00
+ 平均盈利: 0.00  平均亏损: 0.00
+ 盈亏比: 0.00
+ 夏普率: 0.0000
+ 买卖点统计: Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+ [ChanLunBi] STOCK_SPOT_SZSE.000001 TIME_1D 加载了 365 根K线
+ 
+ ========== ChanLunBi ==========
+ 品种: SPOT_SZSE.000001
+ 周期: TIME_1D
+ K线数: 365
+ 交易次数: 2
+ 胜: 0  负: 2
+ 胜率: 0.0%
+ 总收益: -7.43
+ 最大回撤: 7.43
+ 平均盈利: 0.00  平均亏损: -3.72
+ 盈亏比: 0.00
+ 夏普率: -45.0819
+ 买卖点统计: Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=1 Sell3=2
+ ====================================
+ [ChanLun] STOCK_SPOT_SZSE.000001 TIME_15M 加载了 6080 根K线
+ 
+ ========== ChanLun ==========
+ 品种: SPOT_SZSE.000001
+ 周期: TIME_15M
+ K线数: 6080
+ 交易次数: 5
+ 胜: 3  负: 2
+ 胜率: 60.0%
+ 总收益: 9.84
+ 最大回撤: 4.72
+ 平均盈利: 4.85  平均亏损: -2.36
+ 盈亏比: 2.06
+ 夏普率: 7.4613
+ 买卖点统计: Buy1=11 Sell1=0 Buy2=46 Sell2=0 Buy3=33 Sell3=20
+ ====================================
+ [ChanLunBi] STOCK_SPOT_SZSE.000001 TIME_15M 加载了 6080 根K线
+ 
+ ========== ChanLunBi ==========
+ 品种: SPOT_SZSE.000001
+ 周期: TIME_15M
+ K线数: 6080
+ 交易次数: 26
+ 胜: 10  负: 16
+ 胜率: 38.5%
+ 总收益: -22.52
+ 最大回撤: 30.67
+ 平均盈利: 2.52  平均亏损: -2.99
+ 盈亏比: 0.85
+ 夏普率: -2.9442
+ 买卖点统计: Buy1=11 Sell1=5 Buy2=39 Sell2=26 Buy3=22 Sell3=42
+ ====================================
+ [ChanLun] STOCK_SPOT_SHSE.510300 TIME_1D 加载了 365 根K线
+ 
+ ========== ChanLun ==========
+ 品种: SPOT_SHSE.510300
+ 周期: TIME_1D
+ K线数: 365
+ 交易次数: 0
+ 胜: 0  负: 0
+ 胜率: 0.0%
+ 总收益: 0.00
+ 最大回撤: 0.00
+ 平均盈利: 0.00  平均亏损: 0.00
+ 盈亏比: 0.00
+ 夏普率: 0.0000
+ 买卖点统计: Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=4 Sell3=0
+ ====================================
+ [ChanLunBi] STOCK_SPOT_SHSE.510300 TIME_1D 加载了 365 根K线
+ 
+ ========== ChanLunBi ==========
+ 品种: SPOT_SHSE.510300
+ 周期: TIME_1D
+ K线数: 365
+ 交易次数: 1
+ 胜: 1  负: 0
+ 胜率: 100.0%
+ 总收益: 2.35
+ 最大回撤: 0.00
+ 平均盈利: 2.35  平均亏损: 0.00
+ 盈亏比: 0.00
+ 夏普率: 0.0000
+ 买卖点统计: Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=1 Sell3=0
+ ====================================
+ [ChanLun] STOCK_SPOT_SHSE.510300 TIME_15M 加载了 6096 根K线
+ 
+ ========== ChanLun ==========
+ 品种: SPOT_SHSE.510300
+ 周期: TIME_15M
+ K线数: 6096
+ 交易次数: 8
+ 胜: 5  负: 3
+ 胜率: 62.5%
+ 总收益: 10.50
+ 最大回撤: 10.09
+ 平均盈利: 4.12  平均亏损: -3.36
+ 盈亏比: 1.22
+ 夏普率: 4.0163
+ 买卖点统计: Buy1=6 Sell1=10 Buy2=67 Sell2=49 Buy3=54 Sell3=9
+ ====================================
+ [ChanLunBi] STOCK_SPOT_SHSE.510300 TIME_15M 加载了 6096 根K线
+ 
+ ========== ChanLunBi ==========
+ 品种: SPOT_SHSE.510300
+ 周期: TIME_15M
+ K线数: 6096
+ 交易次数: 34
+ 胜: 12  负: 22
+ 胜率: 35.3%
+ 总收益: -23.71
+ 最大回撤: 32.57
+ 平均盈利: 2.48  平均亏损: -2.43
+ 盈亏比: 1.02
+ 夏普率: -2.5621
+ 买卖点统计: Buy1=4 Sell1=8 Buy2=22 Sell2=29 Buy3=84 Sell3=36
+ ====================================
+ [SKIP] FUTURES_FUTURES_SHFE.au2605 TIME_1D 数据不足
+ [ChanLun] FUTURES_FUTURES_SHFE.au2605 TIME_15M 加载了 1010 根K线
+ 
+ ========== ChanLun ==========
+ 品种: FUTURES_SHFE.au2605
+ 周期: TIME_15M
+ K线数: 1010
+ 交易次数: 0
+ 胜: 0  负: 0
+ 胜率: 0.0%
+ 总收益: 0.00
+ 最大回撤: 0.00
+ 平均盈利: 0.00  平均亏损: 0.00
+ 盈亏比: 0.00
+ 夏普率: 0.0000
+ 买卖点统计: Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=3
+ ====================================
+ [ChanLunBi] FUTURES_FUTURES_SHFE.au2605 TIME_15M 加载了 1010 根K线
+ 
+ ========== ChanLunBi ==========
+ 品种: FUTURES_SHFE.au2605
+ 周期: TIME_15M
+ K线数: 1010
+ 交易次数: 0
+ 胜: 0  负: 0
+ 胜率: 0.0%
+ 总收益: 0.00
+ 最大回撤: 0.00
+ 平均盈利: 0.00  平均亏损: 0.00
+ 盈亏比: 0.00
+ 夏普率: 0.0000
+ 买卖点统计: Buy1=1 Sell1=0 Buy2=0 Sell2=0 Buy3=4 Sell3=8
+ ====================================
+ [ChanLun] FUTURES_FUTURES_DCE.c2605 TIME_1D 加载了 193 根K线
+ 
+ ========== ChanLun ==========
+ 品种: FUTURES_DCE.c2605
+ 周期: TIME_1D
+ K线数: 193
+ 交易次数: 0
+ 胜: 0  负: 0
+ 胜率: 0.0%
+ 总收益: 0.00
+ 最大回撤: 0.00
+ 平均盈利: 0.00  平均亏损: 0.00
+ 盈亏比: 0.00
+ 夏普率: 0.0000
+ 买卖点统计: Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+ [ChanLunBi] FUTURES_FUTURES_DCE.c2605 TIME_1D 加载了 193 根K线
+ 
+ ========== ChanLunBi ==========
+ 品种: FUTURES_DCE.c2605
+ 周期: TIME_1D
+ K线数: 193
+ 交易次数: 0
+ 胜: 0  负: 0
+ 胜率: 0.0%
+ 总收益: 0.00
+ 最大回撤: 0.00
+ 平均盈利: 0.00  平均亏损: 0.00
+ 盈亏比: 0.00
+ 夏普率: 0.0000
+ 买卖点统计: Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+ [ChanLun] FUTURES_FUTURES_DCE.c2605 TIME_15M 加载了 4867 根K线
+ 
+ ========== ChanLun ==========
+ 品种: FUTURES_DCE.c2605
+ 周期: TIME_15M
+ K线数: 4867
+ 交易次数: 10
+ 胜: 4  负: 6
+ 胜率: 40.0%
+ 总收益: 96.00
+ 最大回撤: 558.00
+ 平均盈利: 210.00  平均亏损: -124.00
+ 盈亏比: 1.69
+ 夏普率: 0.6649
+ 买卖点统计: Buy1=13 Sell1=5 Buy2=4 Sell2=0 Buy3=30 Sell3=18
+ ====================================
+ [ChanLunBi] FUTURES_FUTURES_DCE.c2605 TIME_15M 加载了 4867 根K线
+ 
+ ========== ChanLunBi ==========
+ 品种: FUTURES_DCE.c2605
+ 周期: TIME_15M
+ K线数: 4867
+ 交易次数: 15
+ 胜: 5  负: 10
+ 胜率: 33.3%
+ 总收益: -1165.00
+ 最大回撤: 1165.00
+ 平均盈利: 91.20  平均亏损: -162.10
+ 盈亏比: 0.56
+ 夏普率: -7.4338
+ 买卖点统计: Buy1=0 Sell1=9 Buy2=0 Sell2=4 Buy3=21 Sell3=13
+ ====================================
+
+
+
+测试运行成功。
+测试总数: 1
+     通过数: 1
+总时间: 3.3532 分钟

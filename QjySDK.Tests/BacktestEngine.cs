@@ -25,6 +25,7 @@ namespace QjySDK.Tests
     {
         public string StrategyName { get; set; } = "";
         public string Symbols { get; set; } = "";
+        public string PeriodName { get; set; } = "";
         public int TotalBars { get; set; }
         public int TradeCount { get; set; }
         public int WinCount { get; set; }
@@ -35,12 +36,20 @@ namespace QjySDK.Tests
         public decimal AvgWin { get; set; }
         public decimal AvgLoss { get; set; }
         public double ProfitFactor => AvgLoss != 0 ? (double)(AvgWin / Math.Abs(AvgLoss)) : 0;
+        public double SharpeRatio { get; set; }
+        public int Buy1Count { get; set; }
+        public int Sell1Count { get; set; }
+        public int Buy2Count { get; set; }
+        public int Sell2Count { get; set; }
+        public int Buy3Count { get; set; }
+        public int Sell3Count { get; set; }
 
         public string ToReport()
         {
             return $@"
 ========== {StrategyName} ==========
 品种: {Symbols}
+周期: {PeriodName}
 K线数: {TotalBars}
 交易次数: {TradeCount}
 胜: {WinCount}  负: {LossCount}
@@ -49,6 +58,8 @@ K线数: {TotalBars}
 最大回撤: {MaxDrawdown:F2}
 平均盈利: {AvgWin:F2}  平均亏损: {AvgLoss:F2}
 盈亏比: {ProfitFactor:F2}
+夏普率: {SharpeRatio:F4}
+买卖点统计: Buy1={Buy1Count} Sell1={Sell1Count} Buy2={Buy2Count} Sell2={Sell2Count} Buy3={Buy3Count} Sell3={Sell3Count}
 ====================================";
         }
     }
@@ -264,21 +275,51 @@ K线数: {TotalBars}
         private static string ConnStr => TestConfig.TDEngine;
 
         /// <summary>
+        /// 将 rawSymbol (COIN_FUTURES_BTCUSDT) 转为 mktSymbol (FUTURES_BTCUSDT)
+        /// 如果已经是 mktSymbol 格式则直接返回
+        /// </summary>
+        private static string ToMktSymbol(string symbol)
+        {
+            var knownTypes = new[] { "COIN", "STOCK", "FUTURES" };
+            var parts = symbol.Split('_', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length >= 3)
+            {
+                var first = parts[0].ToUpperInvariant();
+                if (Array.Exists(knownTypes, t => t == first))
+                {
+                    var second = parts[1].ToUpperInvariant();
+                    if (second == "SPOT" || second == "FUTURES")
+                        return string.Join("_", parts, 1, parts.Length - 1);
+                }
+            }
+            return symbol;
+        }
+
+        /// <summary>
         /// 从本地 TDEngine 加载日K数据
         /// </summary>
         public static List<SkQuote> LoadDailyKlines(string mktSymbol, int limitDays = 365)
         {
-            var period = Period.TIME_1D;
-            var sp = mktSymbol + "_" + period;
+            return LoadKlines(mktSymbol, Period.TIME_1D, limitDays);
+        }
+
+        /// <summary>
+        /// 从本地 TDEngine 加载指定周期的K线数据
+        /// 支持 rawSymbol (COIN_FUTURES_BTCUSDT) 和 mktSymbol (FUTURES_BTCUSDT) 两种格式
+        /// TDEngine表名格式: {mktType}_{symbol}_{period}，如 futures_btcusdt_time_1d
+        /// </summary>
+        public static List<SkQuote> LoadKlines(string mktSymbol, Period period, int limit = 365)
+        {
+            var symbolForTable = ToMktSymbol(mktSymbol);
+            var sp = symbolForTable + "_" + period;
             var tableName = sp.Replace(".", "").ToLower();
-            var isFutures = mktSymbol.StartsWith("FUTURES", StringComparison.OrdinalIgnoreCase);
 
             var quotes = new List<SkQuote>();
             var builder = new ConnectionStringBuilder(ConnStr);
             using var client = DbDriver.Open(builder);
             client.Exec("use finance");
 
-            var sql = $"select * from {tableName} order by ts desc limit {limitDays}";
+            var sql = $"select * from {tableName} order by ts desc limit {limit}";
             using var rows = client.Query(sql);
             if (rows.HasRows)
             {
@@ -323,9 +364,17 @@ K线数: {TotalBars}
         /// </summary>
         public static bool HasData(string mktSymbol, int minBars = 60)
         {
+            return HasData(mktSymbol, Period.TIME_1D, minBars);
+        }
+
+        /// <summary>
+        /// 检测某个标的指定周期的数据是否存在且有足够数据
+        /// </summary>
+        public static bool HasData(string mktSymbol, Period period, int minBars = 60)
+        {
             try
             {
-                var quotes = LoadDailyKlines(mktSymbol, minBars);
+                var quotes = LoadKlines(mktSymbol, period, minBars);
                 return quotes.Count >= minBars;
             }
             catch
@@ -345,12 +394,11 @@ K线数: {TotalBars}
         /// 模式A：单品种 bar-by-bar 回测
         /// </summary>
         public static BacktestResult RunSingleSymbol(
-            StgBase stg, string mktSymbol, List<SkQuote> quotes)
+            StgBase stg, string mktSymbol, List<SkQuote> quotes, Period period = Period.TIME_1D)
         {
             var cts = StgTestHelper.InitForTest(stg, mktSymbol);
             try
             {
-                var period = Period.TIME_1D;
                 var tu = new TableUnit
                 {
                     QuoteList = new List<SkQuote>(),
@@ -376,7 +424,26 @@ K线数: {TotalBars}
                     trades.AddRange(StgTestHelper.DrainTrades(stg));
                 }
 
-                return CalcResult(stg.GetType().Name, new[] { mktSymbol }, quotes.Count, trades);
+                var result = CalcResult(stg.GetType().Name, new[] { mktSymbol }, quotes.Count, trades, period);
+
+                // 提取买卖点统计
+                Dictionary<string, int> bsCounts = null;
+                if (stg is ChanLun cl)
+                    bsCounts = cl.GetBSPointCounts();
+                else if (stg is ChanLunBi clb)
+                    bsCounts = clb.GetBSPointCounts();
+
+                if (bsCounts != null)
+                {
+                    result.Buy1Count = bsCounts.GetValueOrDefault("Buy1");
+                    result.Sell1Count = bsCounts.GetValueOrDefault("Sell1");
+                    result.Buy2Count = bsCounts.GetValueOrDefault("Buy2");
+                    result.Sell2Count = bsCounts.GetValueOrDefault("Sell2");
+                    result.Buy3Count = bsCounts.GetValueOrDefault("Buy3");
+                    result.Sell3Count = bsCounts.GetValueOrDefault("Sell3");
+                }
+
+                return result;
             }
             finally
             {
@@ -475,15 +542,16 @@ K线数: {TotalBars}
         }
 
         /// <summary>
-        /// 撮合计算：统计总收益、胜率、最大回撤
+        /// 撮合计算：统计总收益、胜率、最大回撤、夏普率
         /// </summary>
         private static BacktestResult CalcResult(
-            string strategyName, string[] symbols, int totalBars, List<RemoteTradeRecord> trades)
+            string strategyName, string[] symbols, int totalBars, List<RemoteTradeRecord> trades, Period period = Period.TIME_1D)
         {
             var result = new BacktestResult
             {
                 StrategyName = strategyName,
                 Symbols = string.Join(", ", symbols),
+                PeriodName = period.ToString(),
                 TotalBars = totalBars
             };
 
@@ -556,6 +624,18 @@ K线数: {TotalBars}
             result.MaxDrawdown = maxDrawdown;
             result.AvgWin = wins.Count > 0 ? wins.Average() : 0;
             result.AvgLoss = losses.Count > 0 ? losses.Average() : 0;
+
+            // 计算夏普率 (Sharpe Ratio)
+            var allPnl = new List<decimal>();
+            allPnl.AddRange(wins);
+            allPnl.AddRange(losses);
+            if (allPnl.Count > 1)
+            {
+                double mean = (double)allPnl.Average();
+                double variance = allPnl.Sum(p => Math.Pow((double)p - mean, 2)) / (allPnl.Count - 1);
+                double stdDev = Math.Sqrt(variance);
+                result.SharpeRatio = stdDev > 0 ? (mean / stdDev) * Math.Sqrt(252) : 0;
+            }
 
             return result;
         }

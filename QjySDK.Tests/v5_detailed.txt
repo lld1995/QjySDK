@@ -1,0 +1,1143 @@
+  姝ｅ湪纭畾瑕佽繕鍘熺殑椤圭洰鈥?
+E:\project\qjy\QjySdk\QjySDK.csproj : warning NU1608: 妫€娴嬪埌鐨勫寘鐗堟湰鍦ㄤ緷璧栭」绾︽潫涔嬪: Nethereum.JsonRpc.Client 4.29.0 闇€瑕?Microsoft.Extensions.Logging.Abstractions (>= 6.0.0 && < 10.0.0)锛屼絾鐗堟湰 Microsoft.Extensions.Logging.Abstractions 10.0.1 宸茶В鍐炽€?[E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj]
+E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj : warning NU1608: 妫€娴嬪埌鐨勫寘鐗堟湰鍦ㄤ緷璧栭」绾︽潫涔嬪: Nethereum.JsonRpc.Client 4.29.0 闇€瑕?Microsoft.Extensions.Logging.Abstractions (>= 6.0.0 && < 10.0.0)锛屼絾鐗堟湰 Microsoft.Extensions.Logging.Abstractions 10.0.1 宸茶В鍐炽€?
+  鎵€鏈夐」鐩潎鏄渶鏂扮殑锛屾棤娉曡繕鍘熴€?
+E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj : warning NU1608: 妫€娴嬪埌鐨勫寘鐗堟湰鍦ㄤ緷璧栭」绾︽潫涔嬪: Nethereum.JsonRpc.Client 4.29.0 闇€瑕?Microsoft.Extensions.Logging.Abstractions (>= 6.0.0 && < 10.0.0)锛屼絾鐗堟湰 Microsoft.Extensions.Logging.Abstractions 10.0.1 宸茶В鍐炽€?
+E:\project\qjy\QjySdk\QjySDK.csproj : warning NU1608: 妫€娴嬪埌鐨勫寘鐗堟湰鍦ㄤ緷璧栭」绾︽潫涔嬪: Nethereum.JsonRpc.Client 4.29.0 闇€瑕?Microsoft.Extensions.Logging.Abstractions (>= 6.0.0 && < 10.0.0)锛屼絾鐗堟湰 Microsoft.Extensions.Logging.Abstractions 10.0.1 宸茶В鍐炽€?
+  QjySDK -> E:\project\qjy\QjySdk\bin\Debug\net9.0\QjySDK.dll
+  [Secp256k1.Net] _Secp256k1NativeDir = D:\.nuget\packages\secp256k1.net\2.0.0\runtimes
+  [Secp256k1.Net] Found 10 native files
+  QjySDK.Tests -> E:\project\qjy\QjySdk\QjySDK.Tests\bin\Debug\net9.0\QjySDK.Tests.dll
+  [Secp256k1.Net] _Secp256k1NativeDir = D:\.nuget\packages\secp256k1.net\2.0.0\runtimes
+  [Secp256k1.Net] Found 10 native files
+E:\project\qjy\QjySdk\QjySDK.Tests\bin\Debug\net9.0\QjySDK.Tests.dll (.NETCoreApp,Version=v9.0)鐨勬祴璇曡繍琛?
+鎬诲叡 1 涓祴璇曟枃浠朵笌鎸囧畾妯″紡鐩稿尮閰嶃€?
+E:\project\qjy\QjySdk\QjySDK.Tests\bin\Debug\net9.0\QjySDK.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 9.0.14)
+[xUnit.net 00:00:00.09]   Discovering: QjySDK.Tests
+[xUnit.net 00:00:00.15]   Discovered:  QjySDK.Tests
+[xUnit.net 00:00:00.16]   Starting:    QjySDK.Tests
+[SymbolLoader] FUTURES_XAUUSDT 锟斤拷 multiplier=1.000, margin_ratio=1.000, symbol_type=1
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_15M(rawSymbol: "COIN_FUTURES_XAUUSDT", limit: 8640) [26 s]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLunBi] COIN_FUTURES_XAUUSDT TIME_15M 鍔犺浇浜?8640 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: FUTURES_XAUUSDT
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 8640
+ 浜ゆ槗娆℃暟: 27
+ 鑳? 13  璐? 14
+ 鑳滅巼: 48.1%
+ 鎬绘敹鐩? 1112.21
+ 鏈€澶у洖鎾? 1688.63
+ 骞冲潎鐩堝埄: 275.12  骞冲潎浜忔崯: -176.02
+ 鐩堜簭姣? 1.56
+ 澶忔櫘鐜? 1.8412
+ 涔板崠鐐圭粺璁? Buy1=10 Sell1=16 Buy2=0 Sell2=0 Buy3=33 Sell3=21
+ ====================================
+
+
+[SymbolLoader] SPOT_SHSE.510300 锟斤拷 multiplier=100.000, margin_ratio=1.000, symbol_type=2
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_15M(rawSymbol: "STOCK_SPOT_SHSE.510300", limit: 8640) [10 s]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLunBi] STOCK_SPOT_SHSE.510300 TIME_15M 鍔犺浇浜?6098 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: SPOT_SHSE.510300
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 6098
+ 浜ゆ槗娆℃暟: 26
+ 鑳? 9  璐? 17
+ 鑳滅巼: 34.6%
+ 鎬绘敹鐩? -26.57
+ 鏈€澶у洖鎾? 28.86
+ 骞冲潎鐩堝埄: 2.26  骞冲潎浜忔崯: -2.76
+ 鐩堜簭姣? 0.82
+ 澶忔櫘鐜? -3.4641
+ 涔板崠鐐圭粺璁? Buy1=4 Sell1=8 Buy2=0 Sell2=0 Buy3=37 Sell3=13
+ ====================================
+
+
+[SymbolLoader] FUTURES_SHFE.au2605 锟斤拷 multiplier=1000.000, margin_ratio=0.190, symbol_type=3
+[SymbolLoader] SPOT_SZSE.000001 锟斤拷 multiplier=100.000, margin_ratio=1.000, symbol_type=2
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_15M(rawSymbol: "FUTURES_FUTURES_SHFE.au2605", limit: 8640) [492 ms]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLunBi] FUTURES_FUTURES_SHFE.au2605 TIME_15M 鍔犺浇浜?1036 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: FUTURES_SHFE.au2605
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 1036
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=1 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=5
+ ====================================
+
+
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_15M(rawSymbol: "STOCK_SPOT_SZSE.000001", limit: 8640) [8 s]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLunBi] STOCK_SPOT_SZSE.000001 TIME_15M 鍔犺浇浜?6080 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: SPOT_SZSE.000001
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 6080
+ 浜ゆ槗娆℃暟: 12
+ 鑳? 6  璐? 6
+ 鑳滅巼: 50.0%
+ 鎬绘敹鐩? -2.71
+ 鏈€澶у洖鎾? 12.51
+ 骞冲潎鐩堝埄: 3.29  骞冲潎浜忔崯: -3.74
+ 鐩堜簭姣? 0.88
+ 澶忔櫘鐜? -0.7267
+ 涔板崠鐐圭粺璁? Buy1=11 Sell1=5 Buy2=0 Sell2=1 Buy3=7 Sell3=21
+ ====================================
+
+
+[SymbolLoader] FUTURES_ETHUSDT 锟斤拷 multiplier=1.000, margin_ratio=1.000, symbol_type=1
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_15M(rawSymbol: "COIN_FUTURES_ETHUSDT", limit: 8640) [22 s]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLunBi] COIN_FUTURES_ETHUSDT TIME_15M 鍔犺浇浜?8640 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: FUTURES_ETHUSDT
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 8640
+ 浜ゆ槗娆℃暟: 31
+ 鑳? 10  璐? 21
+ 鑳滅巼: 32.3%
+ 鎬绘敹鐩? -1019.85
+ 鏈€澶у洖鎾? 3705.94
+ 骞冲潎鐩堝埄: 497.46  骞冲潎浜忔崯: -285.45
+ 鐩堜簭姣? 1.74
+ 澶忔櫘鐜? -1.1750
+ 涔板崠鐐圭粺璁? Buy1=14 Sell1=5 Buy2=0 Sell2=0 Buy3=28 Sell3=20
+ ====================================
+
+
+[SymbolLoader] FUTURES_BTCUSDT 锟斤拷 multiplier=1.000, margin_ratio=1.000, symbol_type=1
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_15M(rawSymbol: "COIN_FUTURES_BTCUSDT", limit: 8640) [26 s]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLunBi] COIN_FUTURES_BTCUSDT TIME_15M 鍔犺浇浜?8640 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: FUTURES_BTCUSDT
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 8640
+ 浜ゆ槗娆℃暟: 36
+ 鑳? 12  璐? 24
+ 鑳滅巼: 33.3%
+ 鎬绘敹鐩? 449.22
+ 鏈€澶у洖鎾? 1057.49
+ 骞冲潎鐩堝埄: 390.89  骞冲潎浜忔崯: -176.73
+ 鐩堜簭姣? 2.21
+ 澶忔櫘鐜? 0.6214
+ 涔板崠鐐圭粺璁? Buy1=22 Sell1=13 Buy2=3 Sell2=1 Buy3=24 Sell3=33
+ ====================================
+
+
+[SymbolLoader] FUTURES_DCE.c2605 锟斤拷 multiplier=10.000, margin_ratio=0.070, symbol_type=3
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_15M(rawSymbol: "FUTURES_FUTURES_DCE.c2605", limit: 8640) [5 s]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLunBi] FUTURES_FUTURES_DCE.c2605 TIME_15M 鍔犺浇浜?4879 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: FUTURES_DCE.c2605
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 4879
+ 浜ゆ槗娆℃暟: 6
+ 鑳? 2  璐? 4
+ 鑳滅巼: 33.3%
+ 鎬绘敹鐩? -1020.00
+ 鏈€澶у洖鎾? 1146.00
+ 骞冲潎鐩堝埄: 66.00  骞冲潎浜忔崯: -288.00
+ 鐩堜簭姣? 0.23
+ 澶忔櫘鐜? -9.3431
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=9 Buy2=0 Sell2=0 Buy3=8 Sell3=6
+ ====================================
+
+
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(rawSymbol: "COIN_FUTURES_ETHUSDT", limit: 365) [539 ms]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLunBi] COIN_FUTURES_ETHUSDT TIME_1D 鍔犺浇浜?365 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: FUTURES_ETHUSDT
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 365
+ 浜ゆ槗娆℃暟: 3
+ 鑳? 2  璐? 1
+ 鑳滅巼: 66.7%
+ 鎬绘敹鐩? 1249.02
+ 鏈€澶у洖鎾? 827.45
+ 骞冲潎鐩堝埄: 1038.24  骞冲潎浜忔崯: -827.45
+ 鐩堜簭姣? 1.25
+ 澶忔櫘鐜? 6.0471
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=3
+ ====================================
+
+
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(rawSymbol: "STOCK_SPOT_SZSE.000001", limit: 365) [673 ms]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLunBi] STOCK_SPOT_SZSE.000001 TIME_1D 鍔犺浇浜?365 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: SPOT_SZSE.000001
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 365
+ 浜ゆ槗娆℃暟: 1
+ 鑳? 0  璐? 1
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? -2.79
+ 鏈€澶у洖鎾? 2.79
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: -2.79
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=1
+ ====================================
+
+
+[xUnit.net 00:01:43.55]     QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(rawSymbol: "FUTURES_FUTURES_SHFE.au2605", limit: 365) [FAIL]
+[xUnit.net 00:01:43.55]       [SKIP] 鏍囩殑 FUTURES_FUTURES_SHFE.au2605 鍛ㄦ湡 TIME_1D 鏁版嵁涓嶈冻 60 鏉?
+[xUnit.net 00:01:43.55]       Stack Trace:
+[xUnit.net 00:01:43.55]         E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs(38,0): at QjySDK.Tests.ChanLunBacktestTests.SkipIfNoData(String rawSymbol, Period period, Int32 minBars)
+[xUnit.net 00:01:43.55]         E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs(123,0): at QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(String rawSymbol, Int32 limit)
+[xUnit.net 00:01:43.55]            at InvokeStub_ChanLunBacktestTests.Test_ChanLunBi_1D(Object, Span`1)
+[xUnit.net 00:01:43.55]            at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(rawSymbol: "STOCK_SPOT_SHSE.510300", limit: 365) [659 ms]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLunBi] STOCK_SPOT_SHSE.510300 TIME_1D 鍔犺浇浜?365 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: SPOT_SHSE.510300
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 365
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+
+
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(rawSymbol: "COIN_FUTURES_XAUUSDT", limit: 365) [319 ms]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLunBi] COIN_FUTURES_XAUUSDT TIME_1D 鍔犺浇浜?113 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: FUTURES_XAUUSDT
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 113
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+
+
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(rawSymbol: "FUTURES_FUTURES_DCE.c2605", limit: 365) [543 ms]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLunBi] FUTURES_FUTURES_DCE.c2605 TIME_1D 鍔犺浇浜?193 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: FUTURES_DCE.c2605
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 193
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+
+
+  澶辫触 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(rawSymbol: "FUTURES_FUTURES_SHFE.au2605", limit: 365) [144 ms]
+  閿欒娑堟伅:
+   [SKIP] 鏍囩殑 FUTURES_FUTURES_SHFE.au2605 鍛ㄦ湡 TIME_1D 鏁版嵁涓嶈冻 60 鏉?
+  鍫嗘爤璺熻釜:
+     at QjySDK.Tests.ChanLunBacktestTests.SkipIfNoData(String rawSymbol, Period period, Int32 minBars) in E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs:line 38
+   at QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(String rawSymbol, Int32 limit) in E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs:line 123
+   at InvokeStub_ChanLunBacktestTests.Test_ChanLunBi_1D(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLunBi_1D(rawSymbol: "COIN_FUTURES_BTCUSDT", limit: 365) [499 ms]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLunBi] COIN_FUTURES_BTCUSDT TIME_1D 鍔犺浇浜?365 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: FUTURES_BTCUSDT
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 365
+ 浜ゆ槗娆℃暟: 2
+ 鑳? 1  璐? 1
+ 鑳滅巼: 50.0%
+ 鎬绘敹鐩? -780.05
+ 鏈€澶у洖鎾? 849.94
+ 骞冲潎鐩堝埄: 69.90  骞冲潎浜忔崯: -849.94
+ 鐩堜簭姣? 0.08
+ 澶忔櫘鐜? -9.5191
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=1 Sell3=1
+ ====================================
+
+
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(rawSymbol: "COIN_FUTURES_XAUUSDT", limit: 365) [299 ms]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLun] COIN_FUTURES_XAUUSDT TIME_1D 鍔犺浇浜?113 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: FUTURES_XAUUSDT
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 113
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+
+
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(rawSymbol: "STOCK_SPOT_SZSE.000001", limit: 365) [762 ms]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLun] STOCK_SPOT_SZSE.000001 TIME_1D 鍔犺浇浜?365 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: SPOT_SZSE.000001
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 365
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+
+
+[xUnit.net 00:01:46.01]     QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(rawSymbol: "FUTURES_FUTURES_SHFE.au2605", limit: 365) [FAIL]
+[xUnit.net 00:01:46.01]       [SKIP] 鏍囩殑 FUTURES_FUTURES_SHFE.au2605 鍛ㄦ湡 TIME_1D 鏁版嵁涓嶈冻 60 鏉?
+[xUnit.net 00:01:46.01]       Stack Trace:
+[xUnit.net 00:01:46.01]         E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs(38,0): at QjySDK.Tests.ChanLunBacktestTests.SkipIfNoData(String rawSymbol, Period period, Int32 minBars)
+[xUnit.net 00:01:46.01]         E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs(83,0): at QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(String rawSymbol, Int32 limit)
+[xUnit.net 00:01:46.01]            at InvokeStub_ChanLunBacktestTests.Test_ChanLun_1D(Object, Span`1)
+[xUnit.net 00:01:46.01]            at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(rawSymbol: "STOCK_SPOT_SHSE.510300", limit: 365) [739 ms]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLun] STOCK_SPOT_SHSE.510300 TIME_1D 鍔犺浇浜?365 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: SPOT_SHSE.510300
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 365
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+
+
+  澶辫触 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(rawSymbol: "FUTURES_FUTURES_SHFE.au2605", limit: 365) [155 ms]
+  閿欒娑堟伅:
+   [SKIP] 鏍囩殑 FUTURES_FUTURES_SHFE.au2605 鍛ㄦ湡 TIME_1D 鏁版嵁涓嶈冻 60 鏉?
+  鍫嗘爤璺熻釜:
+     at QjySDK.Tests.ChanLunBacktestTests.SkipIfNoData(String rawSymbol, Period period, Int32 minBars) in E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs:line 38
+   at QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(String rawSymbol, Int32 limit) in E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs:line 83
+   at InvokeStub_ChanLunBacktestTests.Test_ChanLun_1D(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(rawSymbol: "COIN_FUTURES_ETHUSDT", limit: 365) [497 ms]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLun] COIN_FUTURES_ETHUSDT TIME_1D 鍔犺浇浜?365 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: FUTURES_ETHUSDT
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 365
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=7 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=4
+ ====================================
+
+
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(rawSymbol: "FUTURES_FUTURES_DCE.c2605", limit: 365) [572 ms]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLun] FUTURES_FUTURES_DCE.c2605 TIME_1D 鍔犺浇浜?193 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: FUTURES_DCE.c2605
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 193
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+
+
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_1D(rawSymbol: "COIN_FUTURES_BTCUSDT", limit: 365) [513 ms]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLun] COIN_FUTURES_BTCUSDT TIME_1D 鍔犺浇浜?365 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: FUTURES_BTCUSDT
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 365
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+
+
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_15M(rawSymbol: "FUTURES_FUTURES_SHFE.au2605", limit: 8640) [475 ms]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLun] FUTURES_FUTURES_SHFE.au2605 TIME_15M 鍔犺浇浜?1036 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: FUTURES_SHFE.au2605
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 1036
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=3
+ ====================================
+
+
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_15M(rawSymbol: "COIN_FUTURES_ETHUSDT", limit: 8640) [22 s]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLun] COIN_FUTURES_ETHUSDT TIME_15M 鍔犺浇浜?8640 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: FUTURES_ETHUSDT
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 8640
+ 浜ゆ槗娆℃暟: 15
+ 鑳? 3  璐? 12
+ 鑳滅巼: 20.0%
+ 鎬绘敹鐩? -3058.88
+ 鏈€澶у洖鎾? 3666.67
+ 骞冲潎鐩堝埄: 443.98  骞冲潎浜忔崯: -365.90
+ 鐩堜簭姣? 1.21
+ 澶忔櫘鐜? -8.4914
+ 涔板崠鐐圭粺璁? Buy1=14 Sell1=24 Buy2=0 Sell2=0 Buy3=43 Sell3=20
+ ====================================
+
+
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_15M(rawSymbol: "COIN_FUTURES_BTCUSDT", limit: 8640) [26 s]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLun] COIN_FUTURES_BTCUSDT TIME_15M 鍔犺浇浜?8640 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: FUTURES_BTCUSDT
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 8640
+ 浜ゆ槗娆℃暟: 19
+ 鑳? 6  璐? 13
+ 鑳滅巼: 31.6%
+ 鎬绘敹鐩? -2318.67
+ 鏈€澶у洖鎾? 2363.76
+ 骞冲潎鐩堝埄: 223.51  骞冲潎浜忔崯: -281.52
+ 鐩堜簭姣? 0.79
+ 澶忔櫘鐜? -6.2346
+ 涔板崠鐐圭粺璁? Buy1=11 Sell1=9 Buy2=0 Sell2=0 Buy3=28 Sell3=20
+ ====================================
+
+
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_15M(rawSymbol: "FUTURES_FUTURES_DCE.c2605", limit: 8640) [5 s]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLun] FUTURES_FUTURES_DCE.c2605 TIME_15M 鍔犺浇浜?4879 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: FUTURES_DCE.c2605
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 4879
+ 浜ゆ槗娆℃暟: 9
+ 鑳? 5  璐? 4
+ 鑳滅巼: 55.6%
+ 鎬绘敹鐩? 492.00
+ 鏈€澶у洖鎾? 294.00
+ 骞冲潎鐩堝埄: 194.40  骞冲潎浜忔崯: -120.00
+ 鐩堜簭姣? 1.62
+ 澶忔櫘鐜? 3.9117
+ 涔板崠鐐圭粺璁? Buy1=13 Sell1=5 Buy2=0 Sell2=0 Buy3=12 Sell3=11
+ ====================================
+
+
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_15M(rawSymbol: "STOCK_SPOT_SHSE.510300", limit: 8640) [12 s]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLun] STOCK_SPOT_SHSE.510300 TIME_15M 鍔犺浇浜?6098 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: SPOT_SHSE.510300
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 6098
+ 浜ゆ槗娆℃暟: 7
+ 鑳? 5  璐? 2
+ 鑳滅巼: 71.4%
+ 鎬绘敹鐩? 10.96
+ 鏈€澶у洖鎾? 9.17
+ 骞冲潎鐩堝埄: 4.03  骞冲潎浜忔崯: -4.58
+ 鐩堜簭姣? 0.88
+ 澶忔櫘鐜? 4.6345
+ 涔板崠鐐圭粺璁? Buy1=6 Sell1=10 Buy2=0 Sell2=0 Buy3=31 Sell3=3
+ ====================================
+
+
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_15M(rawSymbol: "COIN_FUTURES_XAUUSDT", limit: 8640) [28 s]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLun] COIN_FUTURES_XAUUSDT TIME_15M 鍔犺浇浜?8640 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: FUTURES_XAUUSDT
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 8640
+ 浜ゆ槗娆℃暟: 19
+ 鑳? 7  璐? 12
+ 鑳滅巼: 36.8%
+ 鎬绘敹鐩? -530.32
+ 鏈€澶у洖鎾? 2119.45
+ 骞冲潎鐩堝埄: 306.54  骞冲潎浜忔崯: -223.01
+ 鐩堜簭姣? 1.37
+ 澶忔櫘鐜? -1.2432
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=16 Buy2=0 Sell2=0 Buy3=48 Sell3=22
+ ====================================
+
+
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_15M(rawSymbol: "STOCK_SPOT_SZSE.000001", limit: 8640) [16 s]
+  鏍囧噯杈撳嚭娑堟伅:
+ [ChanLun] STOCK_SPOT_SZSE.000001 TIME_15M 鍔犺浇浜?6080 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: SPOT_SZSE.000001
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 6080
+ 浜ゆ槗娆℃暟: 5
+ 鑳? 3  璐? 2
+ 鑳滅巼: 60.0%
+ 鎬绘敹鐩? 10.42
+ 鏈€澶у洖鎾? 2.38
+ 骞冲潎鐩堝埄: 4.27  骞冲潎浜忔崯: -1.19
+ 鐩堜簭姣? 3.59
+ 澶忔櫘鐜? 10.0182
+ 涔板崠鐐圭粺璁? Buy1=11 Sell1=0 Buy2=0 Sell2=0 Buy3=22 Sell3=10
+ ====================================
+
+
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_Diagnose_ZhongShu_Structure [37 s]
+  鏍囧噯杈撳嚭娑堟伅:
+ 
+===== ChanLunBi COIN_FUTURES_BTCUSDT TIME_1D =====
+   Loaded 365 bars
+   Key: FUTURES_BTCUSDT_TIME_1D, ZhongShus count: 3
+     ZS[0]: ZG=110700 ZD=100305.1 GG=119812 DD=74457 Center=105502.55 LeaveDir=1 HasLeave=True
+     ZS[1]: ZG=118558 ZD=112582.4 GG=126208.5 DD=80600 Center=115570.20 LeaveDir=-1 HasLeave=True
+     ZS[2]: ZG=94555 ZD=86789 GG=97932.1 DD=59800 Center=90672.00 LeaveDir=-1 HasLeave=True
+     Pair[1,2]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[0,1]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+ 
+===== ChanLunBi COIN_FUTURES_BTCUSDT TIME_15M =====
+   Loaded 8640 bars
+   Key: FUTURES_BTCUSDT_TIME_15M, ZhongShus count: 58
+     ZS[0]: ZG=90091.2 ZD=89919.6 GG=91779.7 DD=89261.2 Center=90005.40 LeaveDir=1 HasLeave=True
+     ZS[1]: ZG=91385.6 ZD=91106.7 GG=93382.5 DD=90790.1 Center=91246.15 LeaveDir=1 HasLeave=True
+     ZS[2]: ZG=92745.9 ZD=92292 GG=94760.3 DD=92102 Center=92518.95 LeaveDir=1 HasLeave=True
+     ZS[3]: ZG=93966.4 ZD=93467.1 GG=94760.3 DD=91209 Center=93716.75 LeaveDir=-1 HasLeave=True
+     ZS[4]: ZG=91666 ZD=90740.5 GG=92928 DD=89300 Center=91203.25 LeaveDir=-1 HasLeave=True
+     ZS[5]: ZG=90619.6 ZD=90432.4 GG=92299 DD=90066 Center=90526.00 LeaveDir=1 HasLeave=True
+     ZS[6]: ZG=92299 ZD=91700.6 GG=96863.7 DD=90870 Center=91999.80 LeaveDir=1 HasLeave=True
+     ZS[7]: ZG=95288 ZD=94643 GG=97733.9 DD=94413.4 Center=94965.50 LeaveDir=1 HasLeave=True
+     ZS[8]: ZG=97331.4 ZD=96180 GG=97932.1 DD=95080 Center=96755.70 LeaveDir=-1 HasLeave=True
+     ZS[9]: ZG=95639.4 ZD=95111.1 GG=95837.8 DD=91800 Center=95375.25 LeaveDir=-1 HasLeave=True
+     ZS[10]: ZG=93267.5 ZD=92885.7 GG=93379 DD=90622.2 Center=93076.60 LeaveDir=-1 HasLeave=True
+     ZS[11]: ZG=90088 ZD=88922.9 GG=91415.1 DD=87205.5 Center=89505.45 LeaveDir=-1 HasLeave=True
+     ZS[12]: ZG=87922 ZD=87028.5 GG=89499 DD=86021.7 Center=87475.25 LeaveDir=1 HasLeave=True
+     ZS[13]: ZG=89241 ZD=88831.9 GG=90592.7 DD=87863 Center=89036.45 LeaveDir=-1 HasLeave=True
+     ZS[14]: ZG=84699.9 ZD=83785.6 GG=88133.2 DD=81000 Center=84242.75 LeaveDir=-1 HasLeave=True
+     ZS[15]: ZG=83300 ZD=81832 GG=84599 DD=75500 Center=82566.00 LeaveDir=-1 HasLeave=True
+     ZS[16]: ZG=79094.9 ZD=78245.7 GG=79396.8 DD=77259.5 Center=78670.30 LeaveDir=-1 HasLeave=True
+     ZS[17]: ZG=78073.9 ZD=77843.2 GG=79166.2 DD=72889.2 Center=77958.55 LeaveDir=-1 HasLeave=True
+     ZS[18]: ZG=76920.7 ZD=75670 GG=76952.5 DD=72101 Center=76295.35 LeaveDir=-1 HasLeave=True
+     ZS[19]: ZG=70848.6 ZD=69223 GG=74141.1 DD=59800 Center=70035.80 LeaveDir=-1 HasLeave=True
+     ZS[20]: ZG=66783 ZD=64438.9 GG=71451.6 DD=59800 Center=65610.95 LeaveDir=1 HasLeave=True
+     ZS[21]: ZG=71451.6 ZD=69764.7 GG=71714.4 DD=67250 Center=70608.15 LeaveDir=-1 HasLeave=True
+     ZS[22]: ZG=69673.6 ZD=68966.9 GG=72300 DD=66511 Center=69320.25 LeaveDir=-1 HasLeave=True
+     ZS[23]: ZG=67225 ZD=66511 GG=68821.1 DD=65081 Center=66868.00 LeaveDir=-1 HasLeave=True
+     ZS[24]: ZG=66090.8 ZD=65177.8 GG=69473.7 DD=65081 Center=65634.30 LeaveDir=1 HasLeave=True
+     ZS[25]: ZG=69082.8 ZD=68689.1 GG=70557.7 DD=68639.7 Center=68885.95 LeaveDir=1 HasLeave=True
+     ZS[26]: ZG=70010.6 ZD=69259.1 GG=70938.5 DD=68741.4 Center=69634.85 LeaveDir=-1 HasLeave=True
+     ZS[27]: ZG=69033.6 ZD=68741.4 GG=69230 DD=68291.1 Center=68887.50 LeaveDir=-1 HasLeave=True
+     ZS[28]: ZG=68697.9 ZD=68183.3 GG=70110.9 DD=65826.1 Center=68440.60 LeaveDir=-1 HasLeave=True
+     ZS[29]: ZG=67042.3 ZD=66651.8 GG=68283.7 DD=65826.1 Center=66847.05 LeaveDir=1 HasLeave=True
+     ZS[30]: ZG=68079 ZD=67488.9 GG=68412.9 DD=64232.8 Center=67783.95 LeaveDir=-1 HasLeave=True
+     ZS[31]: ZG=65980 ZD=65534.6 GG=66574.5 DD=63860 Center=65757.30 LeaveDir=-1 HasLeave=True
+     ZS[32]: ZG=63432.4 ZD=63375.6 GG=64989 DD=62401.7 Center=63404.00 LeaveDir=1 HasLeave=True
+     ZS[33]: ZG=65627.5 ZD=64818.1 GG=69531.3 DD=63876 Center=65222.80 LeaveDir=1 HasLeave=True
+     ZS[34]: ZG=68487.8 ZD=67750 GG=69183.9 DD=64875.6 Center=68118.90 LeaveDir=-1 HasLeave=True
+     ZS[35]: ZG=65990 ZD=64875.6 GG=70100 DD=63377.5 Center=65432.80 LeaveDir=1 HasLeave=True
+     ZS[36]: ZG=68000 ZD=66270.7 GG=71887.9 DD=66080 Center=67135.35 LeaveDir=1 HasLeave=True
+     ZS[37]: ZG=73495 ZD=72830.8 GG=74046.5 DD=71177.7 Center=73162.90 LeaveDir=-1 HasLeave=True
+     ZS[38]: ZG=72650 ZD=72372.9 GG=73539.1 DD=70612.8 Center=72511.45 LeaveDir=-1 HasLeave=True
+     ZS[39]: ZG=71387.5 ZD=70612.8 GG=71530.4 DD=67712.3 Center=71000.15 LeaveDir=-1 HasLeave=True
+     ZS[40]: ZG=68450 ZD=67890.7 GG=68524.9 DD=66850.1 Center=68170.35 LeaveDir=-1 HasLeave=True
+     ZS[41]: ZG=67459 ZD=66850.1 GG=69449.1 DD=65569.2 Center=67154.55 LeaveDir=1 HasLeave=True
+     ZS[42]: ZG=69498 ZD=69184.8 GG=71748.1 DD=68200.1 Center=69341.40 LeaveDir=1 HasLeave=True
+     ZS[43]: ZG=70350.9 ZD=69974.7 GG=71979.2 DD=69725 Center=70162.80 LeaveDir=1 HasLeave=True
+     ZS[44]: ZG=71738.6 ZD=71150 GG=73870 DD=70510.8 Center=71444.30 LeaveDir=-1 HasLeave=True
+     ZS[45]: ZG=70900 ZD=70510.8 GG=71750 DD=70256 Center=70705.40 LeaveDir=1 HasLeave=True
+     ZS[46]: ZG=71750 ZD=71370 GG=73199.9 DD=71220.1 Center=71560.00 LeaveDir=1 HasLeave=True
+     ZS[47]: ZG=74777 ZD=73330.3 GG=75998.9 DD=70821.2 Center=74053.65 LeaveDir=-1 HasLeave=True
+     ZS[48]: ZG=71333.1 ZD=71164.7 GG=71980.5 DD=69421.1 Center=71248.90 LeaveDir=-1 HasLeave=True
+     ZS[49]: ZG=70535 ZD=69860.3 GG=71342.2 DD=67300 Center=70197.65 LeaveDir=-1 HasLeave=True
+     ZS[50]: ZG=68434.3 ZD=67400.1 GG=71789.8 DD=67300 Center=67917.20 LeaveDir=1 HasLeave=True
+     ZS[51]: ZG=71232 ZD=70370 GG=71931.9 DD=68884.5 Center=70801.00 LeaveDir=-1 HasLeave=True
+     ZS[52]: ZG=69872.2 ZD=69722.6 GG=70131.5 DD=68115.8 Center=69797.40 LeaveDir=-1 HasLeave=True
+     ZS[53]: ZG=66699.9 ZD=66175.4 GG=68925 DD=65550 Center=66437.65 LeaveDir=-1 HasLeave=True
+     ZS[54]: ZG=66148 ZD=65874.4 GG=67284 DD=65550 Center=66011.20 LeaveDir=1 HasLeave=True
+     ZS[55]: ZG=66978 ZD=66375.5 GG=67920 DD=66072.4 Center=66676.75 LeaveDir=1 HasLeave=True
+     ZS[56]: ZG=67920 ZD=67333.3 GG=69288 DD=65938 Center=67626.65 LeaveDir=1 HasLeave=True
+     ZS[57]: ZG=66898.5 ZD=66171.8 GG=68639.1 DD=65676.1 Center=66535.15 LeaveDir= HasLeave=False
+     Pair[56,57]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[55,56]: strictDown=False strictUp=True relaxDown=False relaxUp=False
+     Pair[54,55]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+     Pair[53,54]: strictDown=True strictUp=False relaxDown=False relaxUp=False
+     Pair[52,53]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[51,52]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[50,51]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+     Pair[49,50]: strictDown=True strictUp=False relaxDown=False relaxUp=False
+     Pair[48,49]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[47,48]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[46,47]: strictDown=False strictUp=True relaxDown=False relaxUp=False
+     Pair[45,46]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+     Pair[44,45]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[43,44]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+     Pair[42,43]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+     Pair[41,42]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+     Pair[40,41]: strictDown=True strictUp=False relaxDown=False relaxUp=False
+     Pair[39,40]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[38,39]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[37,38]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[36,37]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+     Pair[35,36]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+     Pair[34,35]: strictDown=True strictUp=False relaxDown=False relaxUp=False
+     Pair[33,34]: strictDown=False strictUp=True relaxDown=False relaxUp=False
+     Pair[32,33]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+     Pair[31,32]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[30,31]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[29,30]: strictDown=False strictUp=True relaxDown=False relaxUp=False
+     Pair[28,29]: strictDown=True strictUp=False relaxDown=False relaxUp=False
+     Pair[27,28]: strictDown=True strictUp=False relaxDown=False relaxUp=False
+     Pair[26,27]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[25,26]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+     Pair[24,25]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+     Pair[23,24]: strictDown=True strictUp=False relaxDown=False relaxUp=False
+     Pair[22,23]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[21,22]: strictDown=True strictUp=False relaxDown=False relaxUp=False
+     Pair[20,21]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+     Pair[19,20]: strictDown=True strictUp=False relaxDown=False relaxUp=False
+     Pair[18,19]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[17,18]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[16,17]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[15,16]: strictDown=True strictUp=False relaxDown=False relaxUp=False
+     Pair[14,15]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[13,14]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[12,13]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+     Pair[11,12]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[10,11]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[9,10]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[8,9]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[7,8]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+     Pair[6,7]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+     Pair[5,6]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+     Pair[4,5]: strictDown=True strictUp=False relaxDown=False relaxUp=False
+     Pair[3,4]: strictDown=True strictUp=False relaxDown=True relaxUp=False
+     Pair[2,3]: strictDown=False strictUp=True relaxDown=False relaxUp=False
+     Pair[1,2]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+     Pair[0,1]: strictDown=False strictUp=True relaxDown=False relaxUp=True
+ 
+===== ChanLunBi STOCK_SPOT_SZSE.000001 TIME_1D =====
+   Loaded 365 bars
+   Key: SPOT_SZSE.000001_TIME_1D, ZhongShus count: 1
+     ZS[0]: ZG=11.94 ZD=11.26 GG=13.33 DD=10.67 Center=11.60 LeaveDir=-1 HasLeave=True
+
+
+[xUnit.net 00:08:35.00]   Finished:    QjySDK.Tests
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_Baseline_All [4 m 17 s]
+  鏍囧噯杈撳嚭娑堟伅:
+ ========== 缂犺绛栫暐鍩哄噯娴嬭瘯 ==========
+ 
+ [ChanLun] COIN_FUTURES_BTCUSDT TIME_1D 鍔犺浇浜?365 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: FUTURES_BTCUSDT
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 365
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+ [ChanLunBi] COIN_FUTURES_BTCUSDT TIME_1D 鍔犺浇浜?365 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: FUTURES_BTCUSDT
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 365
+ 浜ゆ槗娆℃暟: 2
+ 鑳? 1  璐? 1
+ 鑳滅巼: 50.0%
+ 鎬绘敹鐩? -780.05
+ 鏈€澶у洖鎾? 849.94
+ 骞冲潎鐩堝埄: 69.90  骞冲潎浜忔崯: -849.94
+ 鐩堜簭姣? 0.08
+ 澶忔櫘鐜? -9.5191
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=1 Sell3=1
+ ====================================
+ [ChanLun] COIN_FUTURES_BTCUSDT TIME_15M 鍔犺浇浜?8640 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: FUTURES_BTCUSDT
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 8640
+ 浜ゆ槗娆℃暟: 19
+ 鑳? 6  璐? 13
+ 鑳滅巼: 31.6%
+ 鎬绘敹鐩? -2318.67
+ 鏈€澶у洖鎾? 2363.76
+ 骞冲潎鐩堝埄: 223.51  骞冲潎浜忔崯: -281.52
+ 鐩堜簭姣? 0.79
+ 澶忔櫘鐜? -6.2346
+ 涔板崠鐐圭粺璁? Buy1=11 Sell1=9 Buy2=0 Sell2=0 Buy3=28 Sell3=20
+ ====================================
+ [ChanLunBi] COIN_FUTURES_BTCUSDT TIME_15M 鍔犺浇浜?8640 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: FUTURES_BTCUSDT
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 8640
+ 浜ゆ槗娆℃暟: 36
+ 鑳? 12  璐? 24
+ 鑳滅巼: 33.3%
+ 鎬绘敹鐩? 449.22
+ 鏈€澶у洖鎾? 1057.49
+ 骞冲潎鐩堝埄: 390.89  骞冲潎浜忔崯: -176.73
+ 鐩堜簭姣? 2.21
+ 澶忔櫘鐜? 0.6214
+ 涔板崠鐐圭粺璁? Buy1=22 Sell1=13 Buy2=3 Sell2=1 Buy3=24 Sell3=33
+ ====================================
+ [ChanLun] COIN_FUTURES_ETHUSDT TIME_1D 鍔犺浇浜?365 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: FUTURES_ETHUSDT
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 365
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=7 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=4
+ ====================================
+ [ChanLunBi] COIN_FUTURES_ETHUSDT TIME_1D 鍔犺浇浜?365 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: FUTURES_ETHUSDT
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 365
+ 浜ゆ槗娆℃暟: 3
+ 鑳? 2  璐? 1
+ 鑳滅巼: 66.7%
+ 鎬绘敹鐩? 1249.02
+ 鏈€澶у洖鎾? 827.45
+ 骞冲潎鐩堝埄: 1038.24  骞冲潎浜忔崯: -827.45
+ 鐩堜簭姣? 1.25
+ 澶忔櫘鐜? 6.0471
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=3
+ ====================================
+ [ChanLun] COIN_FUTURES_ETHUSDT TIME_15M 鍔犺浇浜?8640 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: FUTURES_ETHUSDT
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 8640
+ 浜ゆ槗娆℃暟: 15
+ 鑳? 3  璐? 12
+ 鑳滅巼: 20.0%
+ 鎬绘敹鐩? -3058.88
+ 鏈€澶у洖鎾? 3666.67
+ 骞冲潎鐩堝埄: 443.98  骞冲潎浜忔崯: -365.90
+ 鐩堜簭姣? 1.21
+ 澶忔櫘鐜? -8.4914
+ 涔板崠鐐圭粺璁? Buy1=14 Sell1=24 Buy2=0 Sell2=0 Buy3=43 Sell3=20
+ ====================================
+ [ChanLunBi] COIN_FUTURES_ETHUSDT TIME_15M 鍔犺浇浜?8640 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: FUTURES_ETHUSDT
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 8640
+ 浜ゆ槗娆℃暟: 31
+ 鑳? 10  璐? 21
+ 鑳滅巼: 32.3%
+ 鎬绘敹鐩? -1019.85
+ 鏈€澶у洖鎾? 3705.94
+ 骞冲潎鐩堝埄: 497.46  骞冲潎浜忔崯: -285.45
+ 鐩堜簭姣? 1.74
+ 澶忔櫘鐜? -1.1750
+ 涔板崠鐐圭粺璁? Buy1=14 Sell1=5 Buy2=0 Sell2=0 Buy3=28 Sell3=20
+ ====================================
+ [ChanLun] COIN_FUTURES_XAUUSDT TIME_1D 鍔犺浇浜?113 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: FUTURES_XAUUSDT
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 113
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+ [ChanLunBi] COIN_FUTURES_XAUUSDT TIME_1D 鍔犺浇浜?113 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: FUTURES_XAUUSDT
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 113
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+ [ChanLun] COIN_FUTURES_XAUUSDT TIME_15M 鍔犺浇浜?8640 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: FUTURES_XAUUSDT
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 8640
+ 浜ゆ槗娆℃暟: 19
+ 鑳? 7  璐? 12
+ 鑳滅巼: 36.8%
+ 鎬绘敹鐩? -530.32
+ 鏈€澶у洖鎾? 2119.45
+ 骞冲潎鐩堝埄: 306.54  骞冲潎浜忔崯: -223.01
+ 鐩堜簭姣? 1.37
+ 澶忔櫘鐜? -1.2432
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=16 Buy2=0 Sell2=0 Buy3=48 Sell3=22
+ ====================================
+ [ChanLunBi] COIN_FUTURES_XAUUSDT TIME_15M 鍔犺浇浜?8640 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: FUTURES_XAUUSDT
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 8640
+ 浜ゆ槗娆℃暟: 27
+ 鑳? 13  璐? 14
+ 鑳滅巼: 48.1%
+ 鎬绘敹鐩? 1112.21
+ 鏈€澶у洖鎾? 1688.63
+ 骞冲潎鐩堝埄: 275.12  骞冲潎浜忔崯: -176.02
+ 鐩堜簭姣? 1.56
+ 澶忔櫘鐜? 1.8412
+ 涔板崠鐐圭粺璁? Buy1=10 Sell1=16 Buy2=0 Sell2=0 Buy3=33 Sell3=21
+ ====================================
+ [ChanLun] STOCK_SPOT_SZSE.000001 TIME_1D 鍔犺浇浜?365 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: SPOT_SZSE.000001
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 365
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+ [ChanLunBi] STOCK_SPOT_SZSE.000001 TIME_1D 鍔犺浇浜?365 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: SPOT_SZSE.000001
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 365
+ 浜ゆ槗娆℃暟: 1
+ 鑳? 0  璐? 1
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? -2.79
+ 鏈€澶у洖鎾? 2.79
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: -2.79
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=1
+ ====================================
+ [ChanLun] STOCK_SPOT_SZSE.000001 TIME_15M 鍔犺浇浜?6080 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: SPOT_SZSE.000001
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 6080
+ 浜ゆ槗娆℃暟: 5
+ 鑳? 3  璐? 2
+ 鑳滅巼: 60.0%
+ 鎬绘敹鐩? 10.42
+ 鏈€澶у洖鎾? 2.38
+ 骞冲潎鐩堝埄: 4.27  骞冲潎浜忔崯: -1.19
+ 鐩堜簭姣? 3.59
+ 澶忔櫘鐜? 10.0182
+ 涔板崠鐐圭粺璁? Buy1=11 Sell1=0 Buy2=0 Sell2=0 Buy3=22 Sell3=10
+ ====================================
+ [ChanLunBi] STOCK_SPOT_SZSE.000001 TIME_15M 鍔犺浇浜?6080 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: SPOT_SZSE.000001
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 6080
+ 浜ゆ槗娆℃暟: 12
+ 鑳? 6  璐? 6
+ 鑳滅巼: 50.0%
+ 鎬绘敹鐩? -2.71
+ 鏈€澶у洖鎾? 12.51
+ 骞冲潎鐩堝埄: 3.29  骞冲潎浜忔崯: -3.74
+ 鐩堜簭姣? 0.88
+ 澶忔櫘鐜? -0.7267
+ 涔板崠鐐圭粺璁? Buy1=11 Sell1=5 Buy2=0 Sell2=1 Buy3=7 Sell3=21
+ ====================================
+ [ChanLun] STOCK_SPOT_SHSE.510300 TIME_1D 鍔犺浇浜?365 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: SPOT_SHSE.510300
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 365
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+ [ChanLunBi] STOCK_SPOT_SHSE.510300 TIME_1D 鍔犺浇浜?365 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: SPOT_SHSE.510300
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 365
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+ [ChanLun] STOCK_SPOT_SHSE.510300 TIME_15M 鍔犺浇浜?6098 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: SPOT_SHSE.510300
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 6098
+ 浜ゆ槗娆℃暟: 7
+ 鑳? 5  璐? 2
+ 鑳滅巼: 71.4%
+ 鎬绘敹鐩? 10.96
+ 鏈€澶у洖鎾? 9.17
+ 骞冲潎鐩堝埄: 4.03  骞冲潎浜忔崯: -4.58
+ 鐩堜簭姣? 0.88
+ 澶忔櫘鐜? 4.6345
+ 涔板崠鐐圭粺璁? Buy1=6 Sell1=10 Buy2=0 Sell2=0 Buy3=31 Sell3=3
+ ====================================
+ [ChanLunBi] STOCK_SPOT_SHSE.510300 TIME_15M 鍔犺浇浜?6098 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: SPOT_SHSE.510300
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 6098
+ 浜ゆ槗娆℃暟: 26
+ 鑳? 9  璐? 17
+ 鑳滅巼: 34.6%
+ 鎬绘敹鐩? -26.57
+ 鏈€澶у洖鎾? 28.86
+ 骞冲潎鐩堝埄: 2.26  骞冲潎浜忔崯: -2.76
+ 鐩堜簭姣? 0.82
+ 澶忔櫘鐜? -3.4641
+ 涔板崠鐐圭粺璁? Buy1=4 Sell1=8 Buy2=0 Sell2=0 Buy3=37 Sell3=13
+ ====================================
+ [SKIP] FUTURES_FUTURES_SHFE.au2605 TIME_1D 鏁版嵁涓嶈冻
+ [ChanLun] FUTURES_FUTURES_SHFE.au2605 TIME_15M 鍔犺浇浜?1036 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: FUTURES_SHFE.au2605
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 1036
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=3
+ ====================================
+ [ChanLunBi] FUTURES_FUTURES_SHFE.au2605 TIME_15M 鍔犺浇浜?1036 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: FUTURES_SHFE.au2605
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 1036
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=1 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=5
+ ====================================
+ [ChanLun] FUTURES_FUTURES_DCE.c2605 TIME_1D 鍔犺浇浜?193 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: FUTURES_DCE.c2605
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 193
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+ [ChanLunBi] FUTURES_FUTURES_DCE.c2605 TIME_1D 鍔犺浇浜?193 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: FUTURES_DCE.c2605
+ 鍛ㄦ湡: TIME_1D
+ K绾挎暟: 193
+ 浜ゆ槗娆℃暟: 0
+ 鑳? 0  璐? 0
+ 鑳滅巼: 0.0%
+ 鎬绘敹鐩? 0.00
+ 鏈€澶у洖鎾? 0.00
+ 骞冲潎鐩堝埄: 0.00  骞冲潎浜忔崯: 0.00
+ 鐩堜簭姣? 0.00
+ 澶忔櫘鐜? 0.0000
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=0 Buy2=0 Sell2=0 Buy3=0 Sell3=0
+ ====================================
+ [ChanLun] FUTURES_FUTURES_DCE.c2605 TIME_15M 鍔犺浇浜?4879 鏍筀绾?
+ 
+ ========== ChanLun ==========
+ 鍝佺: FUTURES_DCE.c2605
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 4879
+ 浜ゆ槗娆℃暟: 9
+ 鑳? 5  璐? 4
+ 鑳滅巼: 55.6%
+ 鎬绘敹鐩? 492.00
+ 鏈€澶у洖鎾? 294.00
+ 骞冲潎鐩堝埄: 194.40  骞冲潎浜忔崯: -120.00
+ 鐩堜簭姣? 1.62
+ 澶忔櫘鐜? 3.9117
+ 涔板崠鐐圭粺璁? Buy1=13 Sell1=5 Buy2=0 Sell2=0 Buy3=12 Sell3=11
+ ====================================
+ [ChanLunBi] FUTURES_FUTURES_DCE.c2605 TIME_15M 鍔犺浇浜?4879 鏍筀绾?
+ 
+ ========== ChanLunBi ==========
+ 鍝佺: FUTURES_DCE.c2605
+ 鍛ㄦ湡: TIME_15M
+ K绾挎暟: 4879
+ 浜ゆ槗娆℃暟: 6
+ 鑳? 2  璐? 4
+ 鑳滅巼: 33.3%
+ 鎬绘敹鐩? -1020.00
+ 鏈€澶у洖鎾? 1146.00
+ 骞冲潎鐩堝埄: 66.00  骞冲潎浜忔崯: -288.00
+ 鐩堜簭姣? 0.23
+ 澶忔櫘鐜? -9.3431
+ 涔板崠鐐圭粺璁? Buy1=0 Sell1=9 Buy2=0 Sell2=0 Buy3=8 Sell3=6
+ ====================================
+
+
+
+娴嬭瘯杩愯澶辫触銆?
+娴嬭瘯鎬绘暟: 30
+     閫氳繃鏁? 28
+     澶辫触鏁? 2
+鎬绘椂闂? 8.5985 鍒嗛挓

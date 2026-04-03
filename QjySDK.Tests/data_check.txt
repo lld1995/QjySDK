@@ -1,0 +1,43 @@
+E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj : warning NU1608: 检测到的包版本在依赖项约束之外: Nethereum.JsonRpc.Client 4.29.0 需要 Microsoft.Extensions.Logging.Abstractions (>= 6.0.0 && < 10.0.0)，但版本 Microsoft.Extensions.Logging.Abstractions 10.0.1 已解决。
+E:\project\qjy\QjySdk\QjySDK.csproj : warning NU1608: 检测到的包版本在依赖项约束之外: Nethereum.JsonRpc.Client 4.29.0 需要 Microsoft.Extensions.Logging.Abstractions (>= 6.0.0 && < 10.0.0)，但版本 Microsoft.Extensions.Logging.Abstractions 10.0.1 已解决。
+  QjySDK -> E:\project\qjy\QjySdk\bin\Debug\net9.0\QjySDK.dll
+  [Secp256k1.Net] _Secp256k1NativeDir = D:\.nuget\packages\secp256k1.net\2.0.0\runtimes
+  [Secp256k1.Net] Found 10 native files
+E:\project\qjy\QjySdk\QjySDK.Tests\BacktestEngine.cs(416,53): warning CS8625: 无法将 null 字面量转换为非 null 的引用类型。 [E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj]
+E:\project\qjy\QjySdk\QjySDK.Tests\BacktestEngine.cs(430,52): warning CS8600: 将 null 文本或可能的 null 值转换为不可为 null 类型。 [E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj]
+E:\project\qjy\QjySdk\QjySDK.Tests\BacktestEngine.cs(521,63): warning CS8625: 无法将 null 字面量转换为非 null 的引用类型。 [E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj]
+E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs(277,38): warning CS8602: 解引用可能出现空引用。 [E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj]
+E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs(285,37): warning CS8602: 解引用可能出现空引用。 [E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj]
+E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs(302,38): warning CS8602: 解引用可能出现空引用。 [E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj]
+  QjySDK.Tests -> E:\project\qjy\QjySdk\QjySDK.Tests\bin\Debug\net9.0\QjySDK.Tests.dll
+  [Secp256k1.Net] _Secp256k1NativeDir = D:\.nuget\packages\secp256k1.net\2.0.0\runtimes
+  [Secp256k1.Net] Found 10 native files
+E:\project\qjy\QjySdk\QjySDK.Tests\bin\Debug\net9.0\QjySDK.Tests.dll (.NETCoreApp,Version=v9.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+E:\project\qjy\QjySdk\QjySDK.Tests\bin\Debug\net9.0\QjySDK.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 9.0.14)
+[xUnit.net 00:00:00.09]   Discovering: QjySDK.Tests
+[xUnit.net 00:00:00.18]   Discovered:  QjySDK.Tests
+[xUnit.net 00:00:00.19]   Starting:    QjySDK.Tests
+[xUnit.net 00:00:04.79]   Finished:    QjySDK.Tests
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_Check_Data_Availability [4 s]
+  标准输出消息:
+ COIN_FUTURES_ETHUSDT TIME_1D: 100 bars
+ COIN_FUTURES_ETHUSDT TIME_15M: 100 bars
+ COIN_SPOT_ETHUSDT TIME_1D: 100 bars
+ COIN_SPOT_ETHUSDT TIME_15M: 100 bars
+ FUTURES_FUTURES_SHFE.au2506 TIME_1D: 100 bars
+ FUTURES_FUTURES_SHFE.au2506 TIME_15M: 100 bars
+ FUTURES_FUTURES_SHFE.au2512 TIME_1D: 100 bars
+ FUTURES_FUTURES_SHFE.au2512 TIME_15M: 100 bars
+ FUTURES_FUTURES_SHFE.au2605 TIME_1D: 26 bars
+ FUTURES_FUTURES_SHFE.au2605 TIME_15M: 100 bars
+ FUTURES_FUTURES_SHFE.au2506 TIME_1D: 100 bars
+ FUTURES_FUTURES_SHFE.au2506 TIME_15M: 100 bars
+
+
+
+测试运行成功。
+测试总数: 1
+     通过数: 1
+总时间: 5.4871 秒

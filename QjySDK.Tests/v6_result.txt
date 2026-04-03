@@ -1,0 +1,27 @@
+生成启动时间为 2026/4/3 12:04:24。
+E:\project\qjy\QjySdk\QjySDK.Tests\bin\Debug\net9.0\QjySDK.Tests.dll (.NETCoreApp,Version=v9.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 9.0.14)
+[xUnit.net 00:00:00.17]   Discovering: QjySDK.Tests
+[xUnit.net 00:00:00.24]   Discovered:  QjySDK.Tests
+[xUnit.net 00:00:00.25]   Starting:    QjySDK.Tests
+[SymbolLoader] FUTURES_BTCUSDT �� multiplier=1.000, margin_ratio=1.000, symbol_type=1
+[SymbolLoader] FUTURES_ETHUSDT �� multiplier=1.000, margin_ratio=1.000, symbol_type=1
+[SymbolLoader] FUTURES_XAUUSDT �� multiplier=1.000, margin_ratio=1.000, symbol_type=1
+[SymbolLoader] SPOT_SZSE.000001 �� multiplier=100.000, margin_ratio=1.000, symbol_type=2
+[SymbolLoader] SPOT_SHSE.510300 �� multiplier=100.000, margin_ratio=1.000, symbol_type=2
+[SymbolLoader] FUTURES_SHFE.au2605 �� multiplier=1000.000, margin_ratio=0.190, symbol_type=3
+[SymbolLoader] FUTURES_DCE.c2605 �� multiplier=10.000, margin_ratio=0.070, symbol_type=3
+[xUnit.net 00:03:22.32]   Finished:    QjySDK.Tests
+  已通过 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_Baseline_All [3 m 21 s]
+
+测试运行成功。
+测试总数: 1
+     通过数: 1
+总时间: 3.3893 分钟
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:03:24.14

@@ -1,0 +1,83 @@
+鐢熸垚鍚姩鏃堕棿涓?2026/4/3 16:36:21銆?
+E:\project\qjy\QjySdk\QjySDK.Tests\bin\Debug\net9.0\QjySDK.Tests.dll (.NETCoreApp,Version=v9.0)鐨勬祴璇曡繍琛?
+鎬诲叡 1 涓祴璇曟枃浠朵笌鎸囧畾妯″紡鐩稿尮閰嶃€?
+E:\project\qjy\QjySdk\QjySDK.Tests\bin\Debug\net9.0\QjySDK.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 9.0.14)
+[xUnit.net 00:00:00.08]   Discovering: QjySDK.Tests
+[xUnit.net 00:00:00.13]   Discovered:  QjySDK.Tests
+[xUnit.net 00:00:00.13]   Starting:    QjySDK.Tests
+[SymbolLoader] FUTURES_BTCUSDT 锟斤拷 multiplier=1.000, margin_ratio=1.000, symbol_type=1
+[SymbolLoader] FUTURES_ETHUSDT 锟斤拷 multiplier=1.000, margin_ratio=1.000, symbol_type=1
+[SymbolLoader] FUTURES_XAUUSDT 锟斤拷 multiplier=1.000, margin_ratio=1.000, symbol_type=1
+[SymbolLoader] SPOT_SZSE.000001 锟斤拷 multiplier=100.000, margin_ratio=1.000, symbol_type=2
+[SymbolLoader] SPOT_SHSE.510300 锟斤拷 multiplier=100.000, margin_ratio=1.000, symbol_type=2
+[SymbolLoader] FUTURES_DCE.c2605 锟斤拷 multiplier=10.000, margin_ratio=0.070, symbol_type=3
+[xUnit.net 00:05:28.98]   Finished:    QjySDK.Tests
+  宸查€氳繃 QjySDK.Tests.ChanLunBacktestTests.Test_ChanLun_ParamGrid [5 m 28 s]
+  鏍囧噯杈撳嚭娑堟伅:
+ ========== 鍙傛暟缃戞牸鎼滅储缁撴灉 ==========
+
+ --- COIN_FUTURES_BTCUSDT TIME_15M ChanLun ---
+   V0                   浜ゆ槗: 30 鑳滅巼: 43.3% 鏀剁泭:   2702.57 鍥炴挙:    993.31 澶忔櫘:  3.1595 鐩堜簭姣? 2.56
+   V3-ATR               浜ゆ槗: 15 鑳滅巼: 53.3% 鏀剁泭:   4016.21 鍥炴挙:   1079.54 澶忔櫘:  7.0714 鐩堜簭姣? 3.48
+ 
+ --- COIN_FUTURES_BTCUSDT TIME_15M ChanLunBi ---
+   V0                   浜ゆ槗: 32 鑳滅巼: 43.8% 鏀剁泭:   1915.15 鍥炴挙:   2669.77 澶忔櫘:  2.0976 鐩堜簭姣? 1.86
+   V3-ATR               浜ゆ槗: 32 鑳滅巼: 43.8% 鏀剁泭:   1915.15 鍥炴挙:   2669.77 澶忔櫘:  2.0976 鐩堜簭姣? 1.86
+ 
+ --- COIN_FUTURES_ETHUSDT TIME_15M ChanLun ---
+   V0                   浜ゆ槗: 13 鑳滅巼:  7.7% 鏀剁泭:  -5238.08 鍥炴挙:   6971.82 澶忔櫘: -5.5964 鐩堜簭姣? 4.41
+   V3-ATR               浜ゆ槗: 11 鑳滅巼: 27.3% 鏀剁泭:   -655.93 鍥炴挙:   4387.36 澶忔櫘: -0.7214 鐩堜簭姣? 2.30
+ 
+ --- COIN_FUTURES_ETHUSDT TIME_15M ChanLunBi ---
+   V0                   浜ゆ槗: 27 鑳滅巼: 29.6% 鏀剁泭:  -4264.75 鍥炴挙:   5556.92 澶忔櫘: -3.6047 鐩堜簭姣? 1.09
+   V3-ATR               浜ゆ槗: 27 鑳滅巼: 29.6% 鏀剁泭:  -4264.75 鍥炴挙:   5556.92 澶忔櫘: -3.6047 鐩堜簭姣? 1.09
+ 
+ --- COIN_FUTURES_XAUUSDT TIME_15M ChanLun ---
+   V0                   浜ゆ槗: 15 鑳滅巼: 60.0% 鏀剁泭:   3009.03 鍥炴挙:   1022.30 澶忔櫘:  5.6953 鐩堜簭姣? 1.89
+   V3-ATR               浜ゆ槗: 15 鑳滅巼: 60.0% 鏀剁泭:   2869.90 鍥炴挙:   1161.96 澶忔櫘:  5.3148 鐩堜簭姣? 1.78
+ 
+ --- COIN_FUTURES_XAUUSDT TIME_15M ChanLunBi ---
+   V0                   浜ゆ槗: 29 鑳滅巼: 65.5% 鏀剁泭:   3818.35 鍥炴挙:    574.97 澶忔櫘:  7.9919 鐩堜簭姣? 2.93
+   V3-ATR               浜ゆ槗: 29 鑳滅巼: 65.5% 鏀剁泭:   3818.35 鍥炴挙:    574.97 澶忔櫘:  7.9919 鐩堜簭姣? 2.93
+ 
+ --- STOCK_SPOT_SZSE.000001 TIME_15M ChanLun ---
+   V0                   浜ゆ槗: 11 鑳滅巼: 45.5% 鏀剁泭:     -6.56 鍥炴挙:      8.80 澶忔櫘: -4.9032 鐩堜簭姣? 0.44
+   V3-ATR               浜ゆ槗:  3 鑳滅巼: 66.7% 鏀剁泭:     -2.08 鍥炴挙:      5.84 澶忔櫘: -2.4669 鐩堜簭姣? 0.32
+ 
+ --- STOCK_SPOT_SZSE.000001 TIME_15M ChanLunBi ---
+   V0                   浜ゆ槗: 12 鑳滅巼: 41.7% 鏀剁泭:      7.38 鍥炴挙:     17.48 澶忔櫘:  1.3154 鐩堜簭姣? 1.83
+   V3-ATR               浜ゆ槗: 12 鑳滅巼: 41.7% 鏀剁泭:      7.38 鍥炴挙:     17.48 澶忔櫘:  1.3154 鐩堜簭姣? 1.83
+ 
+ --- STOCK_SPOT_SHSE.510300 TIME_15M ChanLun ---
+   V0                   浜ゆ槗:  5 鑳滅巼: 60.0% 鏀剁泭:     19.35 鍥炴挙:      4.48 澶忔櫘:  6.7727 鐩堜簭姣? 3.55
+   V3-ATR               浜ゆ槗:  5 鑳滅巼: 60.0% 鏀剁泭:     16.60 鍥炴挙:      5.48 澶忔櫘:  6.2037 鐩堜簭姣? 2.69
+ 
+ --- STOCK_SPOT_SHSE.510300 TIME_15M ChanLunBi ---
+   V0                   浜ゆ槗: 25 鑳滅巼: 40.0% 鏀剁泭:    -26.82 鍥炴挙:     31.95 澶忔櫘: -3.1238 鐩堜簭姣? 0.71
+   V3-ATR               浜ゆ槗: 25 鑳滅巼: 40.0% 鏀剁泭:    -26.82 鍥炴挙:     31.95 澶忔櫘: -3.1238 鐩堜簭姣? 0.71
+ 
+ --- FUTURES_FUTURES_DCE.c2605 TIME_15M ChanLun ---
+   V0                   浜ゆ槗:  8 鑳滅巼: 50.0% 鏀剁泭:   -204.00 鍥炴挙:    426.00 澶忔櫘: -2.4105 鐩堜簭姣? 0.68
+   V3-ATR               浜ゆ槗:  6 鑳滅巼: 33.3% 鏀剁泭:   -240.00 鍥炴挙:    462.00 澶忔櫘: -3.2146 鐩堜簭姣? 1.25
+ 
+ --- FUTURES_FUTURES_DCE.c2605 TIME_15M ChanLunBi ---
+   V0                   浜ゆ槗:  5 鑳滅巼: 40.0% 鏀剁泭:  -1554.00 鍥炴挙:   1680.00 澶忔櫘:-10.3871 鐩堜簭姣? 0.12
+   V3-ATR               浜ゆ槗:  5 鑳滅巼: 40.0% 鏀剁泭:  -1554.00 鍥炴挙:   1680.00 澶忔櫘:-10.3871 鐩堜簭姣? 0.12
+ 
+ 
+========== 鍙傛暟缁?vs V0 鑳滆礋缁熻 ==========
+   V3-ATR               鑳淰0:3 璐烿0:3 骞?6
+
+
+
+娴嬭瘯杩愯鎴愬姛銆?
+娴嬭瘯鎬绘暟: 1
+     閫氳繃鏁? 1
+鎬绘椂闂? 5.4925 鍒嗛挓
+
+宸叉垚鍔熺敓鎴愩€?
+    0 涓鍛?
+    0 涓敊璇?
+
+宸茬敤鏃堕棿 00:05:30.20

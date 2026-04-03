@@ -1,0 +1,27 @@
+  正在确定要还原的项目…
+E:\project\qjy\QjySdk\QjySDK.csproj : warning NU1608: 检测到的包版本在依赖项约束之外: Nethereum.JsonRpc.Client 4.29.0 需要 Microsoft.Extensions.Logging.Abstractions (>= 6.0.0 && < 10.0.0)，但版本 Microsoft.Extensions.Logging.Abstractions 10.0.1 已解决。 [E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj]
+E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj : warning NU1608: 检测到的包版本在依赖项约束之外: Nethereum.JsonRpc.Client 4.29.0 需要 Microsoft.Extensions.Logging.Abstractions (>= 6.0.0 && < 10.0.0)，但版本 Microsoft.Extensions.Logging.Abstractions 10.0.1 已解决。
+  所有项目均是最新的，无法还原。
+E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj : warning NU1608: 检测到的包版本在依赖项约束之外: Nethereum.JsonRpc.Client 4.29.0 需要 Microsoft.Extensions.Logging.Abstractions (>= 6.0.0 && < 10.0.0)，但版本 Microsoft.Extensions.Logging.Abstractions 10.0.1 已解决。
+E:\project\qjy\QjySdk\QjySDK.csproj : warning NU1608: 检测到的包版本在依赖项约束之外: Nethereum.JsonRpc.Client 4.29.0 需要 Microsoft.Extensions.Logging.Abstractions (>= 6.0.0 && < 10.0.0)，但版本 Microsoft.Extensions.Logging.Abstractions 10.0.1 已解决。
+  QjySDK -> E:\project\qjy\QjySdk\bin\Debug\net9.0\QjySDK.dll
+  [Secp256k1.Net] _Secp256k1NativeDir = D:\.nuget\packages\secp256k1.net\2.0.0\runtimes
+  [Secp256k1.Net] Found 10 native files
+E:\project\qjy\QjySdk\QjySDK.Tests\BacktestEngine.cs(416,53): warning CS8625: 无法将 null 字面量转换为非 null 的引用类型。 [E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj]
+E:\project\qjy\QjySdk\QjySDK.Tests\BacktestEngine.cs(430,52): warning CS8600: 将 null 文本或可能的 null 值转换为不可为 null 类型。 [E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj]
+E:\project\qjy\QjySdk\QjySDK.Tests\BacktestEngine.cs(521,63): warning CS8625: 无法将 null 字面量转换为非 null 的引用类型。 [E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj]
+E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs(282,38): warning CS8602: 解引用可能出现空引用。 [E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj]
+E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs(290,37): warning CS8602: 解引用可能出现空引用。 [E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj]
+E:\project\qjy\QjySdk\QjySDK.Tests\ChanLunBacktestTests.cs(307,38): warning CS8602: 解引用可能出现空引用。 [E:\project\qjy\QjySdk\QjySDK.Tests\QjySDK.Tests.csproj]
+  QjySDK.Tests -> E:\project\qjy\QjySdk\QjySDK.Tests\bin\Debug\net9.0\QjySDK.Tests.dll
+  [Secp256k1.Net] _Secp256k1NativeDir = D:\.nuget\packages\secp256k1.net\2.0.0\runtimes
+  [Secp256k1.Net] Found 10 native files
+E:\project\qjy\QjySdk\QjySDK.Tests\bin\Debug\net9.0\QjySDK.Tests.dll (.NETCoreApp,Version=v9.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+E:\project\qjy\QjySdk\QjySDK.Tests\bin\Debug\net9.0\QjySDK.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 9.0.14)
+[xUnit.net 00:00:00.09]   Discovering: QjySDK.Tests
+[xUnit.net 00:00:00.29]   Discovered:  QjySDK.Tests
+[xUnit.net 00:00:00.31]   Starting:    QjySDK.Tests
+[SymbolLoader] FUTURES_BTCUSDT �� multiplier=1.000, margin_ratio=1.000, symbol_type=1
+正在尝试取消生成...

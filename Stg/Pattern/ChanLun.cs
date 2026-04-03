@@ -1,4 +1,4 @@
-using Common;
+﻿using Common;
 using Model;
 using Skender.Stock.Indicators;
 using stgInterface;
@@ -190,12 +190,33 @@ namespace QjySDK.Stg
 			sd.ArgDic["lots"] = 1.0m;
 			sd.ArgDic["money"] = 10000m;
 
-			// 止损设置
+			// 止损设置（线段级别信号稀疏，依赖买卖点信号自然反转，不使用百分比止损）
 			sd.ArgDic["useStopLoss"] = 1;        // 是否使用止损（0否 1是）
-			sd.ArgDic["stopLossPercent"] = 5.0m; // 止损比例（百分比，如3表示3%）
+			sd.ArgDic["stopLossPercent"] = 5.0m;  // 硬止损5%（统一基准）
 
-			// 中枢偏离限制
-			sd.ArgDic["maxZhongShuDeviation"] = 5.0m; // 开仓点距离中枢的最大偏离比例（百分比，如5表示5%）
+			// 移动止损设置（关闭，避免截断趋势盈利）
+			sd.ArgDic["useTrailingStop"] = 0;
+			sd.ArgDic["trailingActivatePercent"] = 5.0m;
+			sd.ArgDic["trailingStopPercent"] = 3.0m;
+
+			// 信号过期设置
+			sd.ArgDic["signalExpiryBars"] = 100;  // 一买/一卖信号过期K线数（超过后不再派生二买/二卖）
+
+			// 中枢回归平仓
+			sd.ArgDic["useZhongShuExit"] = 0;    // 关闭中枢退出
+			sd.ArgDic["minHoldBarsForExit"] = 0;
+
+			// 中枢偏离限制（优化2：放宽为10%，减少过滤掉有效信号）
+			sd.ArgDic["maxZhongShuDeviation"] = 20.0m; // 开仓点距离中枢的最大偏离比例（百分比，放宽至20%减少过滤高波动品种信号）
+
+			// 交易冷却期（线段级别信号已足够稀疏，不需要冷却过滤）
+			sd.ArgDic["tradeCooldownBars"] = 0;  // 平仓后冷却K线数（冷却期内仅Buy1/Sell1可开仓）
+
+			// Buy3/Sell3反转限制：Buy3/Sell3不能反转已有仓位，只能从空仓开仓
+			sd.ArgDic["noReversalOnBuy3Sell3"] = 0;  // 0否 1是
+
+			// 中枢回归平仓范围：0=仅Buy3/Sell3 1=Buy2/Buy3/Sell2/Sell3 2=所有买卖点
+			sd.ArgDic["zhongShuExitScope"] = 0;
 
             //sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0 标准 1 仅做多 2 仅做空" };
             //sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
@@ -244,9 +265,41 @@ namespace QjySDK.Stg
 			public int LastTradedBSPointIndex { get; set; } = -1;  // 最后交易的买卖点索引（防止重复触发）
 			public ZhongShu? LastConfirmedDrawZhongShu { get; set; }  // 上次绘制的已确认中枢（用于防止中枢回退）
 			public int LastConfirmedSegmentCount { get; set; }  // 上次确认中枢时的线段数量
+			public decimal MaxProfitPrice { get; set; }      // 持仓期间最有利价格（用于移动止损）
+			public int EntryBarIndex { get; set; }           // 入场时的K线索引（用于信号过期）
+			public int LastBuy1BarIndex { get; set; } = -1;  // 一买产生时的K线索引
+			public int LastSell1BarIndex { get; set; } = -1; // 一卖产生时的K线索引
+			public ZhongShu EntryZhongShu { get; set; }      // 入场时的中枢（用于中枢回归平仓）
+			public BSPointType? EntryBSPointType { get; set; }  // 入场时的买卖点类型（用于区分平仓逻辑）
+			public int LastExitBarIndex { get; set; } = -1;       // 上次平仓时的K线索引（用于交易冷却）
 		}
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
+
+		internal Dictionary<string, int> GetBSPointCounts()
+		{
+			var counts = new Dictionary<string, int>
+			{
+				{ "Buy1", 0 }, { "Sell1", 0 }, { "Buy2", 0 }, { "Sell2", 0 }, { "Buy3", 0 }, { "Sell3", 0 }
+			};
+			foreach (var kv in _stateDic)
+			{
+				if (kv.Value.BSPoints == null) continue;
+				foreach (var bp in kv.Value.BSPoints)
+				{
+					switch (bp.Type)
+					{
+						case BSPointType.Buy1: counts["Buy1"]++; break;
+						case BSPointType.Sell1: counts["Sell1"]++; break;
+						case BSPointType.Buy2: counts["Buy2"]++; break;
+						case BSPointType.Sell2: counts["Sell2"]++; break;
+						case BSPointType.Buy3: counts["Buy3"]++; break;
+						case BSPointType.Sell3: counts["Sell3"]++; break;
+					}
+				}
+			}
+			return counts;
+		}
 
 		#region K线包含关系处理
 
@@ -1338,15 +1391,27 @@ namespace QjySDK.Stg
 			if (zhongShus == null || zhongShus.Count < 2)
 				return false;
 			
-			// 从后往前找两个向下排列的中枢
+			// 第一轮：严格定义（中枢无重叠）
 			for (int i = zhongShus.Count - 1; i >= 1; i--)
 			{
 				var curr = zhongShus[i];
 				var prev = zhongShus[i - 1];
-				
-				// 下跌趋势：后一个中枢完全在前一个中枢下方（中枢区间无重叠）
-				// 缠论定义：后一个中枢的中枢上沿(ZG) < 前一个中枢的中枢下沿(ZD)
 				if (curr.ZG < prev.ZD)
+				{
+					lastZhongShu = curr;
+					prevZhongShu = prev;
+					return true;
+				}
+			}
+			
+			// 第二轮：放宽定义 — 中枢中心下移且GG/DD递降
+			for (int i = zhongShus.Count - 1; i >= 1; i--)
+			{
+				var curr = zhongShus[i];
+				var prev = zhongShus[i - 1];
+				decimal currCenter = (curr.ZG + curr.ZD) / 2;
+				decimal prevCenter = (prev.ZG + prev.ZD) / 2;
+				if (currCenter < prevCenter && curr.GG < prev.GG && curr.DD < prev.DD)
 				{
 					lastZhongShu = curr;
 					prevZhongShu = prev;
@@ -1367,15 +1432,27 @@ namespace QjySDK.Stg
 			if (zhongShus == null || zhongShus.Count < 2)
 				return false;
 			
-			// 从后往前找两个向上排列的中枢
+			// 第一轮：严格定义（中枢无重叠）
 			for (int i = zhongShus.Count - 1; i >= 1; i--)
 			{
 				var curr = zhongShus[i];
 				var prev = zhongShus[i - 1];
-				
-				// 上涨趋势：后一个中枢完全在前一个中枢上方（中枢区间无重叠）
-				// 缠论定义：后一个中枢的中枢下沿(ZD) > 前一个中枢的中枢上沿(ZG)
 				if (curr.ZD > prev.ZG)
+				{
+					lastZhongShu = curr;
+					prevZhongShu = prev;
+					return true;
+				}
+			}
+			
+			// 第二轮：放宽定义 — 中枢中心上移且GG/DD递升
+			for (int i = zhongShus.Count - 1; i >= 1; i--)
+			{
+				var curr = zhongShus[i];
+				var prev = zhongShus[i - 1];
+				decimal currCenter = (curr.ZG + curr.ZD) / 2;
+				decimal prevCenter = (prev.ZG + prev.ZD) / 2;
+				if (currCenter > prevCenter && curr.GG > prev.GG && curr.DD > prev.DD)
 				{
 					lastZhongShu = curr;
 					prevZhongShu = prev;
@@ -1516,37 +1593,90 @@ namespace QjySDK.Stg
 		}
 
 		/// <summary>
-		/// 识别第二类买点（2B）
-		/// 定义：第一类买点出现后，次级别走势向上完成，随后次级别回调不破第一类买点低点（或略破但形成盘整背驰），再次上行的起点
-		/// 判断标准：
-		/// 1. 位置必须高于第一类买点
-		/// 2. 回调不能重新回到前下跌趋势最后一个中枢内（即不破中枢下沿ZD）
-		/// 优化：在回调笔形成底分型确认时就识别，不需要等待新笔完全形成
+		/// 识别盘整背驰一买点（线段级别）
+		/// 定义：单个中枢的盘整走势中，离开段向下突破中枢且MACD面积小于进入段，形成背驰转折
+		/// </summary>
+		internal BSPoint IdentifyConsolidationBuy1(State state)
+		{
+			if (state.ZhongShus == null || state.ZhongShus.Count == 0)
+				return null;
+
+			// 趋势背驰已处理，这里只处理无趋势的情况
+			if (HasDownTrend(state.ZhongShus, out _, out _))
+				return null;
+
+			var lastZs = state.ZhongShus[state.ZhongShus.Count - 1];
+
+			if (lastZs.LeaveDirection != -1)
+				return null;
+
+			var leaveSegment = lastZs.LeaveSegment;
+			if (leaveSegment == null || leaveSegment.Low >= lastZs.ZD)
+				return null;
+
+			if (!IsTrendDivergenceStrict(lastZs))
+				return null;
+
+			return new BSPoint
+			{
+				Type = BSPointType.Buy1,
+				Index = leaveSegment.EndIndex,
+				Price = leaveSegment.Low,
+				Date = leaveSegment.EndStroke?.EndFractal?.Date ?? DateTime.Now,
+				IsDivergence = true
+			};
+		}
+
+		/// <summary>
+		/// 识别盘整背驰一卖点（线段级别）
+		/// 定义：单个中枢的盘整走势中，离开段向上突破中枢且MACD面积小于进入段，形成背驰转折
+		/// </summary>
+		internal BSPoint IdentifyConsolidationSell1(State state)
+		{
+			if (state.ZhongShus == null || state.ZhongShus.Count == 0)
+				return null;
+
+			if (HasUpTrend(state.ZhongShus, out _, out _))
+				return null;
+
+			var lastZs = state.ZhongShus[state.ZhongShus.Count - 1];
+
+			if (lastZs.LeaveDirection != 1)
+				return null;
+
+			var leaveSegment = lastZs.LeaveSegment;
+			if (leaveSegment == null || leaveSegment.High <= lastZs.ZG)
+				return null;
+
+			if (!IsTrendDivergenceStrict(lastZs))
+				return null;
+
+			return new BSPoint
+			{
+				Type = BSPointType.Sell1,
+				Index = leaveSegment.EndIndex,
+				Price = leaveSegment.High,
+				Date = leaveSegment.EndStroke?.EndFractal?.Date ?? DateTime.Now,
+				IsDivergence = true
+			};
+		}
+
+		/// <summary>
+		/// Identify Buy2 (2B)
 		/// </summary>
 		internal BSPoint IdentifyBuy2(State state, Stroke pullbackStroke, Fractal latestFractal)
 		{
-			// 回调笔必须是向下笔
 			if (pullbackStroke == null || pullbackStroke.IsUp)
 				return null;
 			
 			if (state.LastBuy1 == null)
 				return null;
 			
-			// 关键检查：一买之后必须先有向上笔，然后才是回调的向下笔
-			// 即回调笔的前一笔必须是向上笔，且该向上笔在一买之后
-			int pullbackIdx = state.Strokes?.IndexOf(pullbackStroke) ?? -1;
-			if (pullbackIdx < 1)
-				return null;
-			var prevStroke = state.Strokes[pullbackIdx - 1];
-			if (!prevStroke.IsUp || prevStroke.StartIndex < state.LastBuy1.Index)
-				return null;
-			
-			// 检查是否有底分型确认（提前识别的关键）
 			bool hasFractalConfirm = latestFractal != null && 
-									  latestFractal.Type == FractalType.Bottom && latestFractal.IsConfirmed;
+								  latestFractal.Type == FractalType.Bottom && latestFractal.IsConfirmed;
 			
-			// 检查次级别背驰（回调笔与前一个同向笔比较）
 			bool hasSubDivergence = false;
+			int pullbackIdx = state.Strokes?.IndexOf(pullbackStroke) ?? -1;
 			if (state.Strokes != null && state.Strokes.Count >= 3)
 			{
 				if (pullbackIdx >= 2)
@@ -1559,19 +1689,15 @@ namespace QjySDK.Stg
 				}
 			}
 			
-			// 必须有底分型确认或次级别背驰
 			if (!hasFractalConfirm && !hasSubDivergence)
 				return null;
 			
-			// 条件1：回调低点必须高于第一类买点
 			if (pullbackStroke.Low <= state.LastBuy1.Price)
 				return null;
 			
-			// 条件2：回调不能重新回到前下跌趋势最后一个中枢内（即不破中枢下沿ZD）
 			if (state.LastBuy1ZhongShu != null && pullbackStroke.Low <= state.LastBuy1ZhongShu.ZD)
 				return null;
 			
-			// 确认二买点（价格为回调笔低点，索引为回调笔结束位置）
 			return new BSPoint
 			{
 				Type = BSPointType.Buy2,
@@ -1583,37 +1709,21 @@ namespace QjySDK.Stg
 		}
 
 		/// <summary>
-		/// 识别第二类卖点（2S）
-		/// 定义：第一类卖点出现后，次级别走势向下完成，随后次级别反弹不突破第一类卖点高点（或略过但形成盘整背驰），再次下行的起点
-		/// 判断标准：
-		/// 1. 位置必须低于第一类卖点
-		/// 2. 反弹不能重新回到前上涨趋势最后一个中枢内（即不过中枢上沿ZG）
-		/// 优化：在反弹笔形成顶分型确认时就识别，不需要等待新笔完全形成
+		/// Identify Sell2 (2S)
 		/// </summary>
 		internal BSPoint IdentifySell2(State state, Stroke pullbackStroke, Fractal latestFractal)
 		{
-			// 反弹笔必须是向上笔
 			if (pullbackStroke == null || !pullbackStroke.IsUp)
 				return null;
 			
 			if (state.LastSell1 == null)
 				return null;
 			
-			// 关键检查：一卖之后必须先有向下笔，然后才是反弹的向上笔
-			// 即反弹笔的前一笔必须是向下笔，且该向下笔在一卖之后
-			int pullbackIdx = state.Strokes?.IndexOf(pullbackStroke) ?? -1;
-			if (pullbackIdx < 1)
-				return null;
-			var prevStroke = state.Strokes[pullbackIdx - 1];
-			if (prevStroke.IsUp || prevStroke.StartIndex < state.LastSell1.Index)
-				return null;
-			
-			// 检查是否有顶分型确认（提前识别的关键）
 			bool hasFractalConfirm = latestFractal != null && 
-									  latestFractal.Type == FractalType.Top && latestFractal.IsConfirmed;
+								  latestFractal.Type == FractalType.Top && latestFractal.IsConfirmed;
 			
-			// 检查次级别背驰（反弹笔与前一个同向笔比较）
 			bool hasSubDivergence = false;
+			int pullbackIdx = state.Strokes?.IndexOf(pullbackStroke) ?? -1;
 			if (pullbackIdx >= 2)
 			{
 				var prevSameDir = state.Strokes[pullbackIdx - 2];
@@ -1623,19 +1733,15 @@ namespace QjySDK.Stg
 				}
 			}
 			
-			// 必须有顶分型确认或次级别背驰
 			if (!hasFractalConfirm && !hasSubDivergence)
 				return null;
 			
-			// 条件1：反弹高点必须低于第一类卖点
 			if (pullbackStroke.High >= state.LastSell1.Price)
 				return null;
-			
-			// 条件2：反弹不能重新回到前上涨趋势最后一个中枢内（即不过中枢上沿ZG）
+
 			if (state.LastSell1ZhongShu != null && pullbackStroke.High >= state.LastSell1ZhongShu.ZG)
 				return null;
 			
-			// 确认二卖点（价格为反弹笔高点，索引为反弹笔结束位置）
 			return new BSPoint
 			{
 				Type = BSPointType.Sell2,
@@ -1647,7 +1753,7 @@ namespace QjySDK.Stg
 		}
 
 		/// <summary>
-		/// 识别第三类买点（3B）- 在回调笔形成底分型确认或次级别背驰时提前介入
+		/// Identify Buy3 (3B)
 		/// </summary>
 		internal BSPoint IdentifyBuy3(State state, Stroke pullbackStroke, ZhongShu zhongShu, Fractal latestFractal)
 		{
@@ -1667,9 +1773,8 @@ namespace QjySDK.Stg
 				if (idx >= 2 && !state.Strokes[idx - 2].IsUp && pullbackStroke.MACDArea < state.Strokes[idx - 2].MACDArea)
 					hasSubDivergence = true;
 			}
-			if (!hasFractalConfirm && !hasSubDivergence)
+			if (!hasFractalConfirm || !hasSubDivergence)
 				return null;
-			// 三买条件：回调低点不进入中枢，即低点必须高于或等于中枢上沿ZG
 			if (pullbackStroke.Low < zhongShu.ZG)
 				return null;
 			return new BSPoint
@@ -1683,7 +1788,7 @@ namespace QjySDK.Stg
 		}
 
 		/// <summary>
-		/// 识别第三类卖点（3S）- 在反弹笔形成顶分型确认或次级别背驰时提前介入
+		/// Identify Sell3 (3S)
 		/// </summary>
 		internal BSPoint IdentifySell3(State state, Stroke pullbackStroke, ZhongShu zhongShu, Fractal latestFractal)
 		{
@@ -1703,9 +1808,8 @@ namespace QjySDK.Stg
 				if (idx >= 2 && state.Strokes[idx - 2].IsUp && pullbackStroke.MACDArea < state.Strokes[idx - 2].MACDArea)
 					hasSubDivergence = true;
 			}
-			if (!hasFractalConfirm && !hasSubDivergence)
+			if (!hasFractalConfirm || !hasSubDivergence)
 				return null;
-			// 三卖条件：反弹高点不进入中枢，即高点必须低于或等于中枢下沿ZD
 			if (pullbackStroke.High > zhongShu.ZD)
 				return null;
 			return new BSPoint
@@ -1717,6 +1821,7 @@ namespace QjySDK.Stg
 				IsDivergence = hasSubDivergence
 			};
 		}
+
 
 		/// <summary>
 		/// 识别买卖点主方法
@@ -1752,12 +1857,15 @@ namespace QjySDK.Stg
 			// ========== 第一类买卖点识别 ==========
 			// 一买：下跌趋势背驰点
 			var buy1 = IdentifyBuy1(state);
+			// 盘整背驰一买：无趋势时，单个中枢离开背驰
+			if (buy1 == null)
+				buy1 = IdentifyConsolidationBuy1(state);
 			if (buy1 != null && !BSPointExists(state, BSPointType.Buy1, buy1.Index))
 			{
 				state.BSPoints.Add(buy1);
 				state.LastBuy1 = buy1;
 				// 记录产生一买时的中枢，用于二买判断
-				state.LastBuy1ZhongShu = lastDownTrendZs;
+				state.LastBuy1ZhongShu = lastDownTrendZs ?? (state.ZhongShus?.Count > 0 ? state.ZhongShus[state.ZhongShus.Count - 1] : null);
 				// 一买出现表示趋势反转，清除之前的一卖信号，防止错误触发二卖
 				state.LastSell1 = null;
 				state.LastSell1ZhongShu = null;
@@ -1765,12 +1873,15 @@ namespace QjySDK.Stg
 
 			// 一卖：上涨趋势背驰点
 			var sell1 = IdentifySell1(state);
+			// 盘整背驰一卖：无趋势时，单个中枢离开背驰
+			if (sell1 == null)
+				sell1 = IdentifyConsolidationSell1(state);
 			if (sell1 != null && !BSPointExists(state, BSPointType.Sell1, sell1.Index))
 			{
 				state.BSPoints.Add(sell1);
 				state.LastSell1 = sell1;
 				// 记录产生一卖时的中枢，用于二卖判断
-				state.LastSell1ZhongShu = lastUpTrendZs;
+				state.LastSell1ZhongShu = lastUpTrendZs ?? (state.ZhongShus?.Count > 0 ? state.ZhongShus[state.ZhongShus.Count - 1] : null);
 				// 一卖出现表示趋势反转，清除之前的一买信号，防止错误触发二买
 				state.LastBuy1 = null;
 				state.LastBuy1ZhongShu = null;
@@ -1926,6 +2037,15 @@ namespace QjySDK.Stg
 			// 步骤7：买卖点识别
 			UpdateBSPoints(s, tu.QuoteList);
 
+			// 记录一买/一卖产生时的K线索引（用于信号过期）
+			if (s.LastBuy1 != null && s.LastBuy1BarIndex < 0)
+				s.LastBuy1BarIndex = tu.QuoteList.Count - 1;
+			if (s.LastSell1 != null && s.LastSell1BarIndex < 0)
+				s.LastSell1BarIndex = tu.QuoteList.Count - 1;
+
+			// 信号过期由交易选择阶段的signalExpiryBars过滤器处理，不在此处清除LastBuy1/LastSell1
+			// 以避免过早阻止Buy2/Sell2的识别
+
 			// 绘制最近的分型
 			if (s.Fractals != null && s.Fractals.Count > 0)
 			{
@@ -1946,14 +2066,14 @@ namespace QjySDK.Stg
 			// 绘制笔（在最后一根bar上绘制所有笔）
 			if (s.Strokes != null && s.Strokes.Count>0 && s.Strokes.Count > 0)
 			{
-				int currentBarIndex = tu.QuoteList.Count - 1;
+				int drawBarIndex = tu.QuoteList.Count - 1;
 				var stroke = s.Strokes[s.Strokes.Count-1];
 				if (stroke.EndFractal.LastOriginalIndex > s.LastDrawOriIndex)
 				{
 					var extra = new PlotLineSegmentExtra
 					{
-						StartOffsetIndex = currentBarIndex - stroke.StartFractal.LastOriginalIndex,
-						EndOffsetIndex = currentBarIndex - stroke.EndFractal.LastOriginalIndex,
+						StartOffsetIndex = drawBarIndex - stroke.StartFractal.LastOriginalIndex,
+						EndOffsetIndex = drawBarIndex - stroke.EndFractal.LastOriginalIndex,
 						Val1 = stroke.StartFractal.Price,
 						Val2 = stroke.EndFractal.Price
 					};
@@ -2021,113 +2141,236 @@ namespace QjySDK.Stg
 				}
 			}
 
-			// 交易逻辑：基于买卖点识别结果
+			// 读取参数
 			bool useStopLoss = (int)ArgDic["useStopLoss"] == 1;
 			decimal stopLossPercent = (decimal)ArgDic["stopLossPercent"];
+			bool useTrailingStop = (int)ArgDic["useTrailingStop"] == 1;
+			decimal trailingActivatePercent = (decimal)ArgDic["trailingActivatePercent"];
+			decimal trailingStopPercent = (decimal)ArgDic["trailingStopPercent"];
+			int signalExpiryBars = (int)ArgDic["signalExpiryBars"];
+			bool useZhongShuExit = (int)ArgDic["useZhongShuExit"] == 1;
+			decimal maxDeviation = (decimal)ArgDic["maxZhongShuDeviation"];
+			int tradeCooldownBars = (int)ArgDic["tradeCooldownBars"];
+			int zhongShuExitScope = (int)ArgDic["zhongShuExitScope"];
+			int minHoldBarsForExit = (int)ArgDic["minHoldBarsForExit"];
 			var currentPrice = q.Close;
-			if (useStopLoss && s.Status != 0 && s.EntryPrice > 0)
+			int currentBarIndex = tu.QuoteList.Count - 1;
+
+			// [优化3] 移动止损：更新最有利价格
+			if (s.Status != 0 && s.EntryPrice > 0)
 			{
-				bool stopLossTriggered = false;
-				if (s.Status == 1)  // 多仓止损
+				if (s.Status == 1)
+					s.MaxProfitPrice = Math.Max(s.MaxProfitPrice, currentPrice);
+				else if (s.Status == 2)
+					s.MaxProfitPrice = s.MaxProfitPrice == 0 ? currentPrice : Math.Min(s.MaxProfitPrice, currentPrice);
+			}
+
+			// 止损检查（优先于其他交易逻辑）
+			if (s.Status != 0 && s.EntryPrice > 0)
+			{
+				bool exitTriggered = false;
+
+				if (s.Status == 1)  // 多仓
 				{
-					decimal stopLossPrice = s.EntryPrice * (1 - stopLossPercent / 100);
-					if (currentPrice <= stopLossPrice)
+					// [优化3] 移动止损优先
+					if (useTrailingStop && s.MaxProfitPrice > 0)
 					{
-						stopLossTriggered = true;
-						var oriNum = s.Num;
+						decimal profitPercent = (s.MaxProfitPrice - s.EntryPrice) / s.EntryPrice * 100;
+						if (profitPercent >= trailingActivatePercent)
+						{
+							decimal trailingStopPrice = s.MaxProfitPrice * (1 - trailingStopPercent / 100);
+							if (currentPrice <= trailingStopPrice)
+								exitTriggered = true;
+						}
+					}
+					// 固定止损
+					if (!exitTriggered && useStopLoss)
+					{
+						decimal stopLossPrice = s.EntryPrice * (1 - stopLossPercent / 100);
+						if (currentPrice <= stopLossPrice)
+							exitTriggered = true;
+					}
+				}
+				else if (s.Status == 2)  // 空仓
+				{
+					// [优化3] 移动止损优先
+					if (useTrailingStop && s.MaxProfitPrice > 0)
+					{
+						decimal profitPercent = (s.EntryPrice - s.MaxProfitPrice) / s.EntryPrice * 100;
+						if (profitPercent >= trailingActivatePercent)
+						{
+							decimal trailingStopPrice = s.MaxProfitPrice * (1 + trailingStopPercent / 100);
+							if (currentPrice >= trailingStopPrice)
+								exitTriggered = true;
+						}
+					}
+					// 固定止损
+					if (!exitTriggered && useStopLoss)
+					{
+						decimal stopLossPrice = s.EntryPrice * (1 + stopLossPercent / 100);
+						if (currentPrice >= stopLossPrice)
+							exitTriggered = true;
+					}
+				}
+
+				// [优化5] 中枢回归平仓：根据zhongShuExitScope决定哪些买卖点入场的仓位触发中枢回归平仓
+				if (!exitTriggered && useZhongShuExit && s.EntryZhongShu != null && s.EntryZhongShu.IsValid
+					&& (minHoldBarsForExit <= 0 || currentBarIndex - s.EntryBarIndex >= minHoldBarsForExit))
+				{
+					bool inScope = false;
+					if (zhongShuExitScope == 0)
+						inScope = s.EntryBSPointType == BSPointType.Buy3 || s.EntryBSPointType == BSPointType.Sell3;
+					else if (zhongShuExitScope == 1)
+						inScope = s.EntryBSPointType == BSPointType.Buy2 || s.EntryBSPointType == BSPointType.Sell2
+							  || s.EntryBSPointType == BSPointType.Buy3 || s.EntryBSPointType == BSPointType.Sell3;
+					else if (zhongShuExitScope == 2)
+						inScope = true;
+					if (inScope && currentPrice >= s.EntryZhongShu.ZD && currentPrice <= s.EntryZhongShu.ZG)
+					{
+						// 仅在亏损时触发中枢退出，保护盈利趋势
+						bool isLosing = (s.Status == 1 && currentPrice < s.EntryPrice) || (s.Status == 2 && currentPrice > s.EntryPrice);
+						if (isLosing)
+							exitTriggered = true;
+					}
+				}
+
+				if (exitTriggered)
+				{
+					var oriNum = s.Num;
+					if (s.Status == 1)
 						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oriNum, period, sendMode);
-						s.Status = 0;
-						s.Num = 0;
-						s.EntryPrice = 0;
-					}
-				}
-				else if (s.Status == 2)  // 空仓止损
-				{
-					decimal stopLossPrice = s.EntryPrice * (1 + stopLossPercent / 100);
-					if (currentPrice >= stopLossPrice)
-					{
-						stopLossTriggered = true;
-						var oriNum = s.Num;
+					else
 						Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oriNum, period, sendMode);
-						s.Status = 0;
-						s.Num = 0;
-						s.EntryPrice = 0;
-					}
+					s.Status = 0;
+					s.Num = 0;
+					s.EntryPrice = 0;
+					s.MaxProfitPrice = 0;
+					s.EntryZhongShu = null;
+					s.EntryBSPointType = null;
+					s.LastExitBarIndex = currentBarIndex;
+					return;
 				}
-				if (stopLossTriggered)
-					return;  // 止损后本周期不再进行其他交易
 			}
 
 			// 基于买卖点的交易逻辑
 			if (s.BSPoints == null || s.BSPoints.Count == 0)
 				return;
 
-			// 获取最新的买卖点
-			var latestBSPoint = s.BSPoints[s.BSPoints.Count - 1];
-			
-			// 检查是否已经交易过这个买卖点（防止重复触发）
-			if (latestBSPoint.Index <= s.LastTradedBSPointIndex)
+			// [优化1] BSPoint优先级选择：从未交易的买卖点中选优先级最高的
+			BSPoint bestBSPoint = null;
+			int bestPriority = int.MaxValue;
+			for (int bsi = s.BSPoints.Count - 1; bsi >= 0; bsi--)
+			{
+				var bp = s.BSPoints[bsi];
+				if (bp.Index <= s.LastTradedBSPointIndex)
+					break;
+
+				// [优化4] 信号过期：跳过基于过期一买/一卖派生的二买/二卖
+				if (signalExpiryBars > 0)
+				{
+					if ((bp.Type == BSPointType.Buy2) && s.LastBuy1BarIndex >= 0 && currentBarIndex - s.LastBuy1BarIndex > signalExpiryBars)
+						continue;
+					if ((bp.Type == BSPointType.Sell2) && s.LastSell1BarIndex >= 0 && currentBarIndex - s.LastSell1BarIndex > signalExpiryBars)
+						continue;
+				}
+
+				int pri;
+				switch (bp.Type)
+				{
+					case BSPointType.Buy1: case BSPointType.Sell1: pri = 1; break;
+					case BSPointType.Buy2: case BSPointType.Sell2: pri = 2; break;
+					case BSPointType.Buy3: case BSPointType.Sell3: pri = 3; break;
+					default: pri = 99; break;
+				}
+				if (pri < bestPriority)
+				{
+					bestPriority = pri;
+					bestBSPoint = bp;
+				}
+			}
+
+			if (bestBSPoint == null)
 				return;
 
-			// 判断买卖点类型并执行交易
-			bool isBuyPoint = latestBSPoint.Type == BSPointType.Buy1 || 
-							  latestBSPoint.Type == BSPointType.Buy2 || 
-							  latestBSPoint.Type == BSPointType.Buy3;
-			bool isSellPoint = latestBSPoint.Type == BSPointType.Sell1 || 
-							   latestBSPoint.Type == BSPointType.Sell2 || 
-							   latestBSPoint.Type == BSPointType.Sell3;
+			// 标记所有未交易的买卖点为已处理（防止低优先级信号在下一个bar再次触发）
+			s.LastTradedBSPointIndex = s.BSPoints[s.BSPoints.Count - 1].Index;
 
-			// 检查开仓点是否偏离中枢太远
-			decimal maxDeviation = (decimal)ArgDic["maxZhongShuDeviation"];
+			bool isBuyPoint = bestBSPoint.Type == BSPointType.Buy1 || 
+							  bestBSPoint.Type == BSPointType.Buy2 || 
+							  bestBSPoint.Type == BSPointType.Buy3;
+			bool isSellPoint = bestBSPoint.Type == BSPointType.Sell1 || 
+							   bestBSPoint.Type == BSPointType.Sell2 || 
+							   bestBSPoint.Type == BSPointType.Sell3;
+
+			// [优化6] 交易冷却期：平仓后N根K线内，仅允许Buy1/Sell1开仓，过滤低质量信号
+			if (tradeCooldownBars > 0 && s.LastExitBarIndex >= 0
+				&& currentBarIndex - s.LastExitBarIndex <= tradeCooldownBars)
+			{
+				bool isHighPriority = bestBSPoint.Type == BSPointType.Buy1 || bestBSPoint.Type == BSPointType.Sell1;
+				if (!isHighPriority)
+					return;
+			}
+
+			// [优化7] Buy3/Sell3反转限制：Buy3/Sell3只能从空仓开仓，不能反转已有仓位
+			// 避免低优先级信号频繁翻转仓位导致过度交易
+			bool noReversalOnBuy3Sell3 = (int)ArgDic["noReversalOnBuy3Sell3"] == 1;
+			if (noReversalOnBuy3Sell3)
+			{
+				bool isBuy3Sell3 = bestBSPoint.Type == BSPointType.Buy3 || bestBSPoint.Type == BSPointType.Sell3;
+				if (isBuy3Sell3 && s.Status != 0)
+					return;
+			}
+
+			// [优化2] 检查开仓点是否偏离中枢太远（放宽至10%）
 			if (maxDeviation > 0 && s.CurrentZhongShu != null && s.CurrentZhongShu.IsValid)
 			{
 				decimal zhongShuCenter = (s.CurrentZhongShu.ZG + s.CurrentZhongShu.ZD) / 2;
 				decimal deviationPercent = Math.Abs(q.Close - zhongShuCenter) / zhongShuCenter * 100;
 				if (deviationPercent > maxDeviation)
-				{
-					// 偏离中枢太远，不开仓，但标记此买卖点已处理
-					s.LastTradedBSPointIndex = latestBSPoint.Index;
 					return;
-				}
 			}
 
-			if (isBuyPoint && mode != 2)  // 买点且不是仅做空模式
+			if (isBuyPoint && mode != 2)
 			{
-				if (s.Status == 2)  // 有空仓，先平空
+				if (s.Status == 2)
 				{
 					var oriNum = s.Num;
 					Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oriNum, period, sendMode);
+					s.LastExitBarIndex = currentBarIndex;
 				}
 				
-				if (s.Status != 1)  // 没有多仓，开多
+				if (s.Status != 1)
 				{
 					s.Status = 1;
 					s.Num = num;
 					s.EntryPrice = q.Close;
+					s.MaxProfitPrice = q.Close;
+					s.EntryBarIndex = currentBarIndex;
+					s.EntryZhongShu = s.CurrentZhongShu;
+					s.EntryBSPointType = bestBSPoint.Type;
 					Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
 				}
-				
-				// 标记此买卖点已交易
-				s.LastTradedBSPointIndex = latestBSPoint.Index;
 			}
-			else if (isSellPoint && mode != 1)  // 卖点且不是仅做多模式
+			else if (isSellPoint && mode != 1)
 			{
-				if (s.Status == 1)  // 有多仓，先平多
+				if (s.Status == 1)
 				{
 					var oriNum = s.Num;
 					Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oriNum, period, sendMode);
+					s.LastExitBarIndex = currentBarIndex;
 				}
 				
-				if (s.Status != 2)  // 没有空仓，开空
+				if (s.Status != 2)
 				{
 					s.Status = 2;
 					s.Num = num;
 					s.EntryPrice = q.Close;
+					s.MaxProfitPrice = q.Close;
+					s.EntryBarIndex = currentBarIndex;
+					s.EntryZhongShu = s.CurrentZhongShu;
+					s.EntryBSPointType = bestBSPoint.Type;
 					Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
 				}
-				
-				// 标记此买卖点已交易
-				s.LastTradedBSPointIndex = latestBSPoint.Index;
 			}
 		}
 	}
