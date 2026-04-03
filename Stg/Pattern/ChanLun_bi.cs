@@ -207,7 +207,7 @@ namespace QjySDK.Stg
 			sd.ArgDic["minHoldBarsForExit"] = 0;  // 中枢退出最小持仓K线数
 
 			// 交易冷却期
-			sd.ArgDic["tradeCooldownBars"] = 0;  // 平仓后冷却K线数（冷却期内仅Buy1/Sell1可开仓）
+			sd.ArgDic["tradeCooldownBars"] = 10;  // 平仓后冷却K线数（冷却期内仅Buy1/Sell1可开仓，减少笔级别频繁交易）
 
 			// Buy3/Sell3反转限制：Buy3/Sell3不能反转已有仓位，只能从空仓开仓
 			sd.ArgDic["noReversalOnBuy3Sell3"] = 0;  // 0否 1是

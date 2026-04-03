@@ -387,13 +387,7 @@ namespace QjySDK.Tests
             };
             var paramSetsChanLunBi = new List<(string name, Dictionary<string, object> p)>
             {
-                ("V2-cur", null),  // 当前默认（5%止损，无其他优化）
-                ("Bi-Dev20", new Dictionary<string, object> { ["maxZhongShuDeviation"] = 20.0m }),
-                ("Bi-Cool5", new Dictionary<string, object> { ["tradeCooldownBars"] = 5 }),
-                ("Bi-Cool10", new Dictionary<string, object> { ["tradeCooldownBars"] = 10 }),
-                ("Bi-Exp20", new Dictionary<string, object> { ["signalExpiryBars"] = 20 }),
-                ("Bi-Exp30", new Dictionary<string, object> { ["signalExpiryBars"] = 30 }),
-                ("Bi-D20C5", new Dictionary<string, object> { ["maxZhongShuDeviation"] = 20.0m, ["tradeCooldownBars"] = 5 }),
+                ("V2-cur", null),  // 当前默认（5%止损 + tradeCooldownBars=10）
             };
 
             // 收集结果: key = "symbol|period|stgType", value = list of (paramName, result)
