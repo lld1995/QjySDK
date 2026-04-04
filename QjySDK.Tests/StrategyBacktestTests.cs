@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Xunit;
 using Xunit.Abstractions;
+using static Model.EnumDef;
 
 namespace QjySDK.Tests
 {
@@ -272,6 +273,32 @@ namespace QjySDK.Tests
             OutputResult(result);
 
             Assert.True(result.TotalBars > 0, "应有回测数据");
+        }
+
+        #endregion
+
+        #region ==================== 混合专家策略 ====================
+
+        [Fact]
+        public void Test_MoEPredict_ETH_5M()
+        {
+            var sym = "SPOT_ETHUSDT";
+            var period = Period.TIME_5M;
+
+            if (!TDEngineDataLoader.IsAvailable())
+                Assert.Fail("[SKIP] TDEngine 不可用");
+            if (!TDEngineDataLoader.HasData(sym, period, 500))
+                Assert.Fail($"[SKIP] {sym} 5M 数据不足500条");
+
+            var quotes = TDEngineDataLoader.LoadKlines(sym, period, 2000);
+            _output.WriteLine($"加载 {sym} {period} K线: {quotes.Count} 条");
+
+            var stg = new MoEPredict();
+            var result = BacktestEngine.RunSingleSymbol(stg, sym, quotes, period);
+            OutputResult(result);
+
+            Assert.True(result.TradeCount > 0, "应有交易");
+            Assert.True(result.WinRate > 55, $"胜率 {result.WinRate:F1}% 未达到55%目标");
         }
 
         #endregion

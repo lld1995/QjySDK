@@ -5,7 +5,7 @@ using QjySDK.Stg;
 GlobalDef.Init();
 
 {
-    var sd = new ElliottWave("3a24200de12547f18ee0588cee46f4a4");
+    var sd = new ExtremeReversal("6cec087c826f4fcdbb0daa95dc5802c7");
     await sd.Run();
     
     Console.ReadLine();

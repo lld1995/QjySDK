@@ -1,4 +1,5 @@
 .vs/
+.windsurf/
 obj/
 Debug/
 x64/
@@ -6,3 +7,4 @@ x86/
 bin/
 packages/
 test_config.json
+poly_secrets.txt

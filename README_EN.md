@@ -35,6 +35,7 @@
   - [Volatility Strategies (Volatility)](#volatility-strategies-volatility)
   - [Grid Trading (Grid)](#grid-trading-grid)
   - [Machine Learning (MachineLearning)](#machine-learning-machinelearning)
+  - [Polymarket Strategies (Polymarket)](#polymarket-strategies-polymarket)
 - [Client Feature Demos](#client-feature-demos)
 - [SDK Features](#sdk-features)
 - [System Requirements](#system-requirements)
@@ -194,6 +195,15 @@ The SDK includes a rich set of quantitative trading strategies, categorized as f
 | XGBoost Prediction | `XGBoostPredict.cs` | Price prediction based on XGBoost second-order Taylor expansion optimization |
 | PCA Prediction | `PCAPredict.cs` | Dimensionality reduction and anomaly detection trading strategy based on Principal Component Analysis (PCA) |
 
+#### ![](images/icons/polymarket.svg) Polymarket Strategies (Polymarket)
+
+> Polymarket strategies support simultaneous trading on both the main exchange and [Polymarket](https://polymarket.com) prediction markets. Strategies automatically place orders on Polymarket based on signal direction. For key configuration, see [Polymarket Key Configuration](#polymarket-key-configuration).
+
+| Strategy Name | File | Description |
+|--------------|------|-------------|
+| Extreme Reversal | `ExtremeReversal.cs` | 5-dimension reversal scoring: consecutive K-lines + RSI + StochK + volume + BB, trades reversal when all conditions reach extremes, ~60% win rate on ETH 5M |
+| Mixture of Experts Prediction | `MoEPredict.cs` | 7-dimension extreme condition scoring, trades when 4+/7 conditions trigger simultaneously, a mixture-of-experts system fusing multiple technical indicators |
+
 ---
 
 ## Client Feature Demos
@@ -267,6 +277,41 @@ Cloud-based live strategy execution with real-time position and signal monitorin
 | **.NET Runtime** | 9.0 or higher |
 | **Operating System** | Windows 10+ / macOS 10.15+ / Linux |
 | **QuanJinYing Client** | QuanJinYing desktop client must be installed and running |
+
+---
+
+## Polymarket Key Configuration
+
+Polymarket strategies (ExtremeReversal, MoEPredict) require a wallet private key to place orders. Keys are configured via the `poly_secrets.txt` file. **Never hardcode keys in source code.**
+
+### File Format
+
+```
+PRIVATE_KEY=0xYourPrivateKey
+FUNDER_ADDRESS=0xYourProxyWalletAddress
+RELAYER_API_KEY=your_relayer_api_key
+ETHERSCAN_API_KEY=your_etherscan_key
+PROXY_URL=http://127.0.0.1:7888
+POLYGON_RPC=https://polygon-bor-rpc.publicnode.com
+```
+
+### File Location
+
+The program searches for `poly_secrets.txt` in the following order, stopping at the first match:
+
+1. **Project root directory** (recommended) — same level as `QjySDK.sln`
+2. Runtime directory (`bin/Debug/net9.0/`)
+3. User home directory (`%USERPROFILE%/poly_secrets.txt`)
+
+> ❗ **Security Note**: Make sure `poly_secrets.txt` is added to `.gitignore`. Never commit it to the repository.
+
+### Strategy Parameter Priority
+
+The `privateKey` and `funderAddress` strategy parameters default to empty. Loading order:
+
+1. Client-configured strategy parameters (if manually set by user)
+2. `PRIVATE_KEY` / `FUNDER_ADDRESS` from `poly_secrets.txt`
+3. If both are empty, Polymarket initialization is skipped (exchange-only trading)
 
 ---
 

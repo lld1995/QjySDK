@@ -107,16 +107,38 @@ namespace QjySDK.Stg
                                 _sb.IsBacktest = status == 1;
                             }
                         }
+                        else if (nt == EnumDef.NotifyType.STG)
+                        {
+                            var stgId = dic["id"].ToString();
+                            if (stgId == _sb.Id)
+                            {
+                                int status = int.Parse(dic["data"].ToString());
+                                _sb.IsBacktest = status == 1;
+                            }
+                        }
                     }
                     else if (oper == "getSymbol")
                     {
-                        var s=((JsonElement)dic["symbolExtra"]).ToJsonObj<Symbol>();
-                        s.symbol_type = (int)Enum.Parse<EnumDef.SymbolType>(dic["st"].ToString());
                         var mktSymbol = dic["mktSymbol"].ToString();
-                        if (_pendingGetSymbol.TryGetValue(mktSymbol, out var tcs))
+                        if (dic.ContainsKey("symbolExtra"))
                         {
-                            _pendingGetSymbol.Remove(mktSymbol);
-                            tcs.SetResult(s);
+                            var s = ((JsonElement)dic["symbolExtra"]).ToJsonObj<Symbol>();
+                            s.symbol_type = (int)Enum.Parse<EnumDef.SymbolType>(dic["st"].ToString());
+                            if (_pendingGetSymbol.TryGetValue(mktSymbol, out var tcs))
+                            {
+                                _pendingGetSymbol.Remove(mktSymbol);
+                                tcs.SetResult(s);
+                            }
+                        }
+                        else
+                        {
+                            var errMsg = dic.ContainsKey("errMsg") ? dic["errMsg"].ToString() : "unknown error";
+                            Console.WriteLine($"getSymbol failed for {mktSymbol}: {errMsg}");
+                            if (_pendingGetSymbol.TryGetValue(mktSymbol, out var tcs))
+                            {
+                                _pendingGetSymbol.Remove(mktSymbol);
+                                tcs.SetException(new Exception($"getSymbol failed for {mktSymbol}: {errMsg}"));
+                            }
                         }
                     }
 

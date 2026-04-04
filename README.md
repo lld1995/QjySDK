@@ -35,6 +35,7 @@
   - [波动率策略类 (Volatility)](#波动率策略类-volatility)
   - [网格交易类 (Grid)](#网格交易类-grid)
   - [机器学习类 (MachineLearning)](#机器学习类-machinelearning)
+  - [Polymarket 策略类 (Polymarket)](#polymarket-策略类-polymarket)
 - [泉金盈客户端功能演示](#泉金盈客户端功能演示)
 - [SDK 功能特性](#sdk-功能特性)
 - [系统要求](#系统要求)
@@ -194,6 +195,15 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 | XGBoost 预测 | `XGBoostPredict.cs` | 基于XGBoost二阶泰勒展开优化的价格预测策略 |
 | PCA 预测 | `PCAPredict.cs` | 基于主成分分析(PCA)的降维与异常检测交易策略 |
 
+#### ![](images/icons/polymarket.svg) Polymarket 策略类 (Polymarket)
+
+> Polymarket 策略支持同时在主交易所和 [Polymarket](https://polymarket.com) 预测市场上交易。策略会根据信号方向自动在 Polymarket 上下单。密钥配置请参考 [Polymarket 密钥配置](#polymarket-密钥配置) 章节。
+
+| 策略名称 | 文件 | 简介 |
+|---------|------|------|
+| 极端反转策略 | `ExtremeReversal.cs` | 5维评分反转策略：连续K线+RSI+StochK+放量+BB全部极端时反向交易，ETH 5M 胜率~60% |
+| 混合专家预测 | `MoEPredict.cs` | 7维极端条件评分，4+/7条件同时触发时交易，融合多个技术指标的混合专家系统 |
+
 ---
 
 ## 泉金盈客户端功能演示
@@ -267,6 +277,41 @@ AI 驱动的多维度市场分析，一键生成专业投资报告。
 | **.NET Runtime** | 9.0 或更高版本 |
 | **操作系统** | Windows 10+ / macOS 10.15+ / Linux |
 | **泉金盈客户端** | 需安装并运行泉金盈桌面客户端 |
+
+---
+
+## Polymarket 密钥配置
+
+Polymarket 策略（ExtremeReversal、MoEPredict）需要钱包私钥才能下单。密钥通过 `poly_secrets.txt` 文件配置，**不要将密钥硬编码在代码中**。
+
+### 文件格式
+
+```
+PRIVATE_KEY=0x你的私钥
+FUNDER_ADDRESS=0x你的Proxy钱包地址
+RELAYER_API_KEY=你的relayer_api_key
+ETHERSCAN_API_KEY=你的etherscan_key
+PROXY_URL=http://127.0.0.1:7888
+POLYGON_RPC=https://polygon-bor-rpc.publicnode.com
+```
+
+### 文件放置位置
+
+程序会按以下顺序搜索 `poly_secrets.txt`，找到第一个即停止：
+
+1. **项目根目录**（推荐）—— 与 `QjySDK.sln` 同级目录
+2. 运行目录（`bin/Debug/net9.0/`）
+3. 用户主目录（`%USERPROFILE%/poly_secrets.txt`）
+
+> ❗ **安全提示**: 请确保 `poly_secrets.txt` 已加入 `.gitignore`，不要将其提交到代码仓库。
+
+### 策略参数优先级
+
+策略的 `privateKey` 和 `funderAddress` 参数默认为空，加载顺序：
+
+1. 客户端配置的策略参数（如果用户手动填写了）
+2. `poly_secrets.txt` 文件中的 `PRIVATE_KEY` / `FUNDER_ADDRESS`
+3. 两者都为空则跳过 Polymarket 初始化（仅做主交易所交易）
 
 ---
 

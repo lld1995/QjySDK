@@ -1295,13 +1295,20 @@ namespace QjySDK.Stg
 			if (zs.LeaveStroke == null)
 				return false;
 
-			// 进入笔（第一笔）
-			var entryStroke = zs.Strokes[0];
-			// 离开笔
 			var leaveStroke = zs.LeaveStroke;
 
-			// 必须同向
-			if (entryStroke.IsUp != leaveStroke.IsUp)
+			// 找中枢内与离开笔同向的第一笔作为进入笔
+			Stroke entryStroke = null;
+			foreach (var s in zs.Strokes)
+			{
+				if (s.IsUp == leaveStroke.IsUp)
+				{
+					entryStroke = s;
+					break;
+				}
+			}
+
+			if (entryStroke == null)
 				return false;
 
 			return IsDivergence(entryStroke, leaveStroke);
@@ -1404,14 +1411,22 @@ namespace QjySDK.Stg
 		/// </summary>
 		internal bool IsTrendDivergenceStrict(ZhongShu zs)
 		{
-			var entryStroke = GetEntryStroke(zs);
 			var leaveStroke = zs?.LeaveStroke;
-			
-			if (entryStroke == null || leaveStroke == null)
+			if (leaveStroke == null || zs.Strokes == null || zs.Strokes.Count == 0)
 				return false;
-			
-			// 必须同向
-			if (entryStroke.IsUp != leaveStroke.IsUp)
+
+			// 找中枢内与离开笔同向的第一笔作为进入笔（缠论定义：比较同向的进入段与离开段力度）
+			Stroke entryStroke = null;
+			foreach (var s in zs.Strokes)
+			{
+				if (s.IsUp == leaveStroke.IsUp)
+				{
+					entryStroke = s;
+					break;
+				}
+			}
+
+			if (entryStroke == null)
 				return false;
 			
 			// 背驰条件：离开笔MACD面积小于进入笔
@@ -1503,6 +1518,81 @@ namespace QjySDK.Stg
 		}
 
 		/// <summary>
+		/// 识别盘整背驰一买点
+		/// 定义：单个中枢的盘整走势中，离开笔向下突破中枢且MACD面积小于进入笔，形成背驰转折
+		/// 与趋势背驰不同，盘整背驰只需要1个中枢
+		/// </summary>
+		internal BSPoint IdentifyConsolidationBuy1(State state)
+		{
+			if (state.ZhongShus == null || state.ZhongShus.Count == 0)
+				return null;
+
+			// 趋势背驰已处理，这里只处理无趋势（1个中枢或中枢间无严格趋势）的情况
+			if (HasDownTrend(state.ZhongShus, out _, out _))
+				return null;
+
+			var lastZs = state.ZhongShus[state.ZhongShus.Count - 1];
+
+			// 中枢必须已向下离开
+			if (lastZs.LeaveDirection != -1)
+				return null;
+
+			var leaveStroke = lastZs.LeaveStroke;
+			if (leaveStroke == null || leaveStroke.Low >= lastZs.ZD)
+				return null;
+
+			// 检查盘整背驰：离开笔MACD面积小于进入笔
+			if (!IsTrendDivergenceStrict(lastZs))
+				return null;
+
+			return new BSPoint
+			{
+				Type = BSPointType.Buy1,
+				Index = leaveStroke.EndIndex,
+				Price = leaveStroke.Low,
+				Date = leaveStroke.EndFractal?.Date ?? DateTime.Now,
+				IsDivergence = true
+			};
+		}
+
+		/// <summary>
+		/// 识别盘整背驰一卖点
+		/// 定义：单个中枢的盘整走势中，离开笔向上突破中枢且MACD面积小于进入笔，形成背驰转折
+		/// </summary>
+		internal BSPoint IdentifyConsolidationSell1(State state)
+		{
+			if (state.ZhongShus == null || state.ZhongShus.Count == 0)
+				return null;
+
+			// 趋势背驰已处理，这里只处理无趋势的情况
+			if (HasUpTrend(state.ZhongShus, out _, out _))
+				return null;
+
+			var lastZs = state.ZhongShus[state.ZhongShus.Count - 1];
+
+			// 中枢必须已向上离开
+			if (lastZs.LeaveDirection != 1)
+				return null;
+
+			var leaveStroke = lastZs.LeaveStroke;
+			if (leaveStroke == null || leaveStroke.High <= lastZs.ZG)
+				return null;
+
+			// 检查盘整背驰：离开笔MACD面积小于进入笔
+			if (!IsTrendDivergenceStrict(lastZs))
+				return null;
+
+			return new BSPoint
+			{
+				Type = BSPointType.Sell1,
+				Index = leaveStroke.EndIndex,
+				Price = leaveStroke.High,
+				Date = leaveStroke.EndFractal?.Date ?? DateTime.Now,
+				IsDivergence = true
+			};
+		}
+
+		/// <summary>
 		/// 识别第二类买点（2B）
 		/// 定义：第一类买点出现后，次级别走势向上完成，随后次级别回调不破第一类买点低点（或略破但形成盘整背驰），再次上行的起点
 		/// 判断标准：
@@ -1546,8 +1636,8 @@ namespace QjySDK.Stg
 			if (pullbackStroke.Low <= state.LastBuy1.Price)
 				return null;
 			
-			// 条件2：回调不能重新回到前下跌趋势最后一个中枢内（即不破中枢下沿ZD）
-			if (state.LastBuy1ZhongShu != null && pullbackStroke.Low <= state.LastBuy1ZhongShu.ZD)
+			// 条件2：回调不能重新回到前下跌趋势最后一个中枢内（不进入中枢区间[ZD,ZG]）
+			if (state.LastBuy1ZhongShu != null && pullbackStroke.Low <= state.LastBuy1ZhongShu.ZG)
 				return null;
 			
 			// 确认二买点（价格为回调笔低点，索引为回调笔结束位置）
@@ -1566,7 +1656,7 @@ namespace QjySDK.Stg
 		/// 定义：第一类卖点出现后，次级别走势向下完成，随后次级别反弹不突破第一类卖点高点（或略过但形成盘整背驰），再次下行的起点
 		/// 判断标准：
 		/// 1. 位置必须低于第一类卖点
-		/// 2. 反弹不能重新回到前上涨趋势最后一个中枢内（即不过中枢上沿ZG）
+		/// 2. 反弹不能重新回到前上涨趋势最后一个中枢内（即不进入中枢区间[ZD,ZG]）
 		/// 优化：在反弹笔形成顶分型确认时就识别，不需要等待新笔完全形成
 		/// </summary>
 		internal BSPoint IdentifySell2(State state, Stroke pullbackStroke, Fractal latestFractal)
@@ -1605,8 +1695,8 @@ namespace QjySDK.Stg
 			if (pullbackStroke.High >= state.LastSell1.Price)
 				return null;
 			
-			// 条件2：反弹不能重新回到前上涨趋势最后一个中枢内（即不过中枢上沿ZG）
-			if (state.LastSell1ZhongShu != null && pullbackStroke.High >= state.LastSell1ZhongShu.ZG)
+			// 条件2：反弹不能重新回到前上涨趋势最后一个中枢内（不进入中枢区间[ZD,ZG]）
+			if (state.LastSell1ZhongShu != null && pullbackStroke.High >= state.LastSell1ZhongShu.ZD)
 				return null;
 			
 			// 确认二卖点（价格为反弹笔高点，索引为反弹笔结束位置）
@@ -1721,27 +1811,31 @@ namespace QjySDK.Stg
 			HasUpTrend(state.ZhongShus, out lastUpTrendZs, out prevUpTrendZs);
 
 			// ========== 第一类买卖点识别 ==========
-			// 一买：下跌趋势背驰点
+			// 一买：下跌趋势背驰点，无趋势时尝试盘整背驰
 			var buy1 = IdentifyBuy1(state);
+			if (buy1 == null)
+				buy1 = IdentifyConsolidationBuy1(state);
 			if (buy1 != null && !BSPointExists(state, BSPointType.Buy1, buy1.Index))
 			{
 				state.BSPoints.Add(buy1);
 				state.LastBuy1 = buy1;
 				// 记录产生一买时的中枢，用于二买判断
-				state.LastBuy1ZhongShu = lastDownTrendZs;
+				state.LastBuy1ZhongShu = lastDownTrendZs ?? (state.ZhongShus?.Count > 0 ? state.ZhongShus[state.ZhongShus.Count - 1] : null);
 				// 一买出现表示趋势反转，清除之前的一卖信号，防止错误触发二卖
 				state.LastSell1 = null;
 				state.LastSell1ZhongShu = null;
 			}
 
-			// 一卖：上涨趋势背驰点
+			// 一卖：上涨趋势背驰点，无趋势时尝试盘整背驰
 			var sell1 = IdentifySell1(state);
+			if (sell1 == null)
+				sell1 = IdentifyConsolidationSell1(state);
 			if (sell1 != null && !BSPointExists(state, BSPointType.Sell1, sell1.Index))
 			{
 				state.BSPoints.Add(sell1);
 				state.LastSell1 = sell1;
 				// 记录产生一卖时的中枢，用于二卖判断
-				state.LastSell1ZhongShu = lastUpTrendZs;
+				state.LastSell1ZhongShu = lastUpTrendZs ?? (state.ZhongShus?.Count > 0 ? state.ZhongShus[state.ZhongShus.Count - 1] : null);
 				// 一卖出现表示趋势反转，清除之前的一买信号，防止错误触发二买
 				state.LastBuy1 = null;
 				state.LastBuy1ZhongShu = null;
