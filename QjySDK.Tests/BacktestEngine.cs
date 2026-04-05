@@ -386,6 +386,115 @@ K线数: {TotalBars}
 
     #endregion
 
+    #region KlineCache — 文件缓存 K线数据
+
+    public class KlineCacheEntry
+    {
+        public DateTime Date { get; set; }
+        public decimal Open { get; set; }
+        public decimal High { get; set; }
+        public decimal Low { get; set; }
+        public decimal Close { get; set; }
+        public decimal Volume { get; set; }
+        public decimal Amount { get; set; }
+    }
+
+    public static class KlineCache
+    {
+        private static readonly string _cacheDir;
+
+        static KlineCache()
+        {
+            _cacheDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "KlineCache"));
+            if (!Directory.Exists(_cacheDir))
+                Directory.CreateDirectory(_cacheDir);
+        }
+
+        public static string CacheDirectory => _cacheDir;
+
+        private static string GetCacheFilePath(string rawSymbol, Period period)
+        {
+            var fileName = $"{rawSymbol}_{period}.json";
+            return Path.Combine(_cacheDir, fileName);
+        }
+
+        /// <summary>
+        /// 带文件缓存的K线加载。缓存命中直接读文件，否则从TDEngine加载并写入缓存。
+        /// </summary>
+        public static List<SkQuote> LoadKlines(string rawSymbol, Period period, int limit = 5000)
+        {
+            var path = GetCacheFilePath(rawSymbol, period);
+
+            if (File.Exists(path))
+            {
+                var json = File.ReadAllText(path);
+                var cached = JsonSerializer.Deserialize<List<KlineCacheEntry>>(json);
+                if (cached != null && cached.Count > 0)
+                {
+                    var quotes = cached.Select(e => new SkQuote
+                    {
+                        Date = e.Date,
+                        Open = e.Open,
+                        High = e.High,
+                        Low = e.Low,
+                        Close = e.Close,
+                        Volume = e.Volume,
+                        Amount = e.Amount
+                    }).ToList();
+                    Console.WriteLine($"[KlineCache] HIT {rawSymbol} {period}: {quotes.Count} bars");
+                    return quotes.Count > limit ? quotes.Take(limit).ToList() : quotes;
+                }
+            }
+
+            // Cache miss — 从 TDEngine 加载
+            var data = TDEngineDataLoader.LoadKlines(rawSymbol, period, limit);
+            Console.WriteLine($"[KlineCache] MISS {rawSymbol} {period}: {data.Count} bars from TDEngine → saving");
+
+            var entries = data.Select(q => new KlineCacheEntry
+            {
+                Date = q.Date, Open = q.Open, High = q.High, Low = q.Low,
+                Close = q.Close, Volume = q.Volume, Amount = q.Amount
+            }).ToList();
+            File.WriteAllText(path, JsonSerializer.Serialize(entries));
+
+            return data;
+        }
+
+        /// <summary>
+        /// 仅从缓存文件加载（不访问TDEngine），无缓存返回null
+        /// </summary>
+        public static List<SkQuote> LoadFromCacheOnly(string rawSymbol, Period period, int limit = 5000)
+        {
+            var path = GetCacheFilePath(rawSymbol, period);
+            if (!File.Exists(path)) return null;
+
+            var json = File.ReadAllText(path);
+            var cached = JsonSerializer.Deserialize<List<KlineCacheEntry>>(json);
+            if (cached == null || cached.Count == 0) return null;
+
+            var quotes = cached.Select(e => new SkQuote
+            {
+                Date = e.Date, Open = e.Open, High = e.High, Low = e.Low,
+                Close = e.Close, Volume = e.Volume, Amount = e.Amount
+            }).ToList();
+            return quotes.Count > limit ? quotes.Take(limit).ToList() : quotes;
+        }
+
+        public static bool HasCache(string rawSymbol, Period period)
+        {
+            return File.Exists(GetCacheFilePath(rawSymbol, period));
+        }
+
+        public static void ClearAll()
+        {
+            if (Directory.Exists(_cacheDir))
+                foreach (var f in Directory.GetFiles(_cacheDir, "*.json"))
+                    File.Delete(f);
+        }
+    }
+
+    #endregion
+
     #region BacktestEngine — 回测引擎
 
     public class BacktestEngine
@@ -424,7 +533,8 @@ K线数: {TotalBars}
                     trades.AddRange(StgTestHelper.DrainTrades(stg));
                 }
 
-                var result = CalcResult(stg.GetType().Name, new[] { mktSymbol }, quotes.Count, trades, period);
+                var lastPrices = new Dictionary<string, decimal> { { mktSymbol, quotes.Last().Close } };
+                var result = CalcResult(stg.GetType().Name, new[] { mktSymbol }, quotes.Count, trades, period, lastPrices);
 
                 // 提取买卖点统计
                 Dictionary<string, int> bsCounts = null;
@@ -527,11 +637,14 @@ K线数: {TotalBars}
                     trades.AddRange(StgTestHelper.DrainTrades(stg));
                 }
 
+                var lastPrices = symbolQuotes.ToDictionary(kv => kv.Key, kv => kv.Value.Last().Close);
                 return CalcResult(
                     stg.GetType().Name,
                     symbolQuotes.Keys.ToArray(),
                     sortedDates.Count,
-                    trades);
+                    trades,
+                    period,
+                    lastPrices);
             }
             finally
             {

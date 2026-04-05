@@ -8,3 +8,4 @@ bin/
 packages/
 test_config.json
 poly_secrets.txt
+KlineCache/

@@ -32,11 +32,8 @@ namespace QjySDK.Tests
         private BacktestResult RunTest(StgBase stg, string rawSymbol, Period period, int limit,
             Dictionary<string, object>? overrides = null)
         {
-            if (!TDEngineDataLoader.IsAvailable())
-                Assert.Fail("[SKIP] TDEngine 不可用");
-
             var mktSymbol = RawToMkt(rawSymbol);
-            var quotes = TDEngineDataLoader.LoadKlines(rawSymbol, period, limit);
+            var quotes = KlineCache.LoadKlines(rawSymbol, period, limit);
             _output.WriteLine($"[{stg.GetType().Name}] {rawSymbol} {period} 加载了 {quotes.Count} 根K线");
 
             var cts = StgTestHelper.InitForTest(stg, mktSymbol);
@@ -67,10 +64,11 @@ namespace QjySDK.Tests
                     trades.AddRange(StgTestHelper.DrainTrades(stg));
                 }
 
+                var lastPrices = new Dictionary<string, decimal> { { mktSymbol, quotes.Last().Close } };
                 var calcMethod = typeof(BacktestEngine).GetMethod("CalcResult",
                     BindingFlags.NonPublic | BindingFlags.Static);
                 var result = (BacktestResult)calcMethod!.Invoke(null,
-                    new object[] { stg.GetType().Name, new[] { mktSymbol }, quotes.Count, trades, period })!;
+                    new object[] { stg.GetType().Name, new[] { mktSymbol }, quotes.Count, trades, period, lastPrices })!;
 
                 _output.WriteLine(result.ToReport());
                 return result;
@@ -122,10 +120,11 @@ namespace QjySDK.Tests
                     trades.AddRange(StgTestHelper.DrainTrades(stg));
                 }
 
+                var lastPrices = new Dictionary<string, decimal> { { mktSymbol, quotes.Last().Close } };
                 var calcMethod = typeof(BacktestEngine).GetMethod("CalcResult",
                     BindingFlags.NonPublic | BindingFlags.Static);
                 return (BacktestResult)calcMethod!.Invoke(null,
-                    new object[] { stg.GetType().Name, new[] { mktSymbol }, quotes.Count, trades, period })!;
+                    new object[] { stg.GetType().Name, new[] { mktSymbol }, quotes.Count, trades, period, lastPrices })!;
             }
             finally { cts.Cancel(); }
         }
@@ -136,16 +135,10 @@ namespace QjySDK.Tests
         [Fact]
         public void Test_ParamGrid_ETH_5M()
         {
-            if (!TDEngineDataLoader.IsAvailable())
-            {
-                Assert.Fail("[SKIP] TDEngine 不可用");
-                return;
-            }
-
             var rawSymbol = "COIN_FUTURES_ETHUSDT";
             var period = Period.TIME_5M;
             var mktSymbol = RawToMkt(rawSymbol);
-            var quotes = TDEngineDataLoader.LoadKlines(rawSymbol, period, 20000);
+            var quotes = KlineCache.LoadKlines(rawSymbol, period, 20000);
             _output.WriteLine($"加载了 {quotes.Count} 根K线\n");
 
             var configs = new (int mc, int sb, int rsiLo, int rsiHi)[]
@@ -188,13 +181,10 @@ namespace QjySDK.Tests
         [Fact]
         public void Test_Compare_MoEPredict_vs_ExtremeReversal()
         {
-            if (!TDEngineDataLoader.IsAvailable())
-            { Assert.Fail("[SKIP] TDEngine 不可用"); return; }
-
             var rawSymbol = "COIN_FUTURES_ETHUSDT";
             var period = Period.TIME_5M;
             var mktSymbol = RawToMkt(rawSymbol);
-            var quotes = TDEngineDataLoader.LoadKlines(rawSymbol, period, 20000);
+            var quotes = KlineCache.LoadKlines(rawSymbol, period, 20000);
             _output.WriteLine($"加载了 {quotes.Count} 根K线 ({rawSymbol} {period})\n");
 
             // MoEPredict
@@ -217,10 +207,7 @@ namespace QjySDK.Tests
         [Fact]
         public void Test_Diagnostic_ConditionWinRates()
         {
-            if (!TDEngineDataLoader.IsAvailable())
-            { Assert.Fail("[SKIP] TDEngine 不可用"); return; }
-
-            var quotes = TDEngineDataLoader.LoadKlines("COIN_FUTURES_ETHUSDT", Period.TIME_5M, 20000);
+            var quotes = KlineCache.LoadKlines("COIN_FUTURES_ETHUSDT", Period.TIME_5M, 20000);
             _output.WriteLine($"加载了 {quotes.Count} 根K线\n");
 
             // 预计算指标
