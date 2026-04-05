@@ -5,7 +5,7 @@ using QjySDK.Stg;
 GlobalDef.Init();
 
 {
-    var sd = new ExtremeReversal("6cec087c826f4fcdbb0daa95dc5802c7");
+    var sd = new FourierTransform("9a26d8217ecd40f3822eb3fb7e5231e4");
     await sd.Run();
     
     Console.ReadLine();

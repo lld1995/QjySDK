@@ -543,7 +543,8 @@ K线数: {TotalBars}
         /// 撮合计算：统计总收益、胜率、最大回撤、夏普率
         /// </summary>
         private static BacktestResult CalcResult(
-            string strategyName, string[] symbols, int totalBars, List<RemoteTradeRecord> trades, Period period = Period.TIME_1D)
+            string strategyName, string[] symbols, int totalBars, List<RemoteTradeRecord> trades, Period period = Period.TIME_1D,
+            Dictionary<string, decimal>? lastPrices = null)
         {
             var result = new BacktestResult
             {
@@ -613,6 +614,31 @@ K线数: {TotalBars}
                 if (equity > peakEquity) peakEquity = equity;
                 var dd = peakEquity - equity;
                 if (dd > maxDrawdown) maxDrawdown = dd;
+            }
+
+            // 计算浮动盈亏：未平仓头寸按最后收盘价计算
+            decimal floatingPnl = 0m;
+            if (lastPrices != null)
+            {
+                foreach (var kv in positions)
+                {
+                    var sym = kv.Key;
+                    var pos = kv.Value;
+                    if (pos.Count == 0 || !lastPrices.ContainsKey(sym)) continue;
+                    var lastPrice = lastPrices[sym];
+                    foreach (var (ot, price, num) in pos)
+                    {
+                        if (ot == OrderType.BUY)
+                            floatingPnl += (lastPrice - price) * num;
+                        else if (ot == OrderType.SELL)
+                            floatingPnl += (price - lastPrice) * num;
+                    }
+                }
+                equity += floatingPnl;
+                // 更新回撤
+                if (equity > peakEquity) peakEquity = equity;
+                var ddFinal = peakEquity - equity;
+                if (ddFinal > maxDrawdown) maxDrawdown = ddFinal;
             }
 
             result.TradeCount = wins.Count + losses.Count;
