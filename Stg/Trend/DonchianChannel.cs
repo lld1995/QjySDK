@@ -32,6 +32,7 @@ namespace QjySDK.Stg
         private int _exitMode = 0;
 
         private Dictionary<string, int> _positionState = new Dictionary<string, int>();
+        private Dictionary<string, decimal> _entryPrice = new Dictionary<string, decimal>();
 
         public DonchianChannel()
         {
@@ -55,6 +56,9 @@ namespace QjySDK.Stg
 
             sd.ArgDescDic["exitMode"] = new ArgDesc { Text = "出场模式", Explain = "0=出场通道, 1=中轨出场" };
             sd.ArgDic["exitMode"] = 0;
+
+            sd.ArgDescDic["stopLoss"] = new ArgDesc { Text = "止损%", Explain = "固定止损百分比，0为不启用" };
+            sd.ArgDic["stopLoss"] = 5.0m;
 
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0:固定手数 1:固定金额" };
             sd.ArgDic["lotsMode"] = 1;
@@ -92,6 +96,7 @@ namespace QjySDK.Stg
             if (!_positionState.ContainsKey(stateKey))
             {
                 _positionState[stateKey] = 0;
+                _entryPrice[stateKey] = 0;
             }
 
             var entryDonchian = quotes.GetDonchian(_entryPeriod).ToList();
@@ -131,16 +136,28 @@ namespace QjySDK.Stg
                     var num = CalculateLots(tu, q);
                     Trade(tu.MktSymbol, OrderType.BUY, currentClose, num, period, 0);
                     _positionState[stateKey] = 1;
+                    _entryPrice[stateKey] = currentClose;
                 }
                 else if (currentClose < lowerBand && prevLow >= lowerBand)
                 {
                     var num = CalculateLots(tu, q);
                     Trade(tu.MktSymbol, OrderType.SELL, currentClose, num, period, 0);
                     _positionState[stateKey] = -1;
+                    _entryPrice[stateKey] = currentClose;
                 }
             }
             else if (position > 0)
             {
+                // 止损检查
+                var _sl = (decimal)ArgDic["stopLoss"];
+                if (_sl > 0 && _entryPrice[stateKey] > 0 && currentClose < _entryPrice[stateKey] * (1 - _sl / 100m))
+                {
+                    Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, currentClose, CalculateLots(tu, q), period, 0);
+                    _positionState[stateKey] = 0;
+                    _entryPrice[stateKey] = 0;
+                    return;
+                }
+
                 bool exitSignal = false;
                 if (_exitMode == 0)
                 {
@@ -155,10 +172,21 @@ namespace QjySDK.Stg
                 {
                     Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, currentClose, CalculateLots(tu, q), period, 0);
                     _positionState[stateKey] = 0;
+                    _entryPrice[stateKey] = 0;
                 }
             }
             else if (position < 0)
             {
+                // 止损检查
+                var _sl2 = (decimal)ArgDic["stopLoss"];
+                if (_sl2 > 0 && _entryPrice[stateKey] > 0 && currentClose > _entryPrice[stateKey] * (1 + _sl2 / 100m))
+                {
+                    Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, currentClose, CalculateLots(tu, q), period, 0);
+                    _positionState[stateKey] = 0;
+                    _entryPrice[stateKey] = 0;
+                    return;
+                }
+
                 bool exitSignal = false;
                 if (_exitMode == 0)
                 {
@@ -173,6 +201,7 @@ namespace QjySDK.Stg
                 {
                     Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, currentClose, CalculateLots(tu, q), period, 0);
                     _positionState[stateKey] = 0;
+                    _entryPrice[stateKey] = 0;
                 }
             }
         }

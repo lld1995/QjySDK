@@ -261,15 +261,15 @@ namespace QjySDK.Stg
         {
             if (state.IsLong)
             {
-                if (currentLow <= state.StopLoss)
+                if (currentPrice <= state.StopLoss)
                 {
-                    ClosePosition(state, mktSymbol, state.StopLoss, period);
+                    ClosePosition(state, mktSymbol, currentPrice, period);
                     return;
                 }
 
-                if (currentHigh >= state.TakeProfit)
+                if (currentPrice >= state.TakeProfit)
                 {
-                    ClosePosition(state, mktSymbol, state.TakeProfit, period);
+                    ClosePosition(state, mktSymbol, currentPrice, period);
                     return;
                 }
 
@@ -290,15 +290,15 @@ namespace QjySDK.Stg
             }
             else
             {
-                if (currentHigh >= state.StopLoss)
+                if (currentPrice >= state.StopLoss)
                 {
-                    ClosePosition(state, mktSymbol, state.StopLoss, period);
+                    ClosePosition(state, mktSymbol, currentPrice, period);
                     return;
                 }
 
-                if (currentLow <= state.TakeProfit)
+                if (currentPrice <= state.TakeProfit)
                 {
-                    ClosePosition(state, mktSymbol, state.TakeProfit, period);
+                    ClosePosition(state, mktSymbol, currentPrice, period);
                     return;
                 }
 

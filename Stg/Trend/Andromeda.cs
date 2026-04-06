@@ -548,7 +548,7 @@ namespace QjySDK.Stg
             decimal effectiveStop = Math.Max(state.InitialStopPrice, state.TrailingStopPrice);
 
             // 1. 检查止损
-            if (q.Low <= effectiveStop)
+            if (q.Close <= effectiveStop)
             {
                 ClosePosition(tu, period, q, state, sendMode, "止损");
                 return;
@@ -597,7 +597,7 @@ namespace QjySDK.Stg
             decimal effectiveStop = Math.Min(state.InitialStopPrice, state.TrailingStopPrice);
 
             // 1. 检查止损
-            if (q.High >= effectiveStop)
+            if (q.Close >= effectiveStop)
             {
                 ClosePosition(tu, period, q, state, sendMode, "止损");
                 return;

@@ -31,6 +31,7 @@ namespace QjySDK.Stg
         {
             public int Status { get; set; }       // 0=空仓 1=多头 2=空头
             public decimal Num { get; set; }
+            public decimal EntryPrice { get; set; }
             public int SignalDir { get; set; }     // 当前信号方向: 0=无 1=看涨 2=看跌
             public int RemainBars { get; set; }    // 剩余可下单K线数
         }
@@ -83,6 +84,9 @@ namespace QjySDK.Stg
 
             sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "0=立即 1=下个开盘" };
             sd.ArgDic["sendMode"] = 0;
+
+            sd.ArgDescDic["stopLoss"] = new ArgDesc { Text = "止损%", Explain = "固定止损百分比，0为不启用" };
+            sd.ArgDic["stopLoss"] = 5.0m;
 
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0=固定手数 1=固定金额" };
             sd.ArgDic["lotsMode"] = 1;
@@ -253,28 +257,43 @@ namespace QjySDK.Stg
             var num = CalculateLots(tu.MktSymbol, price);
             if (num <= 0) return;
 
+            // 止损检查
+            var _sl = (decimal)ArgDic["stopLoss"];
+            if (s.Status == 1 && _sl > 0 && s.EntryPrice > 0 && price < s.EntryPrice * (1 - _sl / 100m))
+            {
+                Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, price, s.Num, period, sendMode);
+                s.Status = 0; s.Num = 0; s.EntryPrice = 0;
+                return;
+            }
+            if (s.Status == 2 && _sl > 0 && s.EntryPrice > 0 && price > s.EntryPrice * (1 + _sl / 100m))
+            {
+                Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, price, s.Num, period, sendMode);
+                s.Status = 0; s.Num = 0; s.EntryPrice = 0;
+                return;
+            }
+
             // Step 1: 平掉上一bar的仓位
             if (s.Status == 1)
             {
                 Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, price, s.Num, period, sendMode);
-                s.Status = 0; s.Num = 0;
+                s.Status = 0; s.Num = 0; s.EntryPrice = 0;
             }
             else if (s.Status == 2)
             {
                 Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, price, s.Num, period, sendMode);
-                s.Status = 0; s.Num = 0;
+                s.Status = 0; s.Num = 0; s.EntryPrice = 0;
             }
 
             // Step 2: 仅当本bar条件满足时开仓（不依赖历史信号）
             if (barSignal == 1)
             {
                 Trade(tu.MktSymbol, OrderType.BUY, price, num, period, sendMode);
-                s.Status = 1; s.Num = num;
+                s.Status = 1; s.Num = num; s.EntryPrice = price;
             }
             else if (barSignal == 2)
             {
                 Trade(tu.MktSymbol, OrderType.SELL, price, num, period, sendMode);
-                s.Status = 2; s.Num = num;
+                s.Status = 2; s.Num = num; s.EntryPrice = price;
             }
         }
 

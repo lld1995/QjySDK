@@ -32,6 +32,7 @@ namespace QjySDK.Stg
 
             sd.ArgDic["mode"] = 0;
             sd.ArgDic["sendMode"] = 0;
+            sd.ArgDic["stopLoss"] = 5.0m;
 
             //手数控制
             sd.ArgDic["lotsMode"] = 1;
@@ -40,6 +41,7 @@ namespace QjySDK.Stg
 
             sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0 标准 1 仅做多 2 仅做空" };
             sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
+            sd.ArgDescDic["stopLoss"] = new ArgDesc() { Text = "止损%", Explain = "固定止损百分比，0为不启用" };
             sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
             sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;
@@ -157,6 +159,15 @@ namespace QjySDK.Stg
                     }
                     else if (s.Status == 1)
                     {
+                        // 止损检查
+                        var _sl = (decimal)ArgDic["stopLoss"];
+                        if (_sl > 0 && s.LastOpenPrice > 0 && q.Close < s.LastOpenPrice * (1 - _sl / 100m))
+                        {
+                            Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
+                            s.Status = 0; s.Num = 0; s.LastOpenPrice = 0;
+                            return;
+                        }
+
                         if (smaShort1.Sma < smaLong1.Sma && kdj1.K > overUp && kdj1.D > overUp && kdj2.K > kdj2.D && kdj1.K < kdj1.D && mode != 1)
                         {
                             var oriNum = s.Num;
@@ -171,6 +182,15 @@ namespace QjySDK.Stg
                     }
                     else if (s.Status == 2)
                     {
+                        // 止损检查
+                        var _sl2 = (decimal)ArgDic["stopLoss"];
+                        if (_sl2 > 0 && s.LastOpenPrice > 0 && q.Close > s.LastOpenPrice * (1 + _sl2 / 100m))
+                        {
+                            Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
+                            s.Status = 0; s.Num = 0; s.LastOpenPrice = 0;
+                            return;
+                        }
+
                         if (smaShort1.Sma > smaLong1.Sma && kdj1.K < overDown && kdj1.D < overDown && kdj2.K < kdj2.D && kdj1.K > kdj1.D && mode != 2)
                         {
                             var oriNum = s.Num;

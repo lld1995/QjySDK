@@ -30,6 +30,7 @@ namespace QjySDK.Stg
             sd.ArgDic["signalPeriods"] = 9;
             sd.ArgDic["mode"] = 0;
 			sd.ArgDic["sendMode"] = 0;
+			sd.ArgDic["stopLoss"] = 5.0m;
 
 			//手数控制
 			sd.ArgDic["lotsMode"] = 1;
@@ -38,6 +39,7 @@ namespace QjySDK.Stg
 
 			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0 标准 1 仅做多 2 仅做空" };
 			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
+			sd.ArgDescDic["stopLoss"] = new ArgDesc() { Text = "止损%", Explain = "固定止损百分比，0为不启用" };
 			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
 			sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;
@@ -58,6 +60,8 @@ namespace QjySDK.Stg
 			public int Status { get; set; }
 
 			public decimal Num { get; set; }
+
+			public decimal EntryPrice { get; set; }
 
 			public int LastCloseBarIndex { get; set; } = -1;
 		}
@@ -244,6 +248,7 @@ namespace QjySDK.Stg
 							{
 								s.Status = 1;
 								s.Num = num;
+								s.EntryPrice = q.Close;
 								Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
 							}
 						}
@@ -264,12 +269,22 @@ namespace QjySDK.Stg
 							{
 								s.Status = 2;
 								s.Num = num;
+								s.EntryPrice = q.Close;
 								Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
 							}
 						}
 					}
 					else if (s.Status == 1)
 					{
+						// 止损检查
+						var _sl = (decimal)ArgDic["stopLoss"];
+						if (_sl > 0 && s.EntryPrice > 0 && q.Close < s.EntryPrice * (1 - _sl / 100m))
+						{
+							Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
+							s.Status = 0; s.Num = 0; s.EntryPrice = 0;
+							s.LastCloseBarIndex = tu.QuoteList.Count - 1;
+							return;
+						}
 						if (highList.Count > 1 && macdHighList.Count > 1)
 						{
                             var hi1 = highList[highList.Count - 1];
@@ -283,7 +298,7 @@ namespace QjySDK.Stg
                             var mh2 = macd[mhi2];
 
                             var isClose = false;
-                            if (q.Low < (decimal)bl1.LowerBand)
+                            if (q.Close < (decimal)bl1.LowerBand)
                             {
                                 isClose = true;
                             }
@@ -297,12 +312,22 @@ namespace QjySDK.Stg
                                 Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oriNum, period, sendMode);
                                 s.Status = 0;
                                 s.Num = 0;
+                                s.EntryPrice = 0;
                                 s.LastCloseBarIndex = tu.QuoteList.Count - 1;
                             }
 						}
 					}
 					else if (s.Status == 2)
 					{
+						// 止损检查
+						var _sl2 = (decimal)ArgDic["stopLoss"];
+						if (_sl2 > 0 && s.EntryPrice > 0 && q.Close > s.EntryPrice * (1 + _sl2 / 100m))
+						{
+							Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
+							s.Status = 0; s.Num = 0; s.EntryPrice = 0;
+							s.LastCloseBarIndex = tu.QuoteList.Count - 1;
+							return;
+						}
 						if (lowList.Count > 1 && macdLowList.Count > 1)
 						{
                             var li1 = lowList[lowList.Count - 1];
@@ -316,7 +341,7 @@ namespace QjySDK.Stg
                             var ml2 = macd[mli2];
 
                             var isClose = false;
-                            if (q.High > (decimal)bl1.UpperBand)
+                            if (q.Close > (decimal)bl1.UpperBand)
                             {
                                 isClose = true;
                             }
@@ -330,6 +355,7 @@ namespace QjySDK.Stg
 								Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oriNum, period, sendMode);
 								s.Status = 0;
 								s.Num = 0;
+								s.EntryPrice = 0;
 								s.LastCloseBarIndex = tu.QuoteList.Count - 1;
 							}
 						}

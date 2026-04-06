@@ -991,7 +991,7 @@ namespace QjySDK.Stg
                 bool exitSignal = false;
 
                 // 止损
-                if (q.Low <= state.StopLoss)
+                if (currentPrice <= state.StopLoss)
                 {
                     exitSignal = true;
                 }
@@ -1027,7 +1027,7 @@ namespace QjySDK.Stg
                 bool exitSignal = false;
 
                 // 止损
-                if (q.High >= state.StopLoss)
+                if (currentPrice >= state.StopLoss)
                 {
                     exitSignal = true;
                 }

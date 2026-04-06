@@ -41,6 +41,7 @@ namespace QjySDK.Stg
             sd.ArgDic["sendMode"] = 0;              // 发单模式: 0立即 1下个开盘
             sd.ArgDic["useTrendFilter"] = 1;        // 是否启用趋势过滤: 0关闭 1开启
             sd.ArgDic["usePriceConfirm"] = 0;       // 是否启用价格确认: 0关闭 1开启
+            sd.ArgDic["stopLoss"] = 5.0m;              // 止损百分比
 
             // 手数控制
             sd.ArgDic["lotsMode"] = 1;              // 0固定手数 1固定金额
@@ -55,6 +56,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即发单 1 下个开盘发单" };
             sd.ArgDescDic["useTrendFilter"] = new ArgDesc() { Text = "趋势过滤", Explain = "0 关闭 1 开启（仅在主趋势方向交易）" };
             sd.ArgDescDic["usePriceConfirm"] = new ArgDesc() { Text = "价格确认", Explain = "0 关闭 1 开启（收盘价需确认信号）" };
+            sd.ArgDescDic["stopLoss"] = new ArgDesc() { Text = "止损%", Explain = "固定止损百分比，0为不启用" };
             sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
             sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数数量" };
             sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额数量" };
@@ -205,6 +207,15 @@ namespace QjySDK.Stg
             }
             else if (s.Position == 1)
             {
+                // 止损检查
+                var _sl = (decimal)ArgDic["stopLoss"];
+                if (_sl > 0 && s.EntryPrice > 0 && q.Close < s.EntryPrice * (1 - _sl / 100m))
+                {
+                    Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.HoldNum, period, sendMode);
+                    s.Position = 0; s.HoldNum = 0; s.EntryPrice = 0;
+                    return;
+                }
+
                 // 多头持仓：检查平仓信号
                 if (deathCross)
                 {
@@ -230,6 +241,15 @@ namespace QjySDK.Stg
             }
             else if (s.Position == 2)
             {
+                // 止损检查
+                var _sl2 = (decimal)ArgDic["stopLoss"];
+                if (_sl2 > 0 && s.EntryPrice > 0 && q.Close > s.EntryPrice * (1 + _sl2 / 100m))
+                {
+                    Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.HoldNum, period, sendMode);
+                    s.Position = 0; s.HoldNum = 0; s.EntryPrice = 0;
+                    return;
+                }
+
                 // 空头持仓：检查平仓信号
                 if (goldenCross)
                 {

@@ -13,6 +13,8 @@ namespace QjySDK.Stg
     {
         private Dictionary<string, double?> _prevFastMA = new Dictionary<string, double?>();
         private Dictionary<string, double?> _prevSlowMA = new Dictionary<string, double?>();
+        private Dictionary<string, int> _positionState = new Dictionary<string, int>();
+        private Dictionary<string, decimal> _entryPrice = new Dictionary<string, decimal>();
 
         public MACross()
         {
@@ -33,6 +35,9 @@ namespace QjySDK.Stg
 
             sd.ArgDescDic["SlowPeriod"] = new ArgDesc { Text = "慢线周期", Explain = "慢速均线的计算周期" };
             sd.ArgDic["SlowPeriod"] = 20;
+
+            sd.ArgDescDic["stopLoss"] = new ArgDesc { Text = "止损%", Explain = "固定止损百分比，0为不启用" };
+            sd.ArgDic["stopLoss"] = 5.0m;
 
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0:固定手数 1:固定金额" };
             sd.ArgDic["lotsMode"] = 1;
@@ -76,7 +81,34 @@ namespace QjySDK.Stg
             Plot("main", "SlowMA", PlotType.CURVE, slowMA);
 
             string stateKey = tu.GetStateKey();
-            
+            if (!_positionState.ContainsKey(stateKey)) _positionState[stateKey] = 0;
+            if (!_entryPrice.ContainsKey(stateKey)) _entryPrice[stateKey] = 0;
+
+            var q = quotes.Last();
+            var num = CalculateLots(tu, q);
+            int pos = _positionState[stateKey];
+
+            // 止损检查
+            var _sl = (decimal)ArgDic["stopLoss"];
+            if (pos == 1 && _sl > 0 && _entryPrice[stateKey] > 0 && q.Close < _entryPrice[stateKey] * (1 - _sl / 100m))
+            {
+                Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, num, period, 0);
+                _positionState[stateKey] = 0;
+                _entryPrice[stateKey] = 0;
+                _prevFastMA[stateKey] = fastMA;
+                _prevSlowMA[stateKey] = slowMA;
+                return;
+            }
+            if (pos == -1 && _sl > 0 && _entryPrice[stateKey] > 0 && q.Close > _entryPrice[stateKey] * (1 + _sl / 100m))
+            {
+                Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, num, period, 0);
+                _positionState[stateKey] = 0;
+                _entryPrice[stateKey] = 0;
+                _prevFastMA[stateKey] = fastMA;
+                _prevSlowMA[stateKey] = slowMA;
+                return;
+            }
+
             if (_prevFastMA.TryGetValue(stateKey, out double? prevFast) && 
                 _prevSlowMA.TryGetValue(stateKey, out double? prevSlow) &&
                 prevFast.HasValue && prevSlow.HasValue)
@@ -84,17 +116,19 @@ namespace QjySDK.Stg
                 bool prevFastAbove = prevFast.Value > prevSlow.Value;
                 bool currFastAbove = fastMA.Value > slowMA.Value;
 
-                var q = quotes.Last();
-                var num = CalculateLots(tu, q);
                 if (!prevFastAbove && currFastAbove)
                 {
                     Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, num, period, 0);
                     Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, 0);
+                    _positionState[stateKey] = 1;
+                    _entryPrice[stateKey] = q.Close;
                 }
                 else if (prevFastAbove && !currFastAbove)
                 {
                     Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, num, period, 0);
                     Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, 0);
+                    _positionState[stateKey] = -1;
+                    _entryPrice[stateKey] = q.Close;
                 }
             }
 

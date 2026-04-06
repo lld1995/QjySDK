@@ -523,13 +523,13 @@ namespace QjySDK.Stg
                 string exitReason = "";
 
                 // 止损
-                if (q.Low <= state.StopLoss)
+                if (currentPrice <= state.StopLoss)
                 {
                     exitSignal = true;
                     exitReason = "StopLoss";
                 }
                 // 止盈
-                else if (q.High >= state.TakeProfit)
+                else if (currentPrice >= state.TakeProfit)
                 {
                     exitSignal = true;
                     exitReason = "TakeProfit";
@@ -590,13 +590,13 @@ namespace QjySDK.Stg
                 string exitReason = "";
 
                 // 止损
-                if (q.High >= state.StopLoss)
+                if (currentPrice >= state.StopLoss)
                 {
                     exitSignal = true;
                     exitReason = "StopLoss";
                 }
                 // 止盈
-                else if (q.Low <= state.TakeProfit)
+                else if (currentPrice <= state.TakeProfit)
                 {
                     exitSignal = true;
                     exitReason = "TakeProfit";

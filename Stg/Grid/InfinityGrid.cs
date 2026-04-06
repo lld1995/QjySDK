@@ -46,6 +46,10 @@ namespace QjySDK.Stg
 			sd.ArgDic["lowerPriceLimit"] = 0m;
 			sd.ArgDic["upperPriceLimit"] = 0m;
 
+			// 止损
+			sd.ArgDic["useStopLoss"] = 1;
+			sd.ArgDic["stopLossPercent"] = 10.0m;
+
 			// 发单
 			sd.ArgDic["sendMode"] = 0;
 
@@ -54,6 +58,8 @@ namespace QjySDK.Stg
 			sd.ArgDescDic["maxTotalInvest"] = new ArgDesc() { Text = "最大总投入", Explain = "持仓总投入金额上限，0为不限" };
 			sd.ArgDescDic["lowerPriceLimit"] = new ArgDesc() { Text = "价格下限", Explain = "低于此价格停止买入，0为不限" };
 			sd.ArgDescDic["upperPriceLimit"] = new ArgDesc() { Text = "价格上限", Explain = "高于此价格停止卖出，0为不限" };
+			sd.ArgDescDic["useStopLoss"] = new ArgDesc() { Text = "启用止损", Explain = "0 关闭 1 启用" };
+			sd.ArgDescDic["stopLossPercent"] = new ArgDesc() { Text = "止损百分比", Explain = "价格偏离基准超过此百分比时全部止损" };
 			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
 
 			sd.MaxSymbolNum = 1000;
@@ -83,6 +89,7 @@ namespace QjySDK.Stg
 			public decimal TotalInvest { get; set; }
 			public decimal TotalPosition { get; set; }
 			public decimal RealizedPnL { get; set; }
+			public bool IsStopped { get; set; }
 		}
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -133,7 +140,12 @@ namespace QjySDK.Stg
 			decimal maxTotalInvest = (decimal)ArgDic["maxTotalInvest"];
 			decimal lowerLimit = (decimal)ArgDic["lowerPriceLimit"];
 			decimal upperLimit = (decimal)ArgDic["upperPriceLimit"];
+			int useStopLoss = (int)ArgDic["useStopLoss"];
+			decimal stopLossPct = (decimal)ArgDic["stopLossPercent"];
 			int sendMode = (int)ArgDic["sendMode"];
+
+			// 止损后停止交易
+			if (s.IsStopped) return;
 
 			if (!s.Initialized)
 			{
@@ -166,6 +178,25 @@ namespace QjySDK.Stg
 				decimal gp = GetGridPrice(s.BasePrice, gridRatio, i);
 				string name = i >= 0 ? $"G_P{i}" : $"G_N{Math.Abs(i)}";
 				Plot("main", name, PlotType.LINE, (double)gp);
+			}
+
+			// 止损检查：价格偏离基准超过止损百分比，全部平仓
+			if (useStopLoss == 1 && s.Holdings.Count > 0)
+			{
+				decimal deviation = Math.Abs(q.Close - s.BasePrice) / s.BasePrice * 100m;
+				if (deviation >= stopLossPct)
+				{
+					foreach (var h in s.Holdings)
+					{
+						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, h.Lots, period, sendMode);
+						s.RealizedPnL += (q.Close - h.Price) * h.Lots;
+					}
+					s.Holdings.Clear();
+					s.TotalPosition = 0;
+					s.TotalInvest = 0;
+					s.IsStopped = true;
+					return;
+				}
 			}
 
 			// 价格向下穿越网格线 → 买入

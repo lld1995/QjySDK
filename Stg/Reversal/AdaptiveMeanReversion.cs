@@ -460,7 +460,7 @@ namespace QjySDK.Stg
                 bool exitSignal = false;
 
                 // 止损
-                if (q.Low <= state.StopLoss)
+                if (currentPrice <= state.StopLoss)
                 {
                     exitSignal = true;
                 }
@@ -476,7 +476,7 @@ namespace QjySDK.Stg
                 else if (takeProfitMode == 1)
                 {
                     // ATR倍数止盈
-                    if (q.High >= state.TakeProfit)
+                    if (currentPrice >= state.TakeProfit)
                     {
                         exitSignal = true;
                     }
@@ -516,7 +516,7 @@ namespace QjySDK.Stg
                 bool exitSignal = false;
 
                 // 止损
-                if (q.High >= state.StopLoss)
+                if (currentPrice >= state.StopLoss)
                 {
                     exitSignal = true;
                 }
@@ -532,7 +532,7 @@ namespace QjySDK.Stg
                 else if (takeProfitMode == 1)
                 {
                     // ATR倍数止盈
-                    if (q.Low <= state.TakeProfit)
+                    if (currentPrice <= state.TakeProfit)
                     {
                         exitSignal = true;
                     }

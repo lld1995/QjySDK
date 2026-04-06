@@ -690,17 +690,17 @@ namespace QjySDK.Stg
             decimal prevFastEma, decimal prevSlowEma, int sendMode,
             int useTrailingStop, double trailingATR)
         {
-            // 先检查止损（使用当前止损价，避免移动止损更新后误触发）
-            if (q.Low <= state.StopPrice)
+            // 先检查止损（使用收盘价判断）
+            if (q.Close <= state.StopPrice)
             {
-                ClosePosition(tu, period, q, state, state.StopPrice, sendMode, "止损");
+                ClosePosition(tu, period, q, state, q.Close, sendMode, "止损");
                 return;
             }
 
             // 检查止盈
-            if (q.High >= state.TakeProfitPrice)
+            if (q.Close >= state.TakeProfitPrice)
             {
-                ClosePosition(tu, period, q, state, state.TakeProfitPrice, sendMode, "止盈");
+                ClosePosition(tu, period, q, state, q.Close, sendMode, "止盈");
                 return;
             }
 
@@ -749,17 +749,17 @@ namespace QjySDK.Stg
             decimal prevFastEma, decimal prevSlowEma, int sendMode,
             int useTrailingStop, double trailingATR)
         {
-            // 先检查止损（使用当前止损价，避免移动止损更新后误触发）
-            if (q.High >= state.StopPrice)
+            // 先检查止损（使用收盘价判断）
+            if (q.Close >= state.StopPrice)
             {
-                ClosePosition(tu, period, q, state, state.StopPrice, sendMode, "止损");
+                ClosePosition(tu, period, q, state, q.Close, sendMode, "止损");
                 return;
             }
 
             // 检查止盈
-            if (q.Low <= state.TakeProfitPrice)
+            if (q.Close <= state.TakeProfitPrice)
             {
-                ClosePosition(tu, period, q, state, state.TakeProfitPrice, sendMode, "止盈");
+                ClosePosition(tu, period, q, state, q.Close, sendMode, "止盈");
                 return;
             }
 

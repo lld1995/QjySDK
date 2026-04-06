@@ -362,16 +362,16 @@ namespace QjySDK.Stg
                 }
 
                 // 止损检查
-                if (currentLow <= state.StopLoss)
+                if (currentPrice <= state.StopLoss)
                 {
-                    ClosePosition(state, mktSymbol, state.StopLoss, period, "StopLoss");
+                    ClosePosition(state, mktSymbol, currentPrice, period, "StopLoss");
                     return;
                 }
 
                 // 止盈检查
-                if (currentHigh >= state.TakeProfit)
+                if (currentPrice >= state.TakeProfit)
                 {
-                    ClosePosition(state, mktSymbol, state.TakeProfit, period, "TakeProfit");
+                    ClosePosition(state, mktSymbol, currentPrice, period, "TakeProfit");
                     return;
                 }
 
@@ -408,16 +408,16 @@ namespace QjySDK.Stg
                 }
 
                 // 止损检查
-                if (currentHigh >= state.StopLoss)
+                if (currentPrice >= state.StopLoss)
                 {
-                    ClosePosition(state, mktSymbol, state.StopLoss, period, "StopLoss");
+                    ClosePosition(state, mktSymbol, currentPrice, period, "StopLoss");
                     return;
                 }
 
                 // 止盈检查
-                if (currentLow <= state.TakeProfit)
+                if (currentPrice <= state.TakeProfit)
                 {
-                    ClosePosition(state, mktSymbol, state.TakeProfit, period, "TakeProfit");
+                    ClosePosition(state, mktSymbol, currentPrice, period, "TakeProfit");
                     return;
                 }
 

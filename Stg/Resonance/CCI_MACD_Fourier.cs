@@ -56,6 +56,7 @@ namespace QjySDK.Stg
             sd.ArgDic["mode"] = 0;                    // 交易模式: 0双向 1仅多 2仅空
             sd.ArgDic["sendMode"] = 0;                // 发单模式: 0立即 1下个开盘
             sd.ArgDic["signalMode"] = 0;              // 信号模式: 0 三指标共振 1 CCI+MACD 2 CCI+傅里叶 3 MACD+傅里叶
+            sd.ArgDic["stopLoss"] = 5.0m;              // 止损百分比
 
             // 手数控制
             sd.ArgDic["lotsMode"] = 1;                // 0固定手数 1固定金额
@@ -78,6 +79,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "0 双向交易 1 仅做多 2 仅做空" };
             sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即发单 1 下个开盘发单" };
             sd.ArgDescDic["signalMode"] = new ArgDesc() { Text = "信号模式", Explain = "0 三指标共振 1 CCI+MACD 2 CCI+傅里叶 3 MACD+傅里叶" };
+            sd.ArgDescDic["stopLoss"] = new ArgDesc() { Text = "止损%", Explain = "固定止损百分比，0为不启用" };
             sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
             sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数数量" };
             sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额数量" };
@@ -106,6 +108,7 @@ namespace QjySDK.Stg
         {
             public int Status { get; set; }     // 0:空仓 1:多头 2:空头
             public decimal Num { get; set; }    // 持仓数量
+            public decimal EntryPrice { get; set; }
         }
 
         private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -434,17 +437,28 @@ namespace QjySDK.Stg
                 {
                     s.Status = 1;
                     s.Num = num;
+                    s.EntryPrice = q.Close;
                     Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
                 }
                 else if (sellSignal && mode != 1)
                 {
                     s.Status = 2;
                     s.Num = num;
+                    s.EntryPrice = q.Close;
                     Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
                 }
             }
             else if (s.Status == 1)
             {
+                // 止损检查
+                var _sl = (decimal)ArgDic["stopLoss"];
+                if (_sl > 0 && s.EntryPrice > 0 && q.Close < s.EntryPrice * (1 - _sl / 100m))
+                {
+                    Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
+                    s.Status = 0; s.Num = 0; s.EntryPrice = 0;
+                    return;
+                }
+
                 // 多头持仓：检查平仓信号
                 if (exitLongSignal)
                 {
@@ -456,17 +470,28 @@ namespace QjySDK.Stg
                     {
                         s.Status = 2;
                         s.Num = num;
+                        s.EntryPrice = q.Close;
                         Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
                     }
                     else
                     {
                         s.Status = 0;
                         s.Num = 0;
+                        s.EntryPrice = 0;
                     }
                 }
             }
             else if (s.Status == 2)
             {
+                // 止损检查
+                var _sl2 = (decimal)ArgDic["stopLoss"];
+                if (_sl2 > 0 && s.EntryPrice > 0 && q.Close > s.EntryPrice * (1 + _sl2 / 100m))
+                {
+                    Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
+                    s.Status = 0; s.Num = 0; s.EntryPrice = 0;
+                    return;
+                }
+
                 // 空头持仓：检查平仓信号
                 if (exitShortSignal)
                 {
@@ -478,12 +503,14 @@ namespace QjySDK.Stg
                     {
                         s.Status = 1;
                         s.Num = num;
+                        s.EntryPrice = q.Close;
                         Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
                     }
                     else
                     {
                         s.Status = 0;
                         s.Num = 0;
+                        s.EntryPrice = 0;
                     }
                 }
             }
