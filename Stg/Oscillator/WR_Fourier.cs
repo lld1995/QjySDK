@@ -89,6 +89,7 @@ namespace QjySDK.Stg
             public int Status { get; set; }     // 0:空仓 1:多头 2:空头
             public decimal Num { get; set; }    // 持仓数量
             public decimal EntryPrice { get; set; }
+            public bool SignalResetSinceClose { get; set; } = true;
         }
 
         private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -367,15 +368,17 @@ namespace QjySDK.Stg
             // 交易逻辑
             if (s.Status == 0)
             {
+                if (!buySignal && !sellSignal) s.SignalResetSinceClose = true;
+
                 // 空仓状态：寻找入场信号
-                if (buySignal && mode != 2)
+                if (buySignal && mode != 2 && s.SignalResetSinceClose)
                 {
                     s.Status = 1;
                     s.Num = num;
                     s.EntryPrice = q.Close;
                     Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
                 }
-                else if (sellSignal && mode != 1)
+                else if (sellSignal && mode != 1 && s.SignalResetSinceClose)
                 {
                     s.Status = 2;
                     s.Num = num;
@@ -391,6 +394,7 @@ namespace QjySDK.Stg
                 {
                     Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
                     s.Status = 0; s.Num = 0; s.EntryPrice = 0;
+                    s.SignalResetSinceClose = false;
                     return;
                 }
 
@@ -413,6 +417,7 @@ namespace QjySDK.Stg
                         s.Status = 0;
                         s.Num = 0;
                         s.EntryPrice = 0;
+                        s.SignalResetSinceClose = false;
                     }
                 }
             }
@@ -424,6 +429,7 @@ namespace QjySDK.Stg
                 {
                     Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
                     s.Status = 0; s.Num = 0; s.EntryPrice = 0;
+                    s.SignalResetSinceClose = false;
                     return;
                 }
 
@@ -446,6 +452,7 @@ namespace QjySDK.Stg
                         s.Status = 0;
                         s.Num = 0;
                         s.EntryPrice = 0;
+                        s.SignalResetSinceClose = false;
                     }
                 }
             }

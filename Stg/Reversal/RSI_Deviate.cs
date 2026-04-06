@@ -54,6 +54,8 @@ namespace QjySDK.Stg
 			public decimal Num { get; set; }
 
 			public decimal EntryPrice { get; set; }
+
+			public int LastCloseBarIndex { get; set; } = -1;
 		}
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -223,7 +225,8 @@ namespace QjySDK.Stg
 							var rl2 = rsi[rli2];
 
 
-							if (l1.Low < l2.Low && rl1.Rsi > rl2.Rsi && mode != 2)
+							if (l1.Low < l2.Low && rl1.Rsi > rl2.Rsi && mode != 2
+								&& li1 > s.LastCloseBarIndex)
 							{
 								s.Status = 1;
 								s.Num = num;
@@ -231,7 +234,7 @@ namespace QjySDK.Stg
 								Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
 							}
 						}
-						if (highList.Count > 1 && rsiHighList.Count > 1)
+						if (s.Status == 0 && highList.Count > 1 && rsiHighList.Count > 1)
 						{
 							var hi1 = highList[highList.Count - 1];
 							var hi2 = highList[highList.Count - 2];
@@ -243,7 +246,8 @@ namespace QjySDK.Stg
 							var rh1 = rsi[rhi1];
 							var rh2 = rsi[rhi2];
 
-							if (h1.High > h2.High && rh1.Rsi < rh2.Rsi && mode != 1)
+							if (h1.High > h2.High && rh1.Rsi < rh2.Rsi && mode != 1
+								&& hi1 > s.LastCloseBarIndex)
 							{
 								s.Status = 2;
 								s.Num = num;
@@ -260,6 +264,7 @@ namespace QjySDK.Stg
 						{
 							Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
 							s.Status = 0; s.Num = 0; s.EntryPrice = 0;
+							s.LastCloseBarIndex = tu.QuoteList.Count - 1;
 							return;
 						}
 
@@ -293,6 +298,7 @@ namespace QjySDK.Stg
 									s.Status = 0;
 									s.Num = 0;
 									s.EntryPrice = 0;
+									s.LastCloseBarIndex = tu.QuoteList.Count - 1;
 								}
 							}
 						}
@@ -305,6 +311,7 @@ namespace QjySDK.Stg
 						{
 							Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
 							s.Status = 0; s.Num = 0; s.EntryPrice = 0;
+							s.LastCloseBarIndex = tu.QuoteList.Count - 1;
 							return;
 						}
 						if (lowList.Count > 1 && rsiLowList.Count > 1)
@@ -335,6 +342,7 @@ namespace QjySDK.Stg
 									s.Status = 0;
 									s.Num = 0;
 									s.EntryPrice = 0;
+									s.LastCloseBarIndex = tu.QuoteList.Count - 1;
 								}
 							}
 						}
