@@ -66,9 +66,9 @@
 Download or experience the powerful features of QuanJinYing quantitative trading platform now:
 
 <p align="center">
-  <a href="https://www.ysykj.top"><img src="https://img.shields.io/badge/🌐_Official_Website-ysykj.top-blue?style=for-the-badge" alt="Official Website"></a>
+  <a href="https://www.ysykj.top"><img src="images/icons/website.svg" width="16" height="16">&nbsp;<img src="https://img.shields.io/badge/Official_Website-ysykj.top-blue?style=for-the-badge" alt="Official Website"></a>
   &nbsp;&nbsp;
-  <a href="https://qjycdn.ysykj.top"><img src="https://img.shields.io/badge/🚀_Demo-qjycdn.ysykj.top-green?style=for-the-badge" alt="Demo"></a>
+  <a href="https://qjycdn.ysykj.top"><img src="images/icons/rocket.svg" width="16" height="16">&nbsp;<img src="https://img.shields.io/badge/Demo-qjycdn.ysykj.top-green?style=for-the-badge" alt="Demo"></a>
 </p>
 
 ---
@@ -210,7 +210,7 @@ The SDK includes a rich set of quantitative trading strategies, categorized as f
 
 This SDK requires the QuanJinYing client. QuanJinYing client is a professional intelligent quantitative trading platform. Here are the core feature demos:
 
-### 📋 Watchlist Management
+### ![](images/icons/watchlist.svg) Watchlist Management
 
 Add, delete, sort watchlist symbols with real-time price changes and percentage updates.
 
@@ -218,15 +218,15 @@ Add, delete, sort watchlist symbols with real-time price changes and percentage 
   <img src="images/zixuan.gif" alt="Watchlist Management" width="600">
 </p>
 
-### 🤖 AI Analysis
+### ![](images/icons/analysis.svg) Smart Analysis
 
-AI-powered multi-dimensional market analysis, generating professional investment reports with one click.
+Multi-dimensional market analysis, generating professional investment reports with one click.
 
 <p align="center">
   <img src="images/ai.gif" alt="AI Analysis" width="600">
 </p>
 
-### 📊 Fast Backtesting
+### ![](images/icons/backtest.svg) Fast Backtesting
 
 Historical data backtesting to verify strategy performance, multi-strategy multi-symbol batch comparison.
 
@@ -234,7 +234,7 @@ Historical data backtesting to verify strategy performance, multi-strategy multi
   <img src="images/huice.gif" alt="Strategy Backtesting" width="600">
 </p>
 
-### 📡 Live Running
+### ![](images/icons/realtime.svg) Live Running
 
 Cloud-based live strategy execution with real-time position and signal monitoring, push notifications.
 
@@ -303,7 +303,7 @@ The program searches for `poly_secrets.txt` in the following order, stopping at 
 2. Runtime directory (`bin/Debug/net9.0/`)
 3. User home directory (`%USERPROFILE%/poly_secrets.txt`)
 
-> ❗ **Security Note**: Make sure `poly_secrets.txt` is added to `.gitignore`. Never commit it to the repository.
+> ![](images/icons/warning.svg) **Security Note**: Make sure `poly_secrets.txt` is added to `.gitignore`. Never commit it to the repository.
 
 ### Strategy Parameter Priority
 

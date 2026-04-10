@@ -66,9 +66,9 @@
 即刻下载/在线体验泉金盈量化交易平台的强大功能：
 
 <p align="center">
-  <a href="https://www.ysykj.top"><img src="https://img.shields.io/badge/🌐_官方网址-ysykj.top-blue?style=for-the-badge" alt="官方网址"></a>
+  <a href="https://www.ysykj.top"><img src="images/icons/website.svg" width="16" height="16">&nbsp;<img src="https://img.shields.io/badge/官方网址-ysykj.top-blue?style=for-the-badge" alt="官方网址"></a>
   &nbsp;&nbsp;
-  <a href="https://qjycdn.ysykj.top"><img src="https://img.shields.io/badge/🚀_体验地址-qjycdn.ysykj.top-green?style=for-the-badge" alt="体验地址"></a>
+  <a href="https://qjycdn.ysykj.top"><img src="images/icons/rocket.svg" width="16" height="16">&nbsp;<img src="https://img.shields.io/badge/体验地址-qjycdn.ysykj.top-green?style=for-the-badge" alt="体验地址"></a>
 </p>
 
 ---
@@ -210,7 +210,7 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 
 本 SDK 需配合泉金盈客户端使用。泉金盈客户端是一款专业的智能量化交易平台，以下为核心功能演示：
 
-### 📋 自选管理
+### ![](images/icons/watchlist.svg) 自选管理
 
 添加、删除、排序自选品种，实时推送价格变动与涨跌幅。
 
@@ -218,15 +218,15 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
   <img src="images/zixuan.gif" alt="自选管理" width="600">
 </p>
 
-### 🤖 AI 智能分析
+### ![](images/icons/analysis.svg) 智能分析
 
-AI 驱动的多维度市场分析，一键生成专业投资报告。
+多维度行情分析，一键生成专业投资报告。
 
 <p align="center">
   <img src="images/ai.gif" alt="AI智能分析" width="600">
 </p>
 
-### 📊 极速回测
+### ![](images/icons/backtest.svg) 极速回测
 
 历史数据回测验证策略效果，多策略多标的批量回测对比。
 
@@ -234,7 +234,7 @@ AI 驱动的多维度市场分析，一键生成专业投资报告。
   <img src="images/huice.gif" alt="策略回测" width="600">
 </p>
 
-### 📡 实时运行
+### ![](images/icons/realtime.svg) 实时运行
 
 策略云端实时运行，实时监控持仓与信号，支持消息推送通知。
 
@@ -303,7 +303,7 @@ POLYGON_RPC=https://polygon-bor-rpc.publicnode.com
 2. 运行目录（`bin/Debug/net9.0/`）
 3. 用户主目录（`%USERPROFILE%/poly_secrets.txt`）
 
-> ❗ **安全提示**: 请确保 `poly_secrets.txt` 已加入 `.gitignore`，不要将其提交到代码仓库。
+> ![](images/icons/warning.svg) **安全提示**: 请确保 `poly_secrets.txt` 已加入 `.gitignore`，不要将其提交到代码仓库。
 
 ### 策略参数优先级
 
