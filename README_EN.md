@@ -66,9 +66,9 @@
 Download or experience the powerful features of QuanJinYing quantitative trading platform now:
 
 <p align="center">
-  <a href="https://www.ysykj.top"><img src="images/icons/website.svg" width="16" height="16">&nbsp;<img src="https://img.shields.io/badge/Official_Website-ysykj.top-blue?style=for-the-badge" alt="Official Website"></a>
+  <a href="https://www.ysykj.top"><img src="https://img.shields.io/badge/Official_Website-ysykj.top-blue?style=for-the-badge&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDY0IDY0IiBmaWxsPSJub25lIj48Y2lyY2xlIGN4PSIzMiIgY3k9IjMyIiByPSIyNiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSI0IiBmaWxsPSJub25lIi8+PGVsbGlwc2UgY3g9IjMyIiBjeT0iMzIiIHJ4PSIxMiIgcnk9IjI2IiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjMiIGZpbGw9Im5vbmUiLz48bGluZSB4MT0iNiIgeTE9IjMyIiB4Mj0iNTgiIHkyPSIzMiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIzIi8+PGxpbmUgeDE9IjMyIiB5MT0iNiIgeDI9IjMyIiB5Mj0iNTgiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMyIvPjwvc3ZnPg==" alt="Official Website"></a>
   &nbsp;&nbsp;
-  <a href="https://qjycdn.ysykj.top"><img src="images/icons/rocket.svg" width="16" height="16">&nbsp;<img src="https://img.shields.io/badge/Demo-qjycdn.ysykj.top-green?style=for-the-badge" alt="Demo"></a>
+  <a href="https://qjycdn.ysykj.top"><img src="https://img.shields.io/badge/Demo-qjycdn.ysykj.top-green?style=for-the-badge&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDY0IDY0IiBmaWxsPSJub25lIj48cGF0aCBkPSJNMzIgOEMzMiA4IDIwIDIwIDIwIDM2QzIwIDQ0IDI1IDUyIDMyIDU2QzM5IDUyIDQ0IDQ0IDQ0IDM2QzQ0IDIwIDMyIDggMzIgOFoiIGZpbGw9IndoaXRlIi8+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMCIgcj0iNSIgZmlsbD0iIzEwQjk4MSIvPjxwYXRoIGQ9Ik0yMCA0MEwxMiA0NEwxNiAzNiIgZmlsbD0id2hpdGUiLz48cGF0aCBkPSJNNDQgNDBMNTIgNDRMNDggMzYiIGZpbGw9IndoaXRlIi8+PC9zdmc+" alt="Demo"></a>
 </p>
 
 ---
