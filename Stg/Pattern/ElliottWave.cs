@@ -115,14 +115,14 @@ namespace QjySDK.Stg
             var trade = _tradeDic[sk];
             var wave = _waveDic[sk];
 
-            int zigzagDepth = (int)ArgDic["zigzagDepth"];
-            double zigzagDeviation = (double)ArgDic["zigzagDeviation"];
-            int mode = (int)ArgDic["mode"];
-            int sendMode = (int)ArgDic["sendMode"];
-            decimal lossRate = (decimal)ArgDic["lossRate"];
-            decimal profitRate = (decimal)ArgDic["profitRate"];
-            int trailingStop = (int)ArgDic["trailingStop"];
-            decimal trailingPercent = (decimal)ArgDic["trailingPercent"];
+            int zigzagDepth = Convert.ToInt32(ArgDic["zigzagDepth"]);
+            double zigzagDeviation = Convert.ToDouble(ArgDic["zigzagDeviation"]);
+            int mode = Convert.ToInt32(ArgDic["mode"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+            decimal lossRate = Convert.ToDecimal(ArgDic["lossRate"]);
+            decimal profitRate = Convert.ToDecimal(ArgDic["profitRate"]);
+            int trailingStop = Convert.ToInt32(ArgDic["trailingStop"]);
+            decimal trailingPercent = Convert.ToDecimal(ArgDic["trailingPercent"]);
             decimal num = CalculateLots(tu, currentQuote);
 
             var pivots = FindPivots(quotes, zigzagDepth, zigzagDeviation);
@@ -848,12 +848,12 @@ namespace QjySDK.Stg
 
         private decimal CalculateLots(TableUnit tu, SkQuote quote)
         {
-            var num = (decimal)ArgDic["lots"];
-            var lotsMode = (int)ArgDic["lotsMode"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
+            var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
                 var symbol = GetSymbol(tu.MktSymbol);
-                num = (decimal)ArgDic["money"] / (quote.Close * symbol.multiplier * symbol.margin_ratio);
+                num = Convert.ToDecimal(ArgDic["money"]) / (quote.Close * symbol.multiplier * symbol.margin_ratio);
                 num = symbol.symbol_type == (int)SymbolType.COIN ? (int)(num * 1000) / 1000.0m : (int)num;
             }
             return num;

@@ -114,7 +114,7 @@ namespace QjySDK.Stg
 				{
 					Level = i,
 					Price = basePrice * (1 + i * gridPercent / 100m),
-					IsBought = i <= 0 // 基准价及以下默认为已买入状态
+					IsBought = false
 				};
 				s.GridLevels.Add(level);
 			}
@@ -124,12 +124,12 @@ namespace QjySDK.Stg
 
 		private decimal CalculateLots(TableUnit tu, decimal currentPrice)
 		{
-			var num = (decimal)ArgDic["lots"];
-			var lotsMode = (int)ArgDic["lotsMode"];
+			var num = Convert.ToDecimal(ArgDic["lots"]);
+			var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 			if (lotsMode == 1)
 			{
 				var symbol = GetSymbol(tu.MktSymbol);
-				num = ((decimal)ArgDic["money"] / (currentPrice * symbol.multiplier * symbol.margin_ratio));
+				num = (Convert.ToDecimal(ArgDic["money"]) / (currentPrice * symbol.multiplier * symbol.margin_ratio));
 				if (symbol.symbol_type == (int)SymbolType.COIN)
 				{
 					num = (int)(num * 1000) / 1000.0m;
@@ -155,15 +155,15 @@ namespace QjySDK.Stg
 			var q = tu.QuoteList[tu.QuoteList.Count - 1];
 			var q2 = tu.QuoteList[tu.QuoteList.Count - 2];
 
-			decimal gridPercent = (decimal)ArgDic["gridPercent"];
-			int gridCount = (int)ArgDic["gridCount"];
-			int sendMode = (int)ArgDic["sendMode"];
-			int dynamicGrid = (int)ArgDic["dynamicGrid"];
-			int atrPeriod = (int)ArgDic["atrPeriod"];
-			int useStopLoss = (int)ArgDic["useStopLoss"];
-			decimal stopLossPercent = (decimal)ArgDic["stopLossPercent"];
-			int autoRecenter = (int)ArgDic["autoRecenter"];
-			int recenterBars = (int)ArgDic["recenterBars"];
+			decimal gridPercent = Convert.ToDecimal(ArgDic["gridPercent"]);
+			int gridCount = Convert.ToInt32(ArgDic["gridCount"]);
+			int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+			int dynamicGrid = Convert.ToInt32(ArgDic["dynamicGrid"]);
+			int atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
+			int useStopLoss = Convert.ToInt32(ArgDic["useStopLoss"]);
+			decimal stopLossPercent = Convert.ToDecimal(ArgDic["stopLossPercent"]);
+			int autoRecenter = Convert.ToInt32(ArgDic["autoRecenter"]);
+			int recenterBars = Convert.ToInt32(ArgDic["recenterBars"]);
 
 			// 动态网格：使用ATR计算网格间距
 			if (dynamicGrid == 1 && tu.QuoteList.Count >= atrPeriod)
@@ -185,7 +185,7 @@ namespace QjySDK.Stg
 			// 初始化网格
 			if (!s.IsInitialized)
 			{
-				decimal basePrice = (decimal)ArgDic["basePrice"];
+				decimal basePrice = Convert.ToDecimal(ArgDic["basePrice"]);
 				if (basePrice <= 0)
 				{
 					basePrice = q.Close;
@@ -258,20 +258,20 @@ namespace QjySDK.Stg
 					s.TotalPosition += num;
 					s.CurrentLevel = gl.Level;
 				}
-				// 价格从下向上穿越网格线 - 卖出
-				else if (gl.IsBought && gl.Level > s.GridLevels.Min(x => x.Level) && q2.Close < gl.Price && q.Close >= gl.Price)
+				// 价格从下向上穿越网格线 - 平掉下方最高已买入网格的仓位
+				else if (q2.Close < gl.Price && q.Close >= gl.Price && s.TotalPosition > 0)
 				{
-					// 找到下一个已买入的网格层级进行卖出
-					var lowerBoughtLevel = s.GridLevels
-						.Where(x => x.Level < gl.Level && x.IsBought)
+					var highestBoughtBelow = s.GridLevels
+						.Where(x => x.IsBought && x.Level < gl.Level)
 						.OrderByDescending(x => x.Level)
 						.FirstOrDefault();
 
-					if (lowerBoughtLevel != null)
+					if (highestBoughtBelow != null)
 					{
-						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, currentPrice, num, period, sendMode);
-						lowerBoughtLevel.IsBought = false;
-						s.TotalPosition -= num;
+						var sellNum = Math.Min(num, s.TotalPosition);
+						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, currentPrice, sellNum, period, sendMode);
+						highestBoughtBelow.IsBought = false;
+						s.TotalPosition -= sellNum;
 						s.CurrentLevel = gl.Level;
 					}
 				}

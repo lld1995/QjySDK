@@ -368,12 +368,12 @@ namespace QjySDK.Stg
             }
 
             // ==================== 计算手数 ====================
-            var num = (decimal)ArgDic["lots"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
             var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
                 var s2 = GetSymbol(tu.MktSymbol);
-                num = ((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio));
+                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio));
                 if (s2.symbol_type == (int)SymbolType.COIN)
                 {
                     num = (int)(num * 1000) / 1000.0m;
@@ -389,7 +389,7 @@ namespace QjySDK.Stg
                 double volInverse = 2.0 / atrPercent; // 假设2%为基准波动率
                 volInverse = Math.Max(0.5, Math.Min(2.0, volInverse));
                 var s2 = GetSymbol(tu.MktSymbol);
-                num = (decimal)(volInverse * (double)((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio)));
+                num = (decimal)(volInverse * (double)(Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio)));
                 if (s2.symbol_type == (int)SymbolType.COIN)
                 {
                     num = (int)(num * 1000) / 1000.0m;

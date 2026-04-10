@@ -230,25 +230,25 @@ namespace QjySDK.Stg
 
             if (!isFinal) return;
 
-            int useAdaptiveRsi = (int)ArgDic["useAdaptiveRsi"];
-            int rsiPeriodFixed = (int)ArgDic["rsiPeriod"];
-            int rsiPeriodMin = (int)ArgDic["rsiPeriodMin"];
-            int rsiPeriodMax = (int)ArgDic["rsiPeriodMax"];
-            int fftPeriod = (int)ArgDic["fftPeriod"];
-            int dominantPeriodMin = (int)ArgDic["dominantPeriodMin"];
-            int dominantPeriodMax = (int)ArgDic["dominantPeriodMax"];
-            int harmonics = (int)ArgDic["harmonics"];
+            int useAdaptiveRsi = Convert.ToInt32(ArgDic["useAdaptiveRsi"]);
+            int rsiPeriodFixed = Convert.ToInt32(ArgDic["rsiPeriod"]);
+            int rsiPeriodMin = Convert.ToInt32(ArgDic["rsiPeriodMin"]);
+            int rsiPeriodMax = Convert.ToInt32(ArgDic["rsiPeriodMax"]);
+            int fftPeriod = Convert.ToInt32(ArgDic["fftPeriod"]);
+            int dominantPeriodMin = Convert.ToInt32(ArgDic["dominantPeriodMin"]);
+            int dominantPeriodMax = Convert.ToInt32(ArgDic["dominantPeriodMax"]);
+            int harmonics = Convert.ToInt32(ArgDic["harmonics"]);
 
             // 确保有足够的数据(先用最大可能的RSI周期检查)
             int maxRsiPeriod = useAdaptiveRsi == 1 ? rsiPeriodMax : rsiPeriodFixed;
             int minBars = Math.Max(maxRsiPeriod + 2, fftPeriod);
             if (tu.QuoteList.Count < minBars) return;
 
-            int mode = (int)ArgDic["mode"];
-            int sendMode = (int)ArgDic["sendMode"];
-            int signalMode = (int)ArgDic["signalMode"];
-            int overbought = (int)ArgDic["overbought"];
-            int oversold = (int)ArgDic["oversold"];
+            int mode = Convert.ToInt32(ArgDic["mode"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+            int signalMode = Convert.ToInt32(ArgDic["signalMode"]);
+            int overbought = Convert.ToInt32(ArgDic["overbought"]);
+            int oversold = Convert.ToInt32(ArgDic["oversold"]);
             double phaseThresholdBuy = Convert.ToDouble(ArgDic["phaseThresholdBuy"]);
             double phaseThresholdSell = Convert.ToDouble(ArgDic["phaseThresholdSell"]);
 
@@ -308,12 +308,12 @@ namespace QjySDK.Stg
             Plot("sub1", "Cycle", PlotType.LINE, dominantPeriod);
 
             // 计算手数
-            var num = (decimal)ArgDic["lots"];
-            var lotsMode = (int)ArgDic["lotsMode"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
+            var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
                 var sym = GetSymbol(tu.MktSymbol);
-                num = ((decimal)ArgDic["money"] / (q.Close * sym.multiplier * sym.margin_ratio));
+                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * sym.multiplier * sym.margin_ratio));
                 if (sym.symbol_type == (int)SymbolType.COIN)
                 {
                     num = Math.Floor(num * 1000) / 1000m;
@@ -406,7 +406,7 @@ namespace QjySDK.Stg
             else if (s.Status == 1)
             {
                 // 止损检查
-                var _sl = (decimal)ArgDic["stopLoss"];
+                var _sl = Convert.ToDecimal(ArgDic["stopLoss"]);
                 if (_sl > 0 && s.EntryPrice > 0 && q.Close < s.EntryPrice * (1 - _sl / 100m))
                 {
                     Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
@@ -441,7 +441,7 @@ namespace QjySDK.Stg
             else if (s.Status == 2)
             {
                 // 止损检查
-                var _sl2 = (decimal)ArgDic["stopLoss"];
+                var _sl2 = Convert.ToDecimal(ArgDic["stopLoss"]);
                 if (_sl2 > 0 && s.EntryPrice > 0 && q.Close > s.EntryPrice * (1 + _sl2 / 100m))
                 {
                     Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);

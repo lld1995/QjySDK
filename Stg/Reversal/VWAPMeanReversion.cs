@@ -85,18 +85,18 @@ namespace QjySDK.Stg
 
 		private decimal CalcBaseLots(TableUnit tu, decimal price)
 		{
-			var lotsMode = (int)ArgDic["lotsMode"];
+			var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 			if (lotsMode == 1)
 			{
 				var sym = GetSymbol(tu.MktSymbol);
-				var num = (decimal)ArgDic["money"] / (price * sym.multiplier * sym.margin_ratio);
+				var num = Convert.ToDecimal(ArgDic["money"]) / (price * sym.multiplier * sym.margin_ratio);
 				if (sym.symbol_type == (int)SymbolType.COIN)
 					num = (int)(num * 1000) / 1000.0m;
 				else
 					num = (int)num;
 				return Math.Max(num, 0.001m);
 			}
-			return (decimal)ArgDic["lots"];
+			return Convert.ToDecimal(ArgDic["lots"]);
 		}
 
 		public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
@@ -104,7 +104,7 @@ namespace QjySDK.Stg
 			base.OnBar(period, tu, isFinal, tq);
 			if (!isFinal) return;
 
-			int lookback = (int)ArgDic["lookback"];
+			int lookback = Convert.ToInt32(ArgDic["lookback"]);
 			if (tu.QuoteList.Count < lookback) return;
 
 			var sk = tu.GetStateKey();
@@ -134,7 +134,7 @@ namespace QjySDK.Stg
 			}
 			double stdDev = Math.Sqrt(varianceSum / lookback);
 
-			double mult = (double)ArgDic["stdDevMultiplier"];
+			double mult = Convert.ToDouble(ArgDic["stdDevMultiplier"]);
 			double upperBand = vwap + stdDev * mult;
 			double lowerBand = vwap - stdDev * mult;
 
@@ -142,8 +142,8 @@ namespace QjySDK.Stg
 			Plot("main", "UpperBand", PlotType.LINE, upperBand);
 			Plot("main", "LowerBand", PlotType.LINE, lowerBand);
 
-			int sendMode = (int)ArgDic["sendMode"];
-			decimal slPct = (decimal)ArgDic["stopLossPercent"] / 100m;
+			int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+			decimal slPct = Convert.ToDecimal(ArgDic["stopLossPercent"]) / 100m;
 			decimal lots = CalcBaseLots(tu, q.Close);
 
 			if (state.Status == 0)

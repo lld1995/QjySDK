@@ -183,23 +183,23 @@ namespace QjySDK.Stg
             if (!isFinal) return;
 
             // 获取参数
-            int rumiPeriod = (int)ArgDic["rumiPeriod"];
-            int rumiSmooth = (int)ArgDic["rumiSmooth"];
-            int signalPeriod = (int)ArgDic["signalPeriod"];
+            int rumiPeriod = Convert.ToInt32(ArgDic["rumiPeriod"]);
+            int rumiSmooth = Convert.ToInt32(ArgDic["rumiSmooth"]);
+            int signalPeriod = Convert.ToInt32(ArgDic["signalPeriod"]);
             double rumiThreshold = Convert.ToDouble(ArgDic["rumiThreshold"]);
-            int fastEMA = (int)ArgDic["fastEMA"];
-            int slowEMA = (int)ArgDic["slowEMA"];
-            int trendEMA = (int)ArgDic["trendEMA"];
-            int useTrendFilter = (int)ArgDic["useTrendFilter"];
-            int atrPeriod = (int)ArgDic["atrPeriod"];
+            int fastEMA = Convert.ToInt32(ArgDic["fastEMA"]);
+            int slowEMA = Convert.ToInt32(ArgDic["slowEMA"]);
+            int trendEMA = Convert.ToInt32(ArgDic["trendEMA"]);
+            int useTrendFilter = Convert.ToInt32(ArgDic["useTrendFilter"]);
+            int atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
             double atrStopMultiplier = Convert.ToDouble(ArgDic["atrStopMultiplier"]);
             double atrProfitMultiplier = Convert.ToDouble(ArgDic["atrProfitMultiplier"]);
-            int useTrailingStop = (int)ArgDic["useTrailingStop"];
+            int useTrailingStop = Convert.ToInt32(ArgDic["useTrailingStop"]);
             double trailingATR = Convert.ToDouble(ArgDic["trailingATR"]);
-            int mode = (int)ArgDic["mode"];
-            int sendMode = (int)ArgDic["sendMode"];
-            int confirmBars = (int)ArgDic["confirmBars"];
-            int useVolumeFilter = (int)ArgDic["useVolumeFilter"];
+            int mode = Convert.ToInt32(ArgDic["mode"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+            int confirmBars = Convert.ToInt32(ArgDic["confirmBars"]);
+            int useVolumeFilter = Convert.ToInt32(ArgDic["useVolumeFilter"]);
             double volumeMultiplier = Convert.ToDouble(ArgDic["volumeMultiplier"]);
 
             // 确保有足够的数据
@@ -386,17 +386,17 @@ namespace QjySDK.Stg
         /// </summary>
         private decimal CalculateUnitSize(TableUnit tu, SkQuote q, decimal atr)
         {
-            int lotsMode = (int)ArgDic["lotsMode"];
+            int lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 
             if (lotsMode == 0)
             {
-                return (decimal)ArgDic["lots"];
+                return Convert.ToDecimal(ArgDic["lots"]);
             }
 
             if (lotsMode == 1)
             {
                 var symbol2 = GetSymbol(tu.MktSymbol);
-                decimal num = (decimal)ArgDic["money"] / (q.Close * symbol2.multiplier * symbol2.margin_ratio);
+                decimal num = Convert.ToDecimal(ArgDic["money"]) / (q.Close * symbol2.multiplier * symbol2.margin_ratio);
                 if (symbol2.symbol_type == (int)SymbolType.COIN)
                     num = Math.Floor(num * 1000) / 1000.0m;
                 else
@@ -405,7 +405,7 @@ namespace QjySDK.Stg
             }
 
             // lotsMode == 2: 按风险计算
-            decimal accountEquity = (decimal)ArgDic["accountEquity"];
+            decimal accountEquity = Convert.ToDecimal(ArgDic["accountEquity"]);
             double riskPerTrade = Convert.ToDouble(ArgDic["riskPerTrade"]);
             double atrStopMultiplier = Convert.ToDouble(ArgDic["atrStopMultiplier"]);
 

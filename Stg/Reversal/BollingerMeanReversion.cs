@@ -132,25 +132,25 @@ namespace QjySDK.Stg
             if (!isFinal) return;
 
             // 获取参数
-            int bollPeriod = (int)ArgDic["bollPeriod"];
-            int rsiPeriod = (int)ArgDic["rsiPeriod"];
-            int atrPeriod = (int)ArgDic["atrPeriod"];
+            int bollPeriod = Convert.ToInt32(ArgDic["bollPeriod"]);
+            int rsiPeriod = Convert.ToInt32(ArgDic["rsiPeriod"]);
+            int atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
             int minDataCount = Math.Max(Math.Max(bollPeriod, rsiPeriod), atrPeriod) + 5;
 
             if (tu.QuoteList.Count < minDataCount) return;
 
             double stdDev = Convert.ToDouble(ArgDic["stdDev"]);
-            int rsiOversold = (int)ArgDic["rsiOversold"];
-            int rsiOverbought = (int)ArgDic["rsiOverbought"];
-            int useRsiFilter = (int)ArgDic["useRsiFilter"];
+            int rsiOversold = Convert.ToInt32(ArgDic["rsiOversold"]);
+            int rsiOverbought = Convert.ToInt32(ArgDic["rsiOverbought"]);
+            int useRsiFilter = Convert.ToInt32(ArgDic["useRsiFilter"]);
             double atrMultiplier = Convert.ToDouble(ArgDic["atrMultiplier"]);
-            int useAtrStop = (int)ArgDic["useAtrStop"];
+            int useAtrStop = Convert.ToInt32(ArgDic["useAtrStop"]);
             double minBandWidth = Convert.ToDouble(ArgDic["minBandWidth"]);
-            int useBandWidthFilter = (int)ArgDic["useBandWidthFilter"];
-            int exitMode = (int)ArgDic["exitMode"];
+            int useBandWidthFilter = Convert.ToInt32(ArgDic["useBandWidthFilter"]);
+            int exitMode = Convert.ToInt32(ArgDic["exitMode"]);
             double partialExitRatio = Convert.ToDouble(ArgDic["partialExitRatio"]);
-            int mode = (int)ArgDic["mode"];
-            int sendMode = (int)ArgDic["sendMode"];
+            int mode = Convert.ToInt32(ArgDic["mode"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
             var q = tu.QuoteList.Last();
             var prevQ = tu.QuoteList[tu.QuoteList.Count - 2];
@@ -454,13 +454,13 @@ namespace QjySDK.Stg
         /// </summary>
         private decimal CalculateLots(TableUnit tu, SkQuote q)
         {
-            var num = (decimal)ArgDic["lots"];
-            var lotsMode = (int)ArgDic["lotsMode"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
+            var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 
             if (lotsMode == 1)
             {
                 var symbol = GetSymbol(tu.MktSymbol);
-                num = (decimal)ArgDic["money"] / (q.Close * symbol.multiplier * symbol.margin_ratio);
+                num = Convert.ToDecimal(ArgDic["money"]) / (q.Close * symbol.multiplier * symbol.margin_ratio);
 
                 if (symbol.symbol_type == (int)SymbolType.COIN)
                 {

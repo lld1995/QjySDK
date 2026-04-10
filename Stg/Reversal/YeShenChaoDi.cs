@@ -136,11 +136,11 @@ namespace QjySDK.Stg
 
 		private void CalcNum(TableUnit tu, SkQuote q, Dictionary<string, object> argDic, ref decimal num)
 		{
-			var lotsMode = (int)argDic["lotsMode"];
+			var lotsMode = Convert.ToInt32(argDic["lotsMode"]);
 			if (lotsMode == 1)
 			{
 				var s2 = GetSymbol(tu.MktSymbol);
-				num = ((decimal)argDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio));
+				num = (Convert.ToDecimal(argDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio));
 				if (s2.symbol_type == (int)SymbolType.COIN)
 				{
 					num = (int)(num * 1000) / 1000.0m;
@@ -152,7 +152,7 @@ namespace QjySDK.Stg
 			}
 			else
 			{
-				num = (decimal)argDic["lots"];
+				num = Convert.ToDecimal(argDic["lots"]);
 			}
 		}
 
@@ -201,23 +201,23 @@ namespace QjySDK.Stg
 				_stateDic[sk] = s;
 			}
 
-			var rsiPeriod = (int)ArgDic["rsiPeriod"];
-			var emaPeriod = (int)ArgDic["emaPeriod"];
+			var rsiPeriod = Convert.ToInt32(ArgDic["rsiPeriod"]);
+			var emaPeriod = Convert.ToInt32(ArgDic["emaPeriod"]);
 			var minBars = Math.Max(rsiPeriod, emaPeriod) + 5;
 			
 			if (tu.QuoteList.Count < minBars) return;
 
-			var rsiOversold = (int)ArgDic["rsiOversold"];
-			var rsiOverbought = (int)ArgDic["rsiOverbought"];
-			var useEmaFilter = (int)ArgDic["useEmaFilter"];
-			var stopLossRate = (decimal)ArgDic["stopLossRate"];
-			var takeProfitRate = (decimal)ArgDic["takeProfitRate"];
-			var useRsiExit = (int)ArgDic["useRsiExit"];
-			var lookbackPeriod = (int)ArgDic["lookbackPeriod"];
-			var maxAddNum = (int)ArgDic["maxAddNum"];
-			var addThreshold = (decimal)ArgDic["addThreshold"];
-			var mode = (int)ArgDic["mode"];
-			var sendMode = (int)ArgDic["sendMode"];
+			var rsiOversold = Convert.ToInt32(ArgDic["rsiOversold"]);
+			var rsiOverbought = Convert.ToInt32(ArgDic["rsiOverbought"]);
+			var useEmaFilter = Convert.ToInt32(ArgDic["useEmaFilter"]);
+			var stopLossRate = Convert.ToDecimal(ArgDic["stopLossRate"]);
+			var takeProfitRate = Convert.ToDecimal(ArgDic["takeProfitRate"]);
+			var useRsiExit = Convert.ToInt32(ArgDic["useRsiExit"]);
+			var lookbackPeriod = Convert.ToInt32(ArgDic["lookbackPeriod"]);
+			var maxAddNum = Convert.ToInt32(ArgDic["maxAddNum"]);
+			var addThreshold = Convert.ToDecimal(ArgDic["addThreshold"]);
+			var mode = Convert.ToInt32(ArgDic["mode"]);
+			var sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
 			var q = tu.QuoteList[tu.QuoteList.Count - 1];
 			var q1 = tu.QuoteList[tu.QuoteList.Count - 2];

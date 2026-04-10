@@ -110,18 +110,18 @@ namespace QjySDK.Stg
 
 		private decimal CalcLots(TableUnit tu, decimal price)
 		{
-			var lotsMode = (int)ArgDic["lotsMode"];
+			var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 			if (lotsMode == 1)
 			{
 				var sym = GetSymbol(tu.MktSymbol);
-				var num = (decimal)ArgDic["money"] / (price * sym.multiplier * sym.margin_ratio);
+				var num = Convert.ToDecimal(ArgDic["money"]) / (price * sym.multiplier * sym.margin_ratio);
 				if (sym.symbol_type == (int)SymbolType.COIN)
 					num = (int)(num * 1000) / 1000.0m;
 				else
 					num = (int)num;
 				return num;
 			}
-			return (decimal)ArgDic["lots"];
+			return Convert.ToDecimal(ArgDic["lots"]);
 		}
 
 		private void BuildGrid(State s, decimal basePrice, decimal gridPct, int gridCount)
@@ -159,8 +159,8 @@ namespace QjySDK.Stg
 			base.OnBar(period, tu, isFinal, tq);
 			if (!isFinal) return;
 
-			int fastP = (int)ArgDic["fastEmaPeriod"];
-			int slowP = (int)ArgDic["slowEmaPeriod"];
+			int fastP = Convert.ToInt32(ArgDic["fastEmaPeriod"]);
+			int slowP = Convert.ToInt32(ArgDic["slowEmaPeriod"]);
 			int minBars = slowP + 5;
 			if (tu.QuoteList.Count < minBars) return;
 
@@ -169,13 +169,13 @@ namespace QjySDK.Stg
 			var q = tu.QuoteList[tu.QuoteList.Count - 1];
 			var q2 = tu.QuoteList[tu.QuoteList.Count - 2];
 
-			decimal gridPct = (decimal)ArgDic["gridPercent"];
-			int gridCount = (int)ArgDic["gridCount"];
-			int sendMode = (int)ArgDic["sendMode"];
-			int dynamicGrid = (int)ArgDic["dynamicGrid"];
-			int atrPeriod = (int)ArgDic["atrPeriod"];
-			int useStopLoss = (int)ArgDic["useStopLoss"];
-			decimal stopLossPct = (decimal)ArgDic["stopLossPercent"];
+			decimal gridPct = Convert.ToDecimal(ArgDic["gridPercent"]);
+			int gridCount = Convert.ToInt32(ArgDic["gridCount"]);
+			int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+			int dynamicGrid = Convert.ToInt32(ArgDic["dynamicGrid"]);
+			int atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
+			int useStopLoss = Convert.ToInt32(ArgDic["useStopLoss"]);
+			decimal stopLossPct = Convert.ToDecimal(ArgDic["stopLossPercent"]);
 
 			// 动态网格
 			if (dynamicGrid == 1 && tu.QuoteList.Count >= atrPeriod)
@@ -200,7 +200,7 @@ namespace QjySDK.Stg
 			Plot("main", "FastEMA", PlotType.LINE, fastEma.Ema);
 			Plot("main", "SlowEMA", PlotType.LINE, slowEma.Ema);
 
-			double trendGapPct = (double)ArgDic["trendGapPercent"] / 100.0;
+			double trendGapPct = Convert.ToDouble(ArgDic["trendGapPercent"]) / 100.0;
 			double emaGap = (fastEma.Ema.Value - slowEma.Ema.Value) / slowEma.Ema.Value;
 			int newTrend;
 			if (emaGap > trendGapPct) newTrend = 1;       // 明确上升趋势

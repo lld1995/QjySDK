@@ -153,7 +153,7 @@ namespace QjySDK.Stg
             else if (position > 0)
             {
                 // 止损检查
-                var _sl = (decimal)ArgDic["stopLoss"];
+                var _sl = Convert.ToDecimal(ArgDic["stopLoss"]);
                 if (_sl > 0 && _entryPrice[stateKey] > 0 && currentClose < _entryPrice[stateKey] * (1 - _sl / 100m))
                 {
                     Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, currentClose, _holdNum[stateKey], period, 0);
@@ -184,7 +184,7 @@ namespace QjySDK.Stg
             else if (position < 0)
             {
                 // 止损检查
-                var _sl2 = (decimal)ArgDic["stopLoss"];
+                var _sl2 = Convert.ToDecimal(ArgDic["stopLoss"]);
                 if (_sl2 > 0 && _entryPrice[stateKey] > 0 && currentClose > _entryPrice[stateKey] * (1 + _sl2 / 100m))
                 {
                     Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, currentClose, _holdNum[stateKey], period, 0);
@@ -216,12 +216,12 @@ namespace QjySDK.Stg
 
         private decimal CalculateLots(TableUnit tu, SkQuote q)
         {
-            var num = (decimal)ArgDic["lots"];
-            var lotsMode = (int)ArgDic["lotsMode"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
+            var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
                 var s2 = GetSymbol(tu.MktSymbol);
-                num = ((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio));
+                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio));
                 if (s2.symbol_type == (int)SymbolType.COIN)
                 {
                     num = (int)(num * 1000) / 1000.0m;

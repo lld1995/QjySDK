@@ -188,23 +188,23 @@ namespace QjySDK.Stg
             if (!isFinal) return;
 
             // 获取参数
-            int fastEMAPeriod = (int)ArgDic["fastEMA"];
-            int midEMAPeriod = (int)ArgDic["midEMA"];
-            int slowEMAPeriod = (int)ArgDic["slowEMA"];
-            int rocPeriod = (int)ArgDic["rocPeriod"];
+            int fastEMAPeriod = Convert.ToInt32(ArgDic["fastEMA"]);
+            int midEMAPeriod = Convert.ToInt32(ArgDic["midEMA"]);
+            int slowEMAPeriod = Convert.ToInt32(ArgDic["slowEMA"]);
+            int rocPeriod = Convert.ToInt32(ArgDic["rocPeriod"]);
             double rocThreshold = Convert.ToDouble(ArgDic["rocThreshold"]);
-            int atrPeriod = (int)ArgDic["atrPeriod"];
+            int atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
             double atrStopMultiplier = Convert.ToDouble(ArgDic["atrStopMultiplier"]);
             double trailingATRMultiplier = Convert.ToDouble(ArgDic["trailingATRMultiplier"]);
-            int volatilityFilterPeriod = (int)ArgDic["volatilityFilterPeriod"];
+            int volatilityFilterPeriod = Convert.ToInt32(ArgDic["volatilityFilterPeriod"]);
             double minVolatilityRatio = Convert.ToDouble(ArgDic["minVolatilityRatio"]);
             double maxVolatilityRatio = Convert.ToDouble(ArgDic["maxVolatilityRatio"]);
-            int maxHoldingBars = (int)ArgDic["maxHoldingBars"];
-            int mode = (int)ArgDic["mode"];
-            int sendMode = (int)ArgDic["sendMode"];
-            int requirePriceAboveEMA = (int)ArgDic["requirePriceAboveEMA"];
-            int requireMomentum = (int)ArgDic["requireMomentum"];
-            int requireVolatilityFilter = (int)ArgDic["requireVolatilityFilter"];
+            int maxHoldingBars = Convert.ToInt32(ArgDic["maxHoldingBars"]);
+            int mode = Convert.ToInt32(ArgDic["mode"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+            int requirePriceAboveEMA = Convert.ToInt32(ArgDic["requirePriceAboveEMA"]);
+            int requireMomentum = Convert.ToInt32(ArgDic["requireMomentum"]);
+            int requireVolatilityFilter = Convert.ToInt32(ArgDic["requireVolatilityFilter"]);
 
             // 确保有足够的数据
             int requiredBars = Math.Max(Math.Max(slowEMAPeriod, rocPeriod), atrPeriod) + volatilityFilterPeriod + 1;
@@ -310,17 +310,17 @@ namespace QjySDK.Stg
         /// </summary>
         private decimal CalculatePositionSize(TableUnit tu, SkQuote q, decimal atr)
         {
-            int lotsMode = (int)ArgDic["lotsMode"];
+            int lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 
             if (lotsMode == 0)
             {
-                return (decimal)ArgDic["lots"];
+                return Convert.ToDecimal(ArgDic["lots"]);
             }
 
             if (lotsMode == 1)
             {
                 var symbol2 = GetSymbol(tu.MktSymbol);
-                decimal num = (decimal)ArgDic["money"] / (q.Close * symbol2.multiplier * symbol2.margin_ratio);
+                decimal num = Convert.ToDecimal(ArgDic["money"]) / (q.Close * symbol2.multiplier * symbol2.margin_ratio);
                 if (symbol2.symbol_type == (int)SymbolType.COIN)
                     num = Math.Floor(num * 1000) / 1000.0m;
                 else
@@ -329,7 +329,7 @@ namespace QjySDK.Stg
             }
 
             // lotsMode == 2: 按风险计算
-            decimal accountEquity = (decimal)ArgDic["accountEquity"];
+            decimal accountEquity = Convert.ToDecimal(ArgDic["accountEquity"]);
             double riskPerTrade = Convert.ToDouble(ArgDic["riskPerTrade"]);
             double atrStopMultiplier = Convert.ToDouble(ArgDic["atrStopMultiplier"]);
 

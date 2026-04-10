@@ -327,12 +327,12 @@ namespace QjySDK.Stg
                 }
             }
 
-            var num = (decimal)ArgDic["lots"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
             var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
                 var s2 = GetSymbol(tu.MktSymbol);
-                num = ((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio));
+                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio));
                 if (s2.symbol_type == (int)SymbolType.COIN)
                 {
                     num = (int)(num * 1000) / 1000.0m;
@@ -346,7 +346,7 @@ namespace QjySDK.Stg
             {
                 double zWeight = Math.Min(2.0, Math.Abs(zScore) / dynamicEntryZ);
                 var s2 = GetSymbol(tu.MktSymbol);
-                num = (decimal)(zWeight * (double)((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio)));
+                num = (decimal)(zWeight * (double)(Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio)));
                 if (s2.symbol_type == (int)SymbolType.COIN)
                 {
                     num = (int)(num * 1000) / 1000.0m;

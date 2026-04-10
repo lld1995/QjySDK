@@ -392,22 +392,22 @@ namespace QjySDK.Stg
         {
             var data = new PeriodTrendData();
 
-            int emaFast = (int)ArgDic["emaFast"];
-            int emaMid = (int)ArgDic["emaMid"];
-            int emaSlow = (int)ArgDic["emaSlow"];
-            int emaTrendWeight = (int)ArgDic["emaTrendWeight"];
+            int emaFast = Convert.ToInt32(ArgDic["emaFast"]);
+            int emaMid = Convert.ToInt32(ArgDic["emaMid"]);
+            int emaSlow = Convert.ToInt32(ArgDic["emaSlow"]);
+            int emaTrendWeight = Convert.ToInt32(ArgDic["emaTrendWeight"]);
 
-            int rsiPeriod = (int)ArgDic["rsiPeriod"];
-            int rsiOverbought = (int)ArgDic["rsiOverbought"];
-            int rsiOversold = (int)ArgDic["rsiOversold"];
-            int rsiWeight = (int)ArgDic["rsiWeight"];
+            int rsiPeriod = Convert.ToInt32(ArgDic["rsiPeriod"]);
+            int rsiOverbought = Convert.ToInt32(ArgDic["rsiOverbought"]);
+            int rsiOversold = Convert.ToInt32(ArgDic["rsiOversold"]);
+            int rsiWeight = Convert.ToInt32(ArgDic["rsiWeight"]);
 
-            int macdFast = (int)ArgDic["macdFast"];
-            int macdSlow = (int)ArgDic["macdSlow"];
-            int macdSignal = (int)ArgDic["macdSignal"];
-            int macdWeight = (int)ArgDic["macdWeight"];
+            int macdFast = Convert.ToInt32(ArgDic["macdFast"]);
+            int macdSlow = Convert.ToInt32(ArgDic["macdSlow"]);
+            int macdSignal = Convert.ToInt32(ArgDic["macdSignal"]);
+            int macdWeight = Convert.ToInt32(ArgDic["macdWeight"]);
 
-            int atrPeriod = (int)ArgDic["atrPeriod"];
+            int atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
 
             int minBars = Math.Max(emaSlow, Math.Max(macdSlow + macdSignal, rsiPeriod + atrPeriod)) + 10;
             if (quotes.Count < minBars)
@@ -441,12 +441,12 @@ namespace QjySDK.Stg
         /// </summary>
         private double CalcResonanceScore(GlobalPeriodData globalData, Period currentPeriod)
         {
-            int usePeriod1 = (int)ArgDic["usePeriod1"];
-            int usePeriod2 = (int)ArgDic["usePeriod2"];
-            int usePeriod3 = (int)ArgDic["usePeriod3"];
-            int period1Weight = (int)ArgDic["period1Weight"];
-            int period2Weight = (int)ArgDic["period2Weight"];
-            int period3Weight = (int)ArgDic["period3Weight"];
+            int usePeriod1 = Convert.ToInt32(ArgDic["usePeriod1"]);
+            int usePeriod2 = Convert.ToInt32(ArgDic["usePeriod2"]);
+            int usePeriod3 = Convert.ToInt32(ArgDic["usePeriod3"]);
+            int period1Weight = Convert.ToInt32(ArgDic["period1Weight"]);
+            int period2Weight = Convert.ToInt32(ArgDic["period2Weight"]);
+            int period3Weight = Convert.ToInt32(ArgDic["period3Weight"]);
 
             double totalScore = 0;
             double totalWeight = 0;
@@ -696,7 +696,7 @@ namespace QjySDK.Stg
             if (!isFinal) return;
 
             // 只在指定周期上进行交易
-            int tradePeriod = (int)ArgDic["tradePeriod"];
+            int tradePeriod = Convert.ToInt32(ArgDic["tradePeriod"]);
             if ((int)period != tradePeriod) return;
 
             var q = tu.QuoteList.Last();
@@ -722,20 +722,20 @@ namespace QjySDK.Stg
             double currentAtr = globalData.CurrentAtr;
 
             // 获取参数
-            int resonanceThreshold = (int)ArgDic["resonanceThreshold"];
-            int strongResonance = (int)ArgDic["strongResonance"];
-            int confirmBars = (int)ArgDic["confirmBars"];
-            int mode = (int)ArgDic["mode"];
-            int sendMode = (int)ArgDic["sendMode"];
-            int positionMode = (int)ArgDic["positionMode"];
-            decimal maxPositionScale = (decimal)ArgDic["maxPositionScale"];
-            int useStopLoss = (int)ArgDic["useStopLoss"];
-            int useTakeProfit = (int)ArgDic["useTakeProfit"];
-            int useTrailingStop = (int)ArgDic["useTrailingStop"];
-            decimal atrStopMultiplier = (decimal)ArgDic["atrStopMultiplier"];
-            decimal atrProfitMultiplier = (decimal)ArgDic["atrProfitMultiplier"];
-            decimal trailingAtrMult = (decimal)ArgDic["trailingAtrMult"];
-            int useAtrFilter = (int)ArgDic["useAtrFilter"];
+            int resonanceThreshold = Convert.ToInt32(ArgDic["resonanceThreshold"]);
+            int strongResonance = Convert.ToInt32(ArgDic["strongResonance"]);
+            int confirmBars = Convert.ToInt32(ArgDic["confirmBars"]);
+            int mode = Convert.ToInt32(ArgDic["mode"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+            int positionMode = Convert.ToInt32(ArgDic["positionMode"]);
+            decimal maxPositionScale = Convert.ToDecimal(ArgDic["maxPositionScale"]);
+            int useStopLoss = Convert.ToInt32(ArgDic["useStopLoss"]);
+            int useTakeProfit = Convert.ToInt32(ArgDic["useTakeProfit"]);
+            int useTrailingStop = Convert.ToInt32(ArgDic["useTrailingStop"]);
+            decimal atrStopMultiplier = Convert.ToDecimal(ArgDic["atrStopMultiplier"]);
+            decimal atrProfitMultiplier = Convert.ToDecimal(ArgDic["atrProfitMultiplier"]);
+            decimal trailingAtrMult = Convert.ToDecimal(ArgDic["trailingAtrMult"]);
+            int useAtrFilter = Convert.ToInt32(ArgDic["useAtrFilter"]);
 
             // ATR过滤：波动率过低时不交易
             bool atrFilterPassed = true;
@@ -812,9 +812,9 @@ namespace QjySDK.Stg
             // 副图1: RSI
             if (globalData.PeriodTrends.ContainsKey(period) && globalData.PeriodTrends[period].IsValid)
             {
-                int rsiPeriod = (int)ArgDic["rsiPeriod"];
-                int rsiOverbought = (int)ArgDic["rsiOverbought"];
-                int rsiOversold = (int)ArgDic["rsiOversold"];
+                int rsiPeriod = Convert.ToInt32(ArgDic["rsiPeriod"]);
+                int rsiOverbought = Convert.ToInt32(ArgDic["rsiOverbought"]);
+                int rsiOversold = Convert.ToInt32(ArgDic["rsiOversold"]);
 
                 if (globalData.PeriodQuotes.ContainsKey(period))
                 {
@@ -836,9 +836,9 @@ namespace QjySDK.Stg
             // 副图2: MACD
             if (globalData.PeriodQuotes.ContainsKey(period))
             {
-                int macdFast = (int)ArgDic["macdFast"];
-                int macdSlow = (int)ArgDic["macdSlow"];
-                int macdSignal = (int)ArgDic["macdSignal"];
+                int macdFast = Convert.ToInt32(ArgDic["macdFast"]);
+                int macdSlow = Convert.ToInt32(ArgDic["macdSlow"]);
+                int macdSignal = Convert.ToInt32(ArgDic["macdSignal"]);
 
                 var quotes = globalData.PeriodQuotes[period];
                 if (quotes.Count > macdSlow + macdSignal + 5)
@@ -860,13 +860,13 @@ namespace QjySDK.Stg
         /// </summary>
         private decimal CalcLots(string mktSymbol, decimal price)
         {
-            var num = (decimal)ArgDic["lots"];
-            var lotsMode = (int)ArgDic["lotsMode"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
+            var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 
             if (lotsMode == 1)
             {
                 var s = GetSymbol(mktSymbol);
-                num = ((decimal)ArgDic["money"] / (price * s.multiplier * s.margin_ratio));
+                num = (Convert.ToDecimal(ArgDic["money"]) / (price * s.multiplier * s.margin_ratio));
                 if (s.symbol_type == (int)SymbolType.COIN)
                 {
                     num = (int)(num * 1000) / 1000.0m;

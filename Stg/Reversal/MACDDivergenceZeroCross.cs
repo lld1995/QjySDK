@@ -176,25 +176,25 @@ namespace QjySDK.Stg
             if (!isFinal) return;
 
             // 获取参数
-            int fastPeriod = (int)ArgDic["fastPeriod"];
-            int slowPeriod = (int)ArgDic["slowPeriod"];
-            int signalPeriod = (int)ArgDic["signalPeriod"];
-            int lookbackPeriod = (int)ArgDic["lookbackPeriod"];
-            int minDivergenceBars = (int)ArgDic["minDivergenceBars"];
-            int maxDivergenceBars = (int)ArgDic["maxDivergenceBars"];
-            int signalMode = (int)ArgDic["signalMode"];
-            int zeroCrossConfirmBars = (int)ArgDic["zeroCrossConfirmBars"];
-            int atrPeriod = (int)ArgDic["atrPeriod"];
+            int fastPeriod = Convert.ToInt32(ArgDic["fastPeriod"]);
+            int slowPeriod = Convert.ToInt32(ArgDic["slowPeriod"]);
+            int signalPeriod = Convert.ToInt32(ArgDic["signalPeriod"]);
+            int lookbackPeriod = Convert.ToInt32(ArgDic["lookbackPeriod"]);
+            int minDivergenceBars = Convert.ToInt32(ArgDic["minDivergenceBars"]);
+            int maxDivergenceBars = Convert.ToInt32(ArgDic["maxDivergenceBars"]);
+            int signalMode = Convert.ToInt32(ArgDic["signalMode"]);
+            int zeroCrossConfirmBars = Convert.ToInt32(ArgDic["zeroCrossConfirmBars"]);
+            int atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
             double atrStopMultiplier = Convert.ToDouble(ArgDic["atrStopMultiplier"]);
             double atrProfitMultiplier = Convert.ToDouble(ArgDic["atrProfitMultiplier"]);
-            int useAtrStop = (int)ArgDic["useAtrStop"];
+            int useAtrStop = Convert.ToInt32(ArgDic["useAtrStop"]);
             double stopLossPercent = Convert.ToDouble(ArgDic["stopLossPercent"]);
             double takeProfitPercent = Convert.ToDouble(ArgDic["takeProfitPercent"]);
-            int useTrailingStop = (int)ArgDic["useTrailingStop"];
+            int useTrailingStop = Convert.ToInt32(ArgDic["useTrailingStop"]);
             double trailingActivation = Convert.ToDouble(ArgDic["trailingActivation"]);
             double trailingDistance = Convert.ToDouble(ArgDic["trailingDistance"]);
-            int tradeDirection = (int)ArgDic["tradeDirection"];
-            int sendMode = (int)ArgDic["sendMode"];
+            int tradeDirection = Convert.ToInt32(ArgDic["tradeDirection"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
             // 最小数据要求
             int minDataCount = Math.Max(slowPeriod + signalPeriod, atrPeriod) + maxDivergenceBars + 10;
@@ -729,13 +729,13 @@ namespace QjySDK.Stg
         /// </summary>
         private decimal CalculateLots(TableUnit tu, SkQuote q)
         {
-            var num = (decimal)ArgDic["lots"];
-            var lotsMode = (int)ArgDic["lotsMode"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
+            var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 
             if (lotsMode == 1)
             {
                 var symbol = GetSymbol(tu.MktSymbol);
-                num = (decimal)ArgDic["money"] / (q.Close * symbol.multiplier * symbol.margin_ratio);
+                num = Convert.ToDecimal(ArgDic["money"]) / (q.Close * symbol.multiplier * symbol.margin_ratio);
 
                 if (symbol.symbol_type == (int)SymbolType.COIN)
                 {

@@ -1089,12 +1089,12 @@ namespace QjySDK.Stg
             Plot("sub1", "QuantScore", PlotType.LINE, quantScore);
 
             // ==================== 计算手数 ====================
-            var num = (decimal)ArgDic["lots"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
             var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
                 var sym = GetSymbol(tu.MktSymbol);
-                num = ((decimal)ArgDic["money"] / (price * sym.multiplier * sym.margin_ratio));
+                num = (Convert.ToDecimal(ArgDic["money"]) / (price * sym.multiplier * sym.margin_ratio));
                 if (sym.symbol_type == (int)SymbolType.COIN)
                     num = Math.Floor(num * 1000) / 1000m;
                 else
@@ -1104,7 +1104,7 @@ namespace QjySDK.Stg
 
             // ==================== 每bar开平仓交易逻辑 ====================
             // 止损检查
-            var _sl = (decimal)ArgDic["stopLoss"];
+            var _sl = Convert.ToDecimal(ArgDic["stopLoss"]);
             if (s.Status == 1 && _sl > 0 && s.EntryPrice > 0 && price < s.EntryPrice * (1 - _sl / 100m))
             {
                 Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, price, s.Num, period, sendMode);

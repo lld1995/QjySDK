@@ -741,18 +741,18 @@ namespace QjySDK.Stg
             if (!isFinal) return;
 
             // 获取参数
-            int lookback = (int)ArgDic["lookback"];
-            int hiddenSize = (int)ArgDic["hiddenSize"];
+            int lookback = Convert.ToInt32(ArgDic["lookback"]);
+            int hiddenSize = Convert.ToInt32(ArgDic["hiddenSize"]);
             double learningRate = Convert.ToDouble(ArgDic["learningRate"]);
-            int epochs = (int)ArgDic["epochs"];
-            int trainPeriod = (int)ArgDic["trainPeriod"];
-            int retrainInterval = (int)ArgDic["retrainInterval"];
+            int epochs = Convert.ToInt32(ArgDic["epochs"]);
+            int trainPeriod = Convert.ToInt32(ArgDic["trainPeriod"]);
+            int retrainInterval = Convert.ToInt32(ArgDic["retrainInterval"]);
             double threshold = Convert.ToDouble(ArgDic["threshold"]);
-            int atrPeriod = (int)ArgDic["atrPeriod"];
+            int atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
             double atrMultiplier = Convert.ToDouble(ArgDic["atrMultiplier"]);
             double takeProfitMultiplier = Convert.ToDouble(ArgDic["takeProfitMultiplier"]);
-            int mode = (int)ArgDic["mode"];
-            int sendMode = (int)ArgDic["sendMode"];
+            int mode = Convert.ToInt32(ArgDic["mode"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
             // 检查数据量
             int minBars = Math.Max(lookback + trainPeriod + 20, atrPeriod + 1);
@@ -814,12 +814,12 @@ namespace QjySDK.Stg
             Plot("sub2", "confidence", PlotType.CURVE, confidence * 100);
 
             // 计算手数
-            var num = (decimal)ArgDic["lots"];
-            var lotsMode = (int)ArgDic["lotsMode"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
+            var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
                 var symbol = GetSymbol(tu.MktSymbol);
-                num = ((decimal)ArgDic["money"] / (q.Close * symbol.multiplier * symbol.margin_ratio));
+                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * symbol.multiplier * symbol.margin_ratio));
                 if (symbol.symbol_type == (int)SymbolType.COIN)
                 {
                     num = (int)(num * 1000) / 1000.0m;

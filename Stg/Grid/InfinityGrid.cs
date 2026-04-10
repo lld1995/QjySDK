@@ -135,14 +135,14 @@ namespace QjySDK.Stg
 			var q = tu.QuoteList[tu.QuoteList.Count - 1];
 			var q2 = tu.QuoteList[tu.QuoteList.Count - 2];
 
-			decimal gridRatio = (decimal)ArgDic["gridRatio"];
-			decimal investPerGrid = (decimal)ArgDic["investPerGrid"];
-			decimal maxTotalInvest = (decimal)ArgDic["maxTotalInvest"];
-			decimal lowerLimit = (decimal)ArgDic["lowerPriceLimit"];
-			decimal upperLimit = (decimal)ArgDic["upperPriceLimit"];
-			int useStopLoss = (int)ArgDic["useStopLoss"];
-			decimal stopLossPct = (decimal)ArgDic["stopLossPercent"];
-			int sendMode = (int)ArgDic["sendMode"];
+			decimal gridRatio = Convert.ToDecimal(ArgDic["gridRatio"]);
+			decimal investPerGrid = Convert.ToDecimal(ArgDic["investPerGrid"]);
+			decimal maxTotalInvest = Convert.ToDecimal(ArgDic["maxTotalInvest"]);
+			decimal lowerLimit = Convert.ToDecimal(ArgDic["lowerPriceLimit"]);
+			decimal upperLimit = Convert.ToDecimal(ArgDic["upperPriceLimit"]);
+			int useStopLoss = Convert.ToInt32(ArgDic["useStopLoss"]);
+			decimal stopLossPct = Convert.ToDecimal(ArgDic["stopLossPercent"]);
+			int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
 			// 止损后停止交易
 			if (s.IsStopped) return;

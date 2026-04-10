@@ -78,12 +78,12 @@ namespace QjySDK.Stg
             
             if (!isFinal) return;
             
-            int bollPeriod = (int)ArgDic["period"];
+            int bollPeriod = Convert.ToInt32(ArgDic["period"]);
             if (tu.QuoteList.Count < bollPeriod + 1) return;
 
-            int mode = (int)ArgDic["mode"];
-            int sendMode = (int)ArgDic["sendMode"];
-            int exitMode = (int)ArgDic["exitMode"];
+            int mode = Convert.ToInt32(ArgDic["mode"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+            int exitMode = Convert.ToInt32(ArgDic["exitMode"]);
             double stdDev = Convert.ToDouble(ArgDic["stdDev"]);
 
             var q = tu.QuoteList.Last();
@@ -100,12 +100,12 @@ namespace QjySDK.Stg
             if (boll2.UpperBand == null || boll2.LowerBand == null || boll2.Sma == null) return;
 
             // 计算手数
-            var num = (decimal)ArgDic["lots"];
-            var lotsMode = (int)ArgDic["lotsMode"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
+            var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
                 var s2 = GetSymbol(tu.MktSymbol);
-                num = ((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio));
+                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio));
                 if (s2.symbol_type == (int)SymbolType.COIN)
                 {
                     num = (int)(num * 1000) / 1000.0m;
@@ -165,7 +165,7 @@ namespace QjySDK.Stg
                 bool shouldExit = false;
 
                 // 止损检查
-                var stopLoss = (decimal)ArgDic["stopLoss"];
+                var stopLoss = Convert.ToDecimal(ArgDic["stopLoss"]);
                 if (stopLoss > 0 && s.EntryPrice > 0 && q.Close < s.EntryPrice * (1 - stopLoss / 100m))
                     shouldExit = true;
 
@@ -208,7 +208,7 @@ namespace QjySDK.Stg
                 bool shouldExit = false;
 
                 // 止损检查
-                var stopLoss2 = (decimal)ArgDic["stopLoss"];
+                var stopLoss2 = Convert.ToDecimal(ArgDic["stopLoss"]);
                 if (stopLoss2 > 0 && s.EntryPrice > 0 && q.Close > s.EntryPrice * (1 + stopLoss2 / 100m))
                     shouldExit = true;
 

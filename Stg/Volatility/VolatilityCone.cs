@@ -117,18 +117,18 @@ namespace QjySDK.Stg
 
 		private decimal CalcNum(TableUnit tu, decimal price)
 		{
-			var lotsMode = (int)ArgDic["lotsMode"];
+			var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 			if (lotsMode == 1)
 			{
 				var sym = GetSymbol(tu.MktSymbol);
-				var num = (decimal)ArgDic["money"] / (price * sym.multiplier * sym.margin_ratio);
+				var num = Convert.ToDecimal(ArgDic["money"]) / (price * sym.multiplier * sym.margin_ratio);
 				if (sym.symbol_type == (int)SymbolType.COIN)
 					num = (int)(num * 1000) / 1000.0m;
 				else
 					num = (int)num;
 				return num;
 			}
-			return (decimal)ArgDic["lots"];
+			return Convert.ToDecimal(ArgDic["lots"]);
 		}
 
 		private double CalcHV(List<SkQuote> quotes, int endIdx, int period)
@@ -168,13 +168,13 @@ namespace QjySDK.Stg
 			base.OnBar(period, tu, isFinal, tq);
 			if (!isFinal) return;
 
-			int shortP = (int)ArgDic["shortHvPeriod"];
-			int midP = (int)ArgDic["midHvPeriod"];
-			int longP = (int)ArgDic["longHvPeriod"];
-			int rankLookback = (int)ArgDic["rankLookback"];
-			int smaPeriod = (int)ArgDic["smaPeriod"];
-			int fastSmaPeriod = (int)ArgDic["fastSmaPeriod"];
-			int atrPeriod = (int)ArgDic["atrPeriod"];
+			int shortP = Convert.ToInt32(ArgDic["shortHvPeriod"]);
+			int midP = Convert.ToInt32(ArgDic["midHvPeriod"]);
+			int longP = Convert.ToInt32(ArgDic["longHvPeriod"]);
+			int rankLookback = Convert.ToInt32(ArgDic["rankLookback"]);
+			int smaPeriod = Convert.ToInt32(ArgDic["smaPeriod"]);
+			int fastSmaPeriod = Convert.ToInt32(ArgDic["fastSmaPeriod"]);
+			int atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
 
 			int minBars = longP + rankLookback + 10;
 			if (tu.QuoteList.Count < minBars) return;
@@ -184,12 +184,12 @@ namespace QjySDK.Stg
 			var q = tu.QuoteList[tu.QuoteList.Count - 1];
 			int lastIdx = tu.QuoteList.Count - 1;
 
-			double extremeHigh = (double)ArgDic["extremeHighPct"];
-			double extremeLow = (double)ArgDic["extremeLowPct"];
-			double stopAtr = (double)ArgDic["stopLossAtr"];
-			double profitAtr = (double)ArgDic["takeProfitAtr"];
-			int mode = (int)ArgDic["mode"];
-			int sendMode = (int)ArgDic["sendMode"];
+			double extremeHigh = Convert.ToDouble(ArgDic["extremeHighPct"]);
+			double extremeLow = Convert.ToDouble(ArgDic["extremeLowPct"]);
+			double stopAtr = Convert.ToDouble(ArgDic["stopLossAtr"]);
+			double profitAtr = Convert.ToDouble(ArgDic["takeProfitAtr"]);
+			int mode = Convert.ToInt32(ArgDic["mode"]);
+			int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
 			// 计算三个窗口的HV和百分位
 			double shortHV = CalcHV(tu.QuoteList, lastIdx, shortP);

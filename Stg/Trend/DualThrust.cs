@@ -147,22 +147,22 @@ namespace QjySDK.Stg
             if (!isFinal) return;
 
             // 获取参数
-            int lookbackDays = (int)ArgDic["lookbackDays"];
+            int lookbackDays = Convert.ToInt32(ArgDic["lookbackDays"]);
             double k1 = Convert.ToDouble(ArgDic["k1"]);
             double k2 = Convert.ToDouble(ArgDic["k2"]);
-            int mode = (int)ArgDic["mode"];
-            int sendMode = (int)ArgDic["sendMode"];
-            int exitMode = (int)ArgDic["exitMode"];
-            int useStopLoss = (int)ArgDic["useStopLoss"];
+            int mode = Convert.ToInt32(ArgDic["mode"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+            int exitMode = Convert.ToInt32(ArgDic["exitMode"]);
+            int useStopLoss = Convert.ToInt32(ArgDic["useStopLoss"]);
             double stopLossRatio = Convert.ToDouble(ArgDic["stopLossRatio"]);
-            int useTakeProfit = (int)ArgDic["useTakeProfit"];
+            int useTakeProfit = Convert.ToInt32(ArgDic["useTakeProfit"]);
             double takeProfitRatio = Convert.ToDouble(ArgDic["takeProfitRatio"]);
-            int startHour = (int)ArgDic["startHour"];
-            int startMinute = (int)ArgDic["startMinute"];
-            int endHour = (int)ArgDic["endHour"];
-            int endMinute = (int)ArgDic["endMinute"];
-            int closeHour = (int)ArgDic["closeHour"];
-            int closeMinute = (int)ArgDic["closeMinute"];
+            int startHour = Convert.ToInt32(ArgDic["startHour"]);
+            int startMinute = Convert.ToInt32(ArgDic["startMinute"]);
+            int endHour = Convert.ToInt32(ArgDic["endHour"]);
+            int endMinute = Convert.ToInt32(ArgDic["endMinute"]);
+            int closeHour = Convert.ToInt32(ArgDic["closeHour"]);
+            int closeMinute = Convert.ToInt32(ArgDic["closeMinute"]);
 
             // 确保有足够的数据
             if (tu.QuoteList.Count < lookbackDays + 1) return;
@@ -321,13 +321,13 @@ namespace QjySDK.Stg
         /// </summary>
         private decimal CalculateLots(TableUnit tu, SkQuote q)
         {
-            var lotsMode = (int)ArgDic["lotsMode"];
-            var num = (decimal)ArgDic["lots"];
+            var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
+            var num = Convert.ToDecimal(ArgDic["lots"]);
 
             if (lotsMode == 1)
             {
                 var symbol = GetSymbol(tu.MktSymbol);
-                num = (decimal)ArgDic["money"] / (q.Close * symbol.multiplier * symbol.margin_ratio);
+                num = Convert.ToDecimal(ArgDic["money"]) / (q.Close * symbol.multiplier * symbol.margin_ratio);
 
                 if (symbol.symbol_type == (int)SymbolType.COIN)
                 {

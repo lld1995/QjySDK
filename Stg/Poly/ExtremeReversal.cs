@@ -258,7 +258,7 @@ namespace QjySDK.Stg
             if (num <= 0) return;
 
             // 止损检查
-            var _sl = (decimal)ArgDic["stopLoss"];
+            var _sl = Convert.ToDecimal(ArgDic["stopLoss"]);
             if (s.Status == 1 && _sl > 0 && s.EntryPrice > 0 && price < s.EntryPrice * (1 - _sl / 100m))
             {
                 Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, price, s.Num, period, sendMode);

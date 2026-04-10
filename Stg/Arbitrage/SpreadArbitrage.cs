@@ -500,13 +500,13 @@ namespace QjySDK.Stg
 
         private decimal CalcLots(string mktSymbol, decimal price, double zScore, double entryZ)
         {
-            var num = (decimal)ArgDic["lots"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
             var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 
             if (lotsMode == 1)
             {
                 var s = GetSymbol(mktSymbol);
-                num = ((decimal)ArgDic["money"] / (price * s.multiplier * s.margin_ratio));
+                num = (Convert.ToDecimal(ArgDic["money"]) / (price * s.multiplier * s.margin_ratio));
                 if (s.symbol_type == (int)SymbolType.COIN)
                 {
                     num = (int)(num * 1000) / 1000.0m;
@@ -521,7 +521,7 @@ namespace QjySDK.Stg
                 // Z-Score加权：偏离越大仓位越重
                 double zWeight = Math.Min(2.0, Math.Abs(zScore) / Math.Max(0.1, entryZ));
                 var s = GetSymbol(mktSymbol);
-                num = (decimal)(zWeight * (double)((decimal)ArgDic["money"] / (price * s.multiplier * s.margin_ratio)));
+                num = (decimal)(zWeight * (double)(Convert.ToDecimal(ArgDic["money"]) / (price * s.multiplier * s.margin_ratio)));
                 if (s.symbol_type == (int)SymbolType.COIN)
                 {
                     num = (int)(num * 1000) / 1000.0m;

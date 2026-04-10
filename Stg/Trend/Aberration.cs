@@ -105,13 +105,13 @@ namespace QjySDK.Stg
             if (!isFinal) return;
 
             // 获取参数
-            int maPeriod = (int)ArgDic["maPeriod"];
-            int atrPeriod = (int)ArgDic["atrPeriod"];
+            int maPeriod = Convert.ToInt32(ArgDic["maPeriod"]);
+            int atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
             double atrMultiplier = Convert.ToDouble(ArgDic["atrMultiplier"]);
-            int mode = (int)ArgDic["mode"];
-            int sendMode = (int)ArgDic["sendMode"];
-            int exitMode = (int)ArgDic["exitMode"];
-            int useTrailingStop = (int)ArgDic["useTrailingStop"];
+            int mode = Convert.ToInt32(ArgDic["mode"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+            int exitMode = Convert.ToInt32(ArgDic["exitMode"]);
+            int useTrailingStop = Convert.ToInt32(ArgDic["useTrailingStop"]);
             double trailingAtrMultiplier = Convert.ToDouble(ArgDic["trailingAtrMultiplier"]);
 
             // 确保有足够的数据
@@ -168,13 +168,13 @@ namespace QjySDK.Stg
         /// </summary>
         private decimal CalculateLots(TableUnit tu, SkQuote q)
         {
-            var lotsMode = (int)ArgDic["lotsMode"];
-            var num = (decimal)ArgDic["lots"];
+            var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
+            var num = Convert.ToDecimal(ArgDic["lots"]);
 
             if (lotsMode == 1)
             {
                 var symbol = GetSymbol(tu.MktSymbol);
-                num = (decimal)ArgDic["money"] / (q.Close * symbol.multiplier * symbol.margin_ratio);
+                num = Convert.ToDecimal(ArgDic["money"]) / (q.Close * symbol.multiplier * symbol.margin_ratio);
 
                 if (symbol.symbol_type == (int)SymbolType.COIN)
                 {

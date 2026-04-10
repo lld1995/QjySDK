@@ -238,24 +238,24 @@ namespace QjySDK.Stg
 
             if (!isFinal) return;
 
-            int cciPeriod = (int)ArgDic["cciPeriod"];
-            int macdFast = (int)ArgDic["macdFast"];
-            int macdSlow = (int)ArgDic["macdSlow"];
-            int macdSignal = (int)ArgDic["macdSignal"];
-            int fftPeriod = (int)ArgDic["fftPeriod"];
-            int dominantPeriodMin = (int)ArgDic["dominantPeriodMin"];
-            int dominantPeriodMax = (int)ArgDic["dominantPeriodMax"];
-            int harmonics = (int)ArgDic["harmonics"];
+            int cciPeriod = Convert.ToInt32(ArgDic["cciPeriod"]);
+            int macdFast = Convert.ToInt32(ArgDic["macdFast"]);
+            int macdSlow = Convert.ToInt32(ArgDic["macdSlow"]);
+            int macdSignal = Convert.ToInt32(ArgDic["macdSignal"]);
+            int fftPeriod = Convert.ToInt32(ArgDic["fftPeriod"]);
+            int dominantPeriodMin = Convert.ToInt32(ArgDic["dominantPeriodMin"]);
+            int dominantPeriodMax = Convert.ToInt32(ArgDic["dominantPeriodMax"]);
+            int harmonics = Convert.ToInt32(ArgDic["harmonics"]);
 
             // 确保有足够的数据
             int minBars = Math.Max(Math.Max(cciPeriod + 2, macdSlow + macdSignal + 2), fftPeriod);
             if (tu.QuoteList.Count < minBars) return;
 
-            int mode = (int)ArgDic["mode"];
-            int sendMode = (int)ArgDic["sendMode"];
-            int signalMode = (int)ArgDic["signalMode"];
-            int cciOverbought = (int)ArgDic["cciOverbought"];
-            int cciOversold = (int)ArgDic["cciOversold"];
+            int mode = Convert.ToInt32(ArgDic["mode"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+            int signalMode = Convert.ToInt32(ArgDic["signalMode"]);
+            int cciOverbought = Convert.ToInt32(ArgDic["cciOverbought"]);
+            int cciOversold = Convert.ToInt32(ArgDic["cciOversold"]);
             double phaseThresholdBuy = Convert.ToDouble(ArgDic["phaseThresholdBuy"]);
             double phaseThresholdSell = Convert.ToDouble(ArgDic["phaseThresholdSell"]);
 
@@ -329,12 +329,12 @@ namespace QjySDK.Stg
             Plot("sub2", "Cycle", PlotType.LINE, dominantPeriod);
 
             // 计算手数
-            var num = (decimal)ArgDic["lots"];
-            var lotsMode = (int)ArgDic["lotsMode"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
+            var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
                 var sym = GetSymbol(tu.MktSymbol);
-                num = ((decimal)ArgDic["money"] / (q.Close * sym.multiplier * sym.margin_ratio));
+                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * sym.multiplier * sym.margin_ratio));
                 if (sym.symbol_type == (int)SymbolType.COIN)
                 {
                     num = Math.Floor(num * 1000) / 1000m;
@@ -454,7 +454,7 @@ namespace QjySDK.Stg
             else if (s.Status == 1)
             {
                 // 止损检查
-                var _sl = (decimal)ArgDic["stopLoss"];
+                var _sl = Convert.ToDecimal(ArgDic["stopLoss"]);
                 if (_sl > 0 && s.EntryPrice > 0 && q.Close < s.EntryPrice * (1 - _sl / 100m))
                 {
                     Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
@@ -489,7 +489,7 @@ namespace QjySDK.Stg
             else if (s.Status == 2)
             {
                 // 止损检查
-                var _sl2 = (decimal)ArgDic["stopLoss"];
+                var _sl2 = Convert.ToDecimal(ArgDic["stopLoss"]);
                 if (_sl2 > 0 && s.EntryPrice > 0 && q.Close > s.EntryPrice * (1 + _sl2 / 100m))
                 {
                     Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);

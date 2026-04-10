@@ -117,18 +117,18 @@ namespace QjySDK.Stg
 
 		private decimal CalcNum(TableUnit tu, decimal price)
 		{
-			var lotsMode = (int)ArgDic["lotsMode"];
+			var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 			if (lotsMode == 1)
 			{
 				var sym = GetSymbol(tu.MktSymbol);
-				var num = (decimal)ArgDic["money"] / (price * sym.multiplier * sym.margin_ratio);
+				var num = Convert.ToDecimal(ArgDic["money"]) / (price * sym.multiplier * sym.margin_ratio);
 				if (sym.symbol_type == (int)SymbolType.COIN)
 					num = (int)(num * 1000) / 1000.0m;
 				else
 					num = (int)num;
 				return num;
 			}
-			return (decimal)ArgDic["lots"];
+			return Convert.ToDecimal(ArgDic["lots"]);
 		}
 
 		public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
@@ -136,9 +136,9 @@ namespace QjySDK.Stg
 			base.OnBar(period, tu, isFinal, tq);
 			if (!isFinal) return;
 
-			int bbPeriod = (int)ArgDic["bbPeriod"];
-			int squeezeLookback = (int)ArgDic["squeezeLookback"];
-			int atrPeriod = (int)ArgDic["atrPeriod"];
+			int bbPeriod = Convert.ToInt32(ArgDic["bbPeriod"]);
+			int squeezeLookback = Convert.ToInt32(ArgDic["squeezeLookback"]);
+			int atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
 			int minBars = Math.Max(Math.Max(bbPeriod, squeezeLookback), atrPeriod) + 5;
 			if (tu.QuoteList.Count < minBars) return;
 
@@ -146,15 +146,15 @@ namespace QjySDK.Stg
 			var s = GetOrCreateState(sk);
 
 			var q = tu.QuoteList[tu.QuoteList.Count - 1];
-			double bbStdDev = (double)ArgDic["bbStdDev"];
-			double squeezeThreshold = (double)ArgDic["squeezeThreshold"];
-			double atrExpansionRatio = (double)ArgDic["atrExpansionRatio"];
-			double atrStopMult = (double)ArgDic["atrStopMultiplier"];
-			double atrProfitMult = (double)ArgDic["atrProfitMultiplier"];
-			int useTrailing = (int)ArgDic["useTrailingStop"];
-			double trailingMult = (double)ArgDic["trailingAtrMultiplier"];
-			int mode = (int)ArgDic["mode"];
-			int sendMode = (int)ArgDic["sendMode"];
+			double bbStdDev = Convert.ToDouble(ArgDic["bbStdDev"]);
+			double squeezeThreshold = Convert.ToDouble(ArgDic["squeezeThreshold"]);
+			double atrExpansionRatio = Convert.ToDouble(ArgDic["atrExpansionRatio"]);
+			double atrStopMult = Convert.ToDouble(ArgDic["atrStopMultiplier"]);
+			double atrProfitMult = Convert.ToDouble(ArgDic["atrProfitMultiplier"]);
+			int useTrailing = Convert.ToInt32(ArgDic["useTrailingStop"]);
+			double trailingMult = Convert.ToDouble(ArgDic["trailingAtrMultiplier"]);
+			int mode = Convert.ToInt32(ArgDic["mode"]);
+			int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
 			// 计算布林带
 			var bbList = tu.QuoteList.GetBollingerBands(bbPeriod, bbStdDev).ToList();
@@ -197,7 +197,7 @@ namespace QjySDK.Stg
 			decimal num = CalcNum(tu, q.Close);
 			decimal atrVal = (decimal)atr.Atr.Value;
 
-			int squeezeGraceBars = (int)ArgDic["squeezeGraceBars"];
+			int squeezeGraceBars = Convert.ToInt32(ArgDic["squeezeGraceBars"]);
 
 			if (s.Status == 0)
 			{

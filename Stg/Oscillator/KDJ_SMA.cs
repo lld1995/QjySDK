@@ -101,21 +101,21 @@ namespace QjySDK.Stg
             {
                 if (tu.QuoteList.Count > 15)
                 {
-                    int mode = (int)ArgDic["mode"];
-                    int sendMode = (int)ArgDic["sendMode"];
+                    int mode = Convert.ToInt32(ArgDic["mode"]);
+                    int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
-                    var overUp=(int)ArgDic["overUp"];
-                    var overDown=(int)ArgDic["overDown"];
+                    var overUp=Convert.ToInt32(ArgDic["overUp"]);
+                    var overDown=Convert.ToInt32(ArgDic["overDown"]);
 
                     var q = tu.QuoteList.Last();
 
-                    var smaShort=tu.QuoteList.GetSma((int)ArgDic["smaShortPeriods"]).ToList();
-                    var smaLong = tu.QuoteList.GetSma((int)ArgDic["smaLongPeriods"]).ToList() ;
+                    var smaShort=tu.QuoteList.GetSma(Convert.ToInt32(ArgDic["smaShortPeriods"])).ToList();
+                    var smaLong = tu.QuoteList.GetSma(Convert.ToInt32(ArgDic["smaLongPeriods"])).ToList() ;
 
                     var smaShort1 = smaShort[smaShort.Count - 1];
                     var smaLong1 = smaLong[smaLong.Count - 1];
 
-                    var kdj = tu.QuoteList.GetStoch((int)ArgDic["lookbackPeriods"], (int)ArgDic["signalPeriods"], (int)ArgDic["smoothPeriods"]).ToList();
+                    var kdj = tu.QuoteList.GetStoch(Convert.ToInt32(ArgDic["lookbackPeriods"]), Convert.ToInt32(ArgDic["signalPeriods"]), Convert.ToInt32(ArgDic["smoothPeriods"])).ToList();
 
                     var kdj1 = kdj[kdj.Count - 1];
                     var kdj2 = kdj[kdj.Count - 2];
@@ -125,12 +125,12 @@ namespace QjySDK.Stg
                     Plot("kdj", "D", PlotType.LINE, kdj1.D);
                     Plot("kdj", "J", PlotType.LINE, kdj1.J);
 
-                    var num = (decimal)ArgDic["lots"];
-                    var lotsMode = (int)ArgDic["lotsMode"];
+                    var num = Convert.ToDecimal(ArgDic["lots"]);
+                    var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
                     if (lotsMode == 1)
                     {
                         var s2 = GetSymbol(tu.MktSymbol);
-                        num = ((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio));
+                        num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio));
                         if (s2.symbol_type == (int)SymbolType.COIN)
                         {
                             num = (int)(num * 1000) / 1000.0m;
@@ -160,7 +160,7 @@ namespace QjySDK.Stg
                     else if (s.Status == 1)
                     {
                         // 止损检查
-                        var _sl = (decimal)ArgDic["stopLoss"];
+                        var _sl = Convert.ToDecimal(ArgDic["stopLoss"]);
                         if (_sl > 0 && s.LastOpenPrice > 0 && q.Close < s.LastOpenPrice * (1 - _sl / 100m))
                         {
                             Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
@@ -183,7 +183,7 @@ namespace QjySDK.Stg
                     else if (s.Status == 2)
                     {
                         // 止损检查
-                        var _sl2 = (decimal)ArgDic["stopLoss"];
+                        var _sl2 = Convert.ToDecimal(ArgDic["stopLoss"]);
                         if (_sl2 > 0 && s.LastOpenPrice > 0 && q.Close > s.LastOpenPrice * (1 + _sl2 / 100m))
                         {
                             Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);

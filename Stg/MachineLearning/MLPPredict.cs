@@ -662,22 +662,22 @@ namespace QjySDK.Stg
             if (!isFinal) return;
 
             // 获取参数
-            int lookback = (int)ArgDic["lookback"];
+            int lookback = Convert.ToInt32(ArgDic["lookback"]);
             string hiddenLayersStr = ArgDic["hiddenLayers"].ToString() ?? "64,32,16";
             int[] hiddenLayers = hiddenLayersStr.Split(',').Select(s => int.Parse(s.Trim())).ToArray();
             double learningRate = Convert.ToDouble(ArgDic["learningRate"]);
-            int epochs = (int)ArgDic["epochs"];
-            int batchSize = (int)ArgDic["batchSize"];
+            int epochs = Convert.ToInt32(ArgDic["epochs"]);
+            int batchSize = Convert.ToInt32(ArgDic["batchSize"]);
             double dropout = Convert.ToDouble(ArgDic["dropout"]);
             double l2Lambda = Convert.ToDouble(ArgDic["l2Lambda"]);
-            int trainPeriod = (int)ArgDic["trainPeriod"];
-            int retrainInterval = (int)ArgDic["retrainInterval"];
+            int trainPeriod = Convert.ToInt32(ArgDic["trainPeriod"]);
+            int retrainInterval = Convert.ToInt32(ArgDic["retrainInterval"]);
             double threshold = Convert.ToDouble(ArgDic["threshold"]);
-            int atrPeriod = (int)ArgDic["atrPeriod"];
+            int atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
             double atrMultiplier = Convert.ToDouble(ArgDic["atrMultiplier"]);
             double takeProfitMultiplier = Convert.ToDouble(ArgDic["takeProfitMultiplier"]);
-            int mode = (int)ArgDic["mode"];
-            int sendMode = (int)ArgDic["sendMode"];
+            int mode = Convert.ToInt32(ArgDic["mode"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
             // 检查数据量
             int minBars = Math.Max(lookback + trainPeriod, atrPeriod + 1);
@@ -769,12 +769,12 @@ namespace QjySDK.Stg
             }
 
             // 计算手数
-            var num = (decimal)ArgDic["lots"];
-            var lotsMode = (int)ArgDic["lotsMode"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
+            var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
                 var symbol = GetSymbol(tu.MktSymbol);
-                num = ((decimal)ArgDic["money"] / (q.Close * symbol.multiplier * symbol.margin_ratio));
+                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * symbol.multiplier * symbol.margin_ratio));
                 if (symbol.symbol_type == (int)SymbolType.COIN)
                 {
                     num = (int)(num * 1000) / 1000.0m;

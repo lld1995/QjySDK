@@ -67,14 +67,14 @@ namespace QjySDK.Stg
 			{
 				if (tu.QuoteList.Count > 2)
 				{
-                    double lowJ = (double)ArgDic["lowJ"];
-                    double highJ = (double)ArgDic["highJ"];
-                    decimal lossRate = (decimal)ArgDic["lossRate"];
-					int mode = (int)ArgDic["mode"];
-					int sendMode = (int)ArgDic["sendMode"];
+                    double lowJ = Convert.ToDouble(ArgDic["lowJ"]);
+                    double highJ = Convert.ToDouble(ArgDic["highJ"]);
+                    decimal lossRate = Convert.ToDecimal(ArgDic["lossRate"]);
+					int mode = Convert.ToInt32(ArgDic["mode"]);
+					int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
                     var q = tu.QuoteList.Last();
 
-                    var kdj = tu.QuoteList.GetStoch((int)ArgDic["lookbackPeriods"], (int)ArgDic["signalPeriods"], (int)ArgDic["smoothPeriods"]).ToList();
+                    var kdj = tu.QuoteList.GetStoch(Convert.ToInt32(ArgDic["lookbackPeriods"]), Convert.ToInt32(ArgDic["signalPeriods"]), Convert.ToInt32(ArgDic["smoothPeriods"])).ToList();
 
                     var kdj1 = kdj[kdj.Count - 1];
 
@@ -85,12 +85,12 @@ namespace QjySDK.Stg
                     var kdj2 = kdj[kdj.Count - 2];
                     var kdj3 = kdj[kdj.Count - 3];
 
-                    var num = (decimal)ArgDic["lots"];
-                    var lotsMode = (int)ArgDic["lotsMode"];
+                    var num = Convert.ToDecimal(ArgDic["lots"]);
+                    var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
                     if (lotsMode == 1)
                     {
                         var s2 = GetSymbol(tu.MktSymbol);
-                        num = ((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio));
+                        num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio));
                         if (s2.symbol_type == (int)SymbolType.COIN)
                         {
                             num = (int)(num * 1000) / 1000.0m;

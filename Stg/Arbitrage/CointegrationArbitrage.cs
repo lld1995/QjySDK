@@ -598,12 +598,12 @@ namespace QjySDK.Stg
 
         private decimal CalcLots(string mktSymbol, decimal price)
         {
-            var num = (decimal)ArgDic["lots"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
             var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
                 var s = GetSymbol(mktSymbol);
-                num = ((decimal)ArgDic["money"] / (price * s.multiplier * s.margin_ratio));
+                num = (Convert.ToDecimal(ArgDic["money"]) / (price * s.multiplier * s.margin_ratio));
                 if (s.symbol_type == (int)SymbolType.COIN)
                 {
                     num = (int)(num * 1000) / 1000.0m;

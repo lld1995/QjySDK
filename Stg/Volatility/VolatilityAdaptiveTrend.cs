@@ -112,18 +112,18 @@ namespace QjySDK.Stg
 
 		private decimal CalcNum(TableUnit tu, decimal price)
 		{
-			var lotsMode = (int)ArgDic["lotsMode"];
+			var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 			if (lotsMode == 1)
 			{
 				var sym = GetSymbol(tu.MktSymbol);
-				var num = (decimal)ArgDic["money"] / (price * sym.multiplier * sym.margin_ratio);
+				var num = Convert.ToDecimal(ArgDic["money"]) / (price * sym.multiplier * sym.margin_ratio);
 				if (sym.symbol_type == (int)SymbolType.COIN)
 					num = (int)(num * 1000) / 1000.0m;
 				else
 					num = (int)num;
 				return num;
 			}
-			return (decimal)ArgDic["lots"];
+			return Convert.ToDecimal(ArgDic["lots"]);
 		}
 
 		public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
@@ -131,13 +131,13 @@ namespace QjySDK.Stg
 			base.OnBar(period, tu, isFinal, tq);
 			if (!isFinal) return;
 
-			int erPeriod = (int)ArgDic["erPeriod"];
-			int fastP = (int)ArgDic["fastPeriod"];
-			int slowP = (int)ArgDic["slowPeriod"];
-			int atrPeriod = (int)ArgDic["atrPeriod"];
-			int atrRankPeriod = (int)ArgDic["atrRankPeriod"];
-			int trendSmaPeriod = (int)ArgDic["trendSmaPeriod"];
-			int adxPeriod = (int)ArgDic["adxPeriod"];
+			int erPeriod = Convert.ToInt32(ArgDic["erPeriod"]);
+			int fastP = Convert.ToInt32(ArgDic["fastPeriod"]);
+			int slowP = Convert.ToInt32(ArgDic["slowPeriod"]);
+			int atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
+			int atrRankPeriod = Convert.ToInt32(ArgDic["atrRankPeriod"]);
+			int trendSmaPeriod = Convert.ToInt32(ArgDic["trendSmaPeriod"]);
+			int adxPeriod = Convert.ToInt32(ArgDic["adxPeriod"]);
 
 			int minBars = Math.Max(Math.Max(erPeriod + atrRankPeriod, trendSmaPeriod), adxPeriod) + 10;
 			if (tu.QuoteList.Count < minBars) return;
@@ -147,11 +147,11 @@ namespace QjySDK.Stg
 			var q = tu.QuoteList[tu.QuoteList.Count - 1];
 			int lastIdx = tu.QuoteList.Count - 1;
 
-			double minStopAtr = (double)ArgDic["minStopAtr"];
-			double maxStopAtr = (double)ArgDic["maxStopAtr"];
-			double adxThreshold = (double)ArgDic["adxThreshold"];
-			int mode = (int)ArgDic["mode"];
-			int sendMode = (int)ArgDic["sendMode"];
+			double minStopAtr = Convert.ToDouble(ArgDic["minStopAtr"]);
+			double maxStopAtr = Convert.ToDouble(ArgDic["maxStopAtr"]);
+			double adxThreshold = Convert.ToDouble(ArgDic["adxThreshold"]);
+			int mode = Convert.ToInt32(ArgDic["mode"]);
+			int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
 			// 计算效率比 (Efficiency Ratio)
 			double direction = Math.Abs((double)(q.Close - tu.QuoteList[lastIdx - erPeriod].Close));

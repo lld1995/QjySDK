@@ -176,31 +176,31 @@ namespace QjySDK.Stg
             if (!isFinal) return;
 
             // 获取参数
-            int rsiPeriod = (int)ArgDic["rsiPeriod"];
-            int rsiOverbought = (int)ArgDic["rsiOverbought"];
-            int rsiOversold = (int)ArgDic["rsiOversold"];
-            int fastMaPeriod = (int)ArgDic["fastMaPeriod"];
-            int slowMaPeriod = (int)ArgDic["slowMaPeriod"];
-            int maType = (int)ArgDic["maType"];
-            int lookbackPeriod = (int)ArgDic["lookbackPeriod"];
-            int minDivergenceBars = (int)ArgDic["minDivergenceBars"];
-            int maxDivergenceBars = (int)ArgDic["maxDivergenceBars"];
-            int divergenceValidBars = (int)ArgDic["divergenceValidBars"];
-            int requireMaFilter = (int)ArgDic["requireMaFilter"];
-            int atrPeriod = (int)ArgDic["atrPeriod"];
+            int rsiPeriod = Convert.ToInt32(ArgDic["rsiPeriod"]);
+            int rsiOverbought = Convert.ToInt32(ArgDic["rsiOverbought"]);
+            int rsiOversold = Convert.ToInt32(ArgDic["rsiOversold"]);
+            int fastMaPeriod = Convert.ToInt32(ArgDic["fastMaPeriod"]);
+            int slowMaPeriod = Convert.ToInt32(ArgDic["slowMaPeriod"]);
+            int maType = Convert.ToInt32(ArgDic["maType"]);
+            int lookbackPeriod = Convert.ToInt32(ArgDic["lookbackPeriod"]);
+            int minDivergenceBars = Convert.ToInt32(ArgDic["minDivergenceBars"]);
+            int maxDivergenceBars = Convert.ToInt32(ArgDic["maxDivergenceBars"]);
+            int divergenceValidBars = Convert.ToInt32(ArgDic["divergenceValidBars"]);
+            int requireMaFilter = Convert.ToInt32(ArgDic["requireMaFilter"]);
+            int atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
             double atrStopMultiplier = Convert.ToDouble(ArgDic["atrStopMultiplier"]);
             double atrProfitMultiplier = Convert.ToDouble(ArgDic["atrProfitMultiplier"]);
-            int useAtrStop = (int)ArgDic["useAtrStop"];
+            int useAtrStop = Convert.ToInt32(ArgDic["useAtrStop"]);
             double stopLossPercent = Convert.ToDouble(ArgDic["stopLossPercent"]);
             double takeProfitPercent = Convert.ToDouble(ArgDic["takeProfitPercent"]);
-            int useTrailingStop = (int)ArgDic["useTrailingStop"];
+            int useTrailingStop = Convert.ToInt32(ArgDic["useTrailingStop"]);
             double trailingActivation = Convert.ToDouble(ArgDic["trailingActivation"]);
             double trailingDistance = Convert.ToDouble(ArgDic["trailingDistance"]);
-            int useRsiExit = (int)ArgDic["useRsiExit"];
-            int rsiExitOverbought = (int)ArgDic["rsiExitOverbought"];
-            int rsiExitOversold = (int)ArgDic["rsiExitOversold"];
-            int tradeDirection = (int)ArgDic["tradeDirection"];
-            int sendMode = (int)ArgDic["sendMode"];
+            int useRsiExit = Convert.ToInt32(ArgDic["useRsiExit"]);
+            int rsiExitOverbought = Convert.ToInt32(ArgDic["rsiExitOverbought"]);
+            int rsiExitOversold = Convert.ToInt32(ArgDic["rsiExitOversold"]);
+            int tradeDirection = Convert.ToInt32(ArgDic["tradeDirection"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
             // 最小数据要求
             int minDataCount = Math.Max(slowMaPeriod, Math.Max(rsiPeriod, atrPeriod)) + maxDivergenceBars + 10;
@@ -648,13 +648,13 @@ namespace QjySDK.Stg
 
         private decimal CalculateLots(TableUnit tu, SkQuote q)
         {
-            var num = (decimal)ArgDic["lots"];
-            var lotsMode = (int)ArgDic["lotsMode"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
+            var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 
             if (lotsMode == 1)
             {
                 var symbol = GetSymbol(tu.MktSymbol);
-                num = (decimal)ArgDic["money"] / (q.Close * symbol.multiplier * symbol.margin_ratio);
+                num = Convert.ToDecimal(ArgDic["money"]) / (q.Close * symbol.multiplier * symbol.margin_ratio);
 
                 if (symbol.symbol_type == (int)SymbolType.COIN)
                     num = Math.Floor(num * 1000) / 1000m;

@@ -94,11 +94,11 @@ namespace QjySDK.Stg
 
 		private void CalcNum(TableUnit tu, SkQuote q, Dictionary<string, object> ArgDic,ref decimal num)
 		{
-            var lotsMode = (int)ArgDic["lotsMode"];
+            var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
                 var s2 = GetSymbol(tu.MktSymbol);
-                num = ((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio));
+                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio));
                 if (s2.symbol_type == (int)SymbolType.COIN)
                 {
                     num = (int)(num * 1000) / 1000.0m;
@@ -110,7 +110,7 @@ namespace QjySDK.Stg
             }
 			else
 			{
-				num = (decimal)ArgDic["lots"];
+				num = Convert.ToDecimal(ArgDic["lots"]);
             }
         }
 
@@ -230,14 +230,14 @@ namespace QjySDK.Stg
 			}
 
 			{
-				var observePeriod = (int)ArgDic["observePeriod"];
+				var observePeriod = Convert.ToInt32(ArgDic["observePeriod"]);
 				if (tu.QuoteList.Count > observePeriod)
 				{
-					int mode = (int)ArgDic["mode"];
-					int sendMode = (int)ArgDic["sendMode"];
-					int maxAddNum = (int)ArgDic["maxAddNum"];
-					var incRate=(decimal)ArgDic["incRate"];
-					var observeMinRate = (decimal)ArgDic["observeMinRate"];
+					int mode = Convert.ToInt32(ArgDic["mode"]);
+					int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+					int maxAddNum = Convert.ToInt32(ArgDic["maxAddNum"]);
+					var incRate=Convert.ToDecimal(ArgDic["incRate"]);
+					var observeMinRate = Convert.ToDecimal(ArgDic["observeMinRate"]);
 					var q = tu.QuoteList[tu.QuoteList.Count - 1];
 					var q2 = tu.QuoteList[tu.QuoteList.Count - 2];
 					var qFar = tu.QuoteList[tu.QuoteList.Count - observePeriod];
@@ -252,10 +252,10 @@ namespace QjySDK.Stg
 					}
 					else
 					{
-						var atr = tu.QuoteList.GetAtr((int)ArgDic["atrLookbackPeriods"]).ToList();
+						var atr = tu.QuoteList.GetAtr(Convert.ToInt32(ArgDic["atrLookbackPeriods"])).ToList();
 						atr1 = atr[atr.Count - 1];
 					}
-					var ema = tu.QuoteList.GetEma((int)ArgDic["emaLookbackPeriods"]).ToList();
+					var ema = tu.QuoteList.GetEma(Convert.ToInt32(ArgDic["emaLookbackPeriods"])).ToList();
 					var ema1 = ema[ema.Count - 1];
 					Plot("main", "ema", PlotType.LINE, ema1.Ema);
 
@@ -263,7 +263,7 @@ namespace QjySDK.Stg
 					var highIndex = 0;
 					var lastLow = q2;
 					var lastHigh = q2;
-					var lookbackPeriods = (int)ArgDic["lookbackPeriods"];
+					var lookbackPeriods = Convert.ToInt32(ArgDic["lookbackPeriods"]);
 					for (int i = tu.QuoteList.Count - 3; i >= 0 && i >= tu.QuoteList.Count - lookbackPeriods; --i)
 					{
 						var q3 = tu.QuoteList[i];
@@ -334,7 +334,7 @@ namespace QjySDK.Stg
 							s.MaxDiff = diff;
 						}
 
-						if (q.Close < lastLow.Low && q.Close < lastOpenPrice * (1 - (decimal)ArgDic["lossRate"]))
+						if (q.Close < lastLow.Low && q.Close < lastOpenPrice * (1 - Convert.ToDecimal(ArgDic["lossRate"])))
 						{
 							closeStatus = 1;
 						}
@@ -342,7 +342,7 @@ namespace QjySDK.Stg
 						{
 							if (s.EmaLossPrice == 0)
 							{
-								s.EmaLossPrice = (decimal)ema1.Ema * (1 - (decimal)ArgDic["lossRate"]);
+								s.EmaLossPrice = (decimal)ema1.Ema * (1 - Convert.ToDecimal(ArgDic["lossRate"]));
 							}
 						}
 						else
@@ -386,7 +386,7 @@ namespace QjySDK.Stg
 							s.MaxDiff = diff;
 						}
 
-						if (q.Close > lastHigh.High && q.Close > lastOpenPrice * (1 + (decimal)ArgDic["lossRate"]))
+						if (q.Close > lastHigh.High && q.Close > lastOpenPrice * (1 + Convert.ToDecimal(ArgDic["lossRate"])))
 						{
 							closeStatus = 1;
 						}
@@ -395,7 +395,7 @@ namespace QjySDK.Stg
 						{
 							if (s.EmaLossPrice == 0)
 							{
-								s.EmaLossPrice = (decimal)ema1.Ema * (1 + (decimal)ArgDic["lossRate"]);
+								s.EmaLossPrice = (decimal)ema1.Ema * (1 + Convert.ToDecimal(ArgDic["lossRate"]));
 							}
 						}
 						else

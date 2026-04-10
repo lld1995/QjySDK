@@ -161,17 +161,17 @@ namespace QjySDK.Stg
             if (!isFinal) return;
 
             // 获取参数
-            int systemType = (int)ArgDic["systemType"];
-            int entryPeriod = (int)ArgDic["entryPeriod"];
-            int exitPeriod = (int)ArgDic["exitPeriod"];
-            int atrPeriod = (int)ArgDic["atrPeriod"];
+            int systemType = Convert.ToInt32(ArgDic["systemType"]);
+            int entryPeriod = Convert.ToInt32(ArgDic["entryPeriod"]);
+            int exitPeriod = Convert.ToInt32(ArgDic["exitPeriod"]);
+            int atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
             double atrStopMultiplier = Convert.ToDouble(ArgDic["atrStopMultiplier"]);
-            int enablePyramiding = (int)ArgDic["enablePyramiding"];
+            int enablePyramiding = Convert.ToInt32(ArgDic["enablePyramiding"]);
             double pyramidingATR = Convert.ToDouble(ArgDic["pyramidingATR"]);
-            int maxUnits = (int)ArgDic["maxUnits"];
-            int mode = (int)ArgDic["mode"];
-            int sendMode = (int)ArgDic["sendMode"];
-            int useLastTradeFilter = (int)ArgDic["useLastTradeFilter"];
+            int maxUnits = Convert.ToInt32(ArgDic["maxUnits"]);
+            int mode = Convert.ToInt32(ArgDic["mode"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+            int useLastTradeFilter = Convert.ToInt32(ArgDic["useLastTradeFilter"]);
 
             // 根据系统类型调整参数
             if (systemType == 2)
@@ -243,17 +243,17 @@ namespace QjySDK.Stg
         /// </summary>
         private decimal CalculateUnitSize(TableUnit tu, SkQuote q, decimal atr)
         {
-            int lotsMode = (int)ArgDic["lotsMode"];
+            int lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 
             if (lotsMode == 0)
             {
-                return (decimal)ArgDic["lots"];
+                return Convert.ToDecimal(ArgDic["lots"]);
             }
 
             if (lotsMode == 1)
             {
                 var symbol2 = GetSymbol(tu.MktSymbol);
-                decimal num = (decimal)ArgDic["money"] / (q.Close * symbol2.multiplier * symbol2.margin_ratio);
+                decimal num = Convert.ToDecimal(ArgDic["money"]) / (q.Close * symbol2.multiplier * symbol2.margin_ratio);
                 if (symbol2.symbol_type == (int)SymbolType.COIN)
                     num = Math.Floor(num * 1000) / 1000.0m;
                 else
@@ -262,7 +262,7 @@ namespace QjySDK.Stg
             }
 
             // lotsMode == 2: 按风险计算
-            decimal accountEquity = (decimal)ArgDic["accountEquity"];
+            decimal accountEquity = Convert.ToDecimal(ArgDic["accountEquity"]);
             double riskPerTrade = Convert.ToDouble(ArgDic["riskPerTrade"]);
 
             var symbol = GetSymbol(tu.MktSymbol);

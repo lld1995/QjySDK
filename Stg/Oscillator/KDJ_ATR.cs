@@ -104,15 +104,15 @@ namespace QjySDK.Stg
             {
                 if (tu.QuoteList.Count > 15)
                 {
-                    int mode = (int)ArgDic["mode"];
-                    int sendMode = (int)ArgDic["sendMode"];
-                    var overUp = (int)ArgDic["overUp"];
-                    var overDown = (int)ArgDic["overDown"];
-                    var atrWinRate = (decimal)ArgDic["atrWinRate"];
-                    var atrLossRate = (decimal)ArgDic["atrLossRate"];
+                    int mode = Convert.ToInt32(ArgDic["mode"]);
+                    int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+                    var overUp = Convert.ToInt32(ArgDic["overUp"]);
+                    var overDown = Convert.ToInt32(ArgDic["overDown"]);
+                    var atrWinRate = Convert.ToDecimal(ArgDic["atrWinRate"]);
+                    var atrLossRate = Convert.ToDecimal(ArgDic["atrLossRate"]);
                     var q = tu.QuoteList.Last();
 
-                    var kdj = tu.QuoteList.GetStoch((int)ArgDic["lookbackPeriods"], (int)ArgDic["signalPeriods"], (int)ArgDic["smoothPeriods"]).ToList();
+                    var kdj = tu.QuoteList.GetStoch(Convert.ToInt32(ArgDic["lookbackPeriods"]), Convert.ToInt32(ArgDic["signalPeriods"]), Convert.ToInt32(ArgDic["smoothPeriods"])).ToList();
 
                     var kdj1 = kdj[kdj.Count - 1];
                     var kdj2 = kdj[kdj.Count - 2];
@@ -122,12 +122,12 @@ namespace QjySDK.Stg
                     Plot("kdj", "D", PlotType.LINE, kdj1.D);
                     Plot("kdj", "J", PlotType.LINE, kdj1.J);
 
-                    var num = (decimal)ArgDic["lots"];
-                    var lotsMode = (int)ArgDic["lotsMode"];
+                    var num = Convert.ToDecimal(ArgDic["lots"]);
+                    var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
                     if (lotsMode == 1)
                     {
                         var s2 = GetSymbol(tu.MktSymbol);
-                        num = ((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio));
+                        num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio));
                         if (s2.symbol_type == (int)SymbolType.COIN)
                         {
                             num = (int)(num * 1000) / 1000.0m;
@@ -145,7 +145,7 @@ namespace QjySDK.Stg
                     }
                     else
                     {
-                        var atr = tu.QuoteList.GetAtr((int)ArgDic["atrLookbackPeriods"]).ToList();
+                        var atr = tu.QuoteList.GetAtr(Convert.ToInt32(ArgDic["atrLookbackPeriods"])).ToList();
                         atr1 = atr[atr.Count - 1];
                     }
 

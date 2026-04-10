@@ -88,16 +88,16 @@ namespace QjySDK.Stg
             
             if (!isFinal) return;
             
-            int kPeriod = (int)ArgDic["kPeriod"];
-            int dPeriod = (int)ArgDic["dPeriod"];
+            int kPeriod = Convert.ToInt32(ArgDic["kPeriod"]);
+            int dPeriod = Convert.ToInt32(ArgDic["dPeriod"]);
             
             if (tu.QuoteList.Count < kPeriod + dPeriod + 1) return;
 
-            int mode = (int)ArgDic["mode"];
-            int sendMode = (int)ArgDic["sendMode"];
-            int signalMode = (int)ArgDic["signalMode"];
-            int overbought = (int)ArgDic["overbought"];
-            int oversold = (int)ArgDic["oversold"];
+            int mode = Convert.ToInt32(ArgDic["mode"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+            int signalMode = Convert.ToInt32(ArgDic["signalMode"]);
+            int overbought = Convert.ToInt32(ArgDic["overbought"]);
+            int oversold = Convert.ToInt32(ArgDic["oversold"]);
 
             var q = tu.QuoteList.Last();
             
@@ -123,12 +123,12 @@ namespace QjySDK.Stg
             Plot("sub0", "J", PlotType.LINE, j1);
 
             // 计算手数
-            var num = (decimal)ArgDic["lots"];
-            var lotsMode = (int)ArgDic["lotsMode"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
+            var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
                 var s2 = GetSymbol(tu.MktSymbol);
-                num = ((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio));
+                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio));
                 if (s2.symbol_type == (int)SymbolType.COIN)
                 {
                     num = (int)(num * 1000) / 1000.0m;
@@ -205,7 +205,7 @@ namespace QjySDK.Stg
             else if (s.Status == 1)
             {
                 // 止损检查
-                var stopLoss = (decimal)ArgDic["stopLoss"];
+                var stopLoss = Convert.ToDecimal(ArgDic["stopLoss"]);
                 if (stopLoss > 0 && s.EntryPrice > 0 && q.Close < s.EntryPrice * (1 - stopLoss / 100m))
                 {
                     var oriNum = s.Num;
@@ -254,7 +254,7 @@ namespace QjySDK.Stg
             else if (s.Status == 2)
             {
                 // 止损检查
-                var stopLoss2 = (decimal)ArgDic["stopLoss"];
+                var stopLoss2 = Convert.ToDecimal(ArgDic["stopLoss"]);
                 if (stopLoss2 > 0 && s.EntryPrice > 0 && q.Close > s.EntryPrice * (1 + stopLoss2 / 100m))
                 {
                     var oriNum2 = s.Num;

@@ -1986,12 +1986,12 @@ namespace QjySDK.Stg
 			if (!isFinal)
 				return;
 
-			int minBarCount = (int)ArgDic["minBarCount"];
+			int minBarCount = Convert.ToInt32(ArgDic["minBarCount"]);
 			if (tu.QuoteList.Count < minBarCount)
 				return;
 
-			int mode = (int)ArgDic["mode"];
-			int sendMode = (int)ArgDic["sendMode"];
+			int mode = Convert.ToInt32(ArgDic["mode"]);
+			int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 			var q = tu.QuoteList.Last();
 
 			// 获取或创建状态
@@ -2139,12 +2139,12 @@ namespace QjySDK.Stg
 			}
 
 			// 计算手数
-			var num = (decimal)ArgDic["lots"];
-			var lotsMode = (int)ArgDic["lotsMode"];
+			var num = Convert.ToDecimal(ArgDic["lots"]);
+			var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 			if (lotsMode == 1)
 			{
 				var s2 = GetSymbol(tu.MktSymbol);
-				num = ((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio));
+				num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio));
 				if (s2.symbol_type == (int)SymbolType.COIN)
 				{
 					num = (int)(num * 1000) / 1000.0m;
@@ -2156,17 +2156,17 @@ namespace QjySDK.Stg
 			}
 
 			// 读取参数
-			bool useStopLoss = (int)ArgDic["useStopLoss"] == 1;
-			decimal stopLossPercent = (decimal)ArgDic["stopLossPercent"];
-			bool useTrailingStop = (int)ArgDic["useTrailingStop"] == 1;
-			decimal trailingActivatePercent = (decimal)ArgDic["trailingActivatePercent"];
-			decimal trailingStopPercent = (decimal)ArgDic["trailingStopPercent"];
-			int signalExpiryBars = (int)ArgDic["signalExpiryBars"];
-			bool useZhongShuExit = (int)ArgDic["useZhongShuExit"] == 1;
-			decimal maxDeviation = (decimal)ArgDic["maxZhongShuDeviation"];
-			int tradeCooldownBars = (int)ArgDic["tradeCooldownBars"];
-			int zhongShuExitScope = (int)ArgDic["zhongShuExitScope"];
-			int minHoldBarsForExit = (int)ArgDic["minHoldBarsForExit"];
+			bool useStopLoss = Convert.ToInt32(ArgDic["useStopLoss"]) == 1;
+			decimal stopLossPercent = Convert.ToDecimal(ArgDic["stopLossPercent"]);
+			bool useTrailingStop = Convert.ToInt32(ArgDic["useTrailingStop"]) == 1;
+			decimal trailingActivatePercent = Convert.ToDecimal(ArgDic["trailingActivatePercent"]);
+			decimal trailingStopPercent = Convert.ToDecimal(ArgDic["trailingStopPercent"]);
+			int signalExpiryBars = Convert.ToInt32(ArgDic["signalExpiryBars"]);
+			bool useZhongShuExit = Convert.ToInt32(ArgDic["useZhongShuExit"]) == 1;
+			decimal maxDeviation = Convert.ToDecimal(ArgDic["maxZhongShuDeviation"]);
+			int tradeCooldownBars = Convert.ToInt32(ArgDic["tradeCooldownBars"]);
+			int zhongShuExitScope = Convert.ToInt32(ArgDic["zhongShuExitScope"]);
+			int minHoldBarsForExit = Convert.ToInt32(ArgDic["minHoldBarsForExit"]);
 			var currentPrice = q.Close;
 			int currentBarIndex = tu.QuoteList.Count - 1;
 
@@ -2327,7 +2327,7 @@ namespace QjySDK.Stg
 
 			// [优化7] Buy3/Sell3反转限制：Buy3/Sell3只能从空仓开仓，不能反转已有仓位
 			// 避免低优先级信号频繁翻转仓位导致过度交易
-			bool noReversalOnBuy3Sell3 = (int)ArgDic["noReversalOnBuy3Sell3"] == 1;
+			bool noReversalOnBuy3Sell3 = Convert.ToInt32(ArgDic["noReversalOnBuy3Sell3"]) == 1;
 			if (noReversalOnBuy3Sell3)
 			{
 				bool isBuy3Sell3 = bestBSPoint.Type == BSPointType.Buy3 || bestBSPoint.Type == BSPointType.Sell3;

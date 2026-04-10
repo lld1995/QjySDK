@@ -65,22 +65,22 @@ namespace QjySDK.Stg
 			{
 				if (tu.QuoteList.Count > 1)
 				{
-					int mode = (int)ArgDic["mode"];
-					int sendMode = (int)ArgDic["sendMode"];
+					int mode = Convert.ToInt32(ArgDic["mode"]);
+					int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
                     var q = tu.QuoteList.Last();
-					var dca = tu.QuoteList.GetDonchian((int)ArgDic["lookbackPeriods"]).ToList();
+					var dca = tu.QuoteList.GetDonchian(Convert.ToInt32(ArgDic["lookbackPeriods"])).ToList();
 
 					var dca1 = dca[dca.Count - 1];
 					Plot("main", "up", PlotType.LINE, (double?)dca1.UpperBand);
 					Plot("main", "low", PlotType.LINE, (double?)dca1.LowerBand);
 
                     var dca2 = dca[dca.Count - 2];
-					var num = (decimal)ArgDic["lots"];
-					var lotsMode = (int)ArgDic["lotsMode"];
+					var num = Convert.ToDecimal(ArgDic["lots"]);
+					var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 					if (lotsMode == 1)
 					{
 						var s2 = GetSymbol(tu.MktSymbol);
-						num = ((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio));
+						num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio));
 						if (s2.symbol_type == (int)SymbolType.COIN)
 						{
 							num = (int)(num * 1000) / 1000.0m;
@@ -109,14 +109,14 @@ namespace QjySDK.Stg
 						{
                             s.Num = num;
                             s.Status = 2;
-                            s.LossPrice = q.Close * (1 + (decimal)ArgDic["lossRate"]);
+                            s.LossPrice = q.Close * (1 + Convert.ToDecimal(ArgDic["lossRate"]));
                             Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
                         }
 						if (q.Close < dca2.LowerBand && mode != 2)
 						{
                             s.Num = num;
                             s.Status = 1;
-                            s.LossPrice = q.Close * (1 - (decimal)ArgDic["lossRate"]);
+                            s.LossPrice = q.Close * (1 - Convert.ToDecimal(ArgDic["lossRate"]));
                             Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
                         }
 					}
@@ -145,7 +145,7 @@ namespace QjySDK.Stg
                                 {
                                     s.Num = num;
                                     s.Status = 2;
-									s.LossPrice = q.Close * (1 + (decimal)ArgDic["lossRate"]);
+									s.LossPrice = q.Close * (1 + Convert.ToDecimal(ArgDic["lossRate"]));
                                     Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
                                 }
                                 else
@@ -187,7 +187,7 @@ namespace QjySDK.Stg
                                 {
                                     s.Num = num;
                                     s.Status = 1;
-									s.LossPrice = q.Close * (1 - (decimal)ArgDic["lossRate"]);
+									s.LossPrice = q.Close * (1 - Convert.ToDecimal(ArgDic["lossRate"]));
                                     Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
                                 }
                                 else

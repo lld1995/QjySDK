@@ -108,18 +108,18 @@ namespace QjySDK.Stg
 
 		private decimal CalcBaseLots(TableUnit tu, decimal price)
 		{
-			var lotsMode = (int)ArgDic["lotsMode"];
+			var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 			if (lotsMode == 1)
 			{
 				var sym = GetSymbol(tu.MktSymbol);
-				var num = (decimal)ArgDic["money"] / (price * sym.multiplier * sym.margin_ratio);
+				var num = Convert.ToDecimal(ArgDic["money"]) / (price * sym.multiplier * sym.margin_ratio);
 				if (sym.symbol_type == (int)SymbolType.COIN)
 					num = (int)(num * 1000) / 1000.0m;
 				else
 					num = (int)num;
 				return Math.Max(num, 0.001m);
 			}
-			return (decimal)ArgDic["lots"];
+			return Convert.ToDecimal(ArgDic["lots"]);
 		}
 
 		private void AddLayer(State s, decimal price, decimal lots)
@@ -151,14 +151,14 @@ namespace QjySDK.Stg
 			var s = GetOrCreateState(sk);
 			var q = tu.QuoteList[tu.QuoteList.Count - 1];
 
-			decimal gridPct = (decimal)ArgDic["gridPercent"] / 100m;
-			int maxLayers = (int)ArgDic["maxLayers"];
-			double multiplier = (double)ArgDic["multiplier"];
-			decimal tpPct = (decimal)ArgDic["takeProfitPercent"] / 100m;
-			decimal slPct = (decimal)ArgDic["totalStopLossPercent"] / 100m;
-			int direction = (int)ArgDic["direction"];
-			int sendMode = (int)ArgDic["sendMode"];
-			int cooldownBars = (int)ArgDic["cooldownBars"];
+			decimal gridPct = Convert.ToDecimal(ArgDic["gridPercent"]) / 100m;
+			int maxLayers = Convert.ToInt32(ArgDic["maxLayers"]);
+			double multiplier = Convert.ToDouble(ArgDic["multiplier"]);
+			decimal tpPct = Convert.ToDecimal(ArgDic["takeProfitPercent"]) / 100m;
+			decimal slPct = Convert.ToDecimal(ArgDic["totalStopLossPercent"]) / 100m;
+			int direction = Convert.ToInt32(ArgDic["direction"]);
+			int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+			int cooldownBars = Convert.ToInt32(ArgDic["cooldownBars"]);
 
 			// 冷却期
 			if (s.CooldownRemaining > 0)

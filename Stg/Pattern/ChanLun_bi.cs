@@ -1926,12 +1926,12 @@ namespace QjySDK.Stg
 			if (!isFinal)
 				return;
 
-			int minBarCount = (int)ArgDic["minBarCount"];
+			int minBarCount = Convert.ToInt32(ArgDic["minBarCount"]);
 			if (tu.QuoteList.Count < minBarCount)
 				return;
 
-			int mode = (int)ArgDic["mode"];
-			int sendMode = (int)ArgDic["sendMode"];
+			int mode = Convert.ToInt32(ArgDic["mode"]);
+			int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 			var q = tu.QuoteList.Last();
 
 			// 获取或创建状态
@@ -2070,12 +2070,12 @@ namespace QjySDK.Stg
 			}
 
 			// 计算手数
-			var num = (decimal)ArgDic["lots"];
-			var lotsMode = (int)ArgDic["lotsMode"];
+			var num = Convert.ToDecimal(ArgDic["lots"]);
+			var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 			if (lotsMode == 1)
 			{
 				var s2 = GetSymbol(tu.MktSymbol);
-				num = ((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio));
+				num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio));
 				if (s2.symbol_type == (int)SymbolType.COIN)
 				{
 					num = (int)(num * 1000) / 1000.0m;
@@ -2087,8 +2087,8 @@ namespace QjySDK.Stg
 			}
 
 			// 止损检查（优先于其他交易逻辑）
-			bool useStopLoss = (int)ArgDic["useStopLoss"] == 1;
-			decimal stopLossPercent = (decimal)ArgDic["stopLossPercent"];
+			bool useStopLoss = Convert.ToInt32(ArgDic["useStopLoss"]) == 1;
+			decimal stopLossPercent = Convert.ToDecimal(ArgDic["stopLossPercent"]);
 			var currentPrice = q.Close;
 
 			// 止损检查（优先于其他交易逻辑）

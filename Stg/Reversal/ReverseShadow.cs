@@ -100,18 +100,18 @@ namespace QjySDK.Stg
             {
                 //if (tu.QuoteList.Count > observePeriod)
                 {
-                    int mode = (int)ArgDic["mode"];
-                    int sendMode = (int)ArgDic["sendMode"];
+                    int mode = Convert.ToInt32(ArgDic["mode"]);
+                    int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
                     var q = tu.QuoteList[tu.QuoteList.Count - 1];
                     var q2 = tu.QuoteList[tu.QuoteList.Count - 2];
-                    var shadowRate = (decimal)ArgDic["shadowRate"];
+                    var shadowRate = Convert.ToDecimal(ArgDic["shadowRate"]);
 
                     var num = 1.0m;
-                    var lotsMode = (int)ArgDic["lotsMode"];
+                    var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
                     if (lotsMode == 1)
                     {
                         var s2 = GetSymbol(tu.MktSymbol);
-                        num = ((decimal)ArgDic["money"] / (q.Close * s2.multiplier * s2.margin_ratio));
+                        num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio));
                         if (s2.symbol_type == (int)SymbolType.COIN)
                         {
                             num = (int)(num * 1000) / 1000.0m;
@@ -127,7 +127,7 @@ namespace QjySDK.Stg
                     AtrResult atr1 = null;
                     if (s.Status == 0)
                     {
-						var atr = tu.QuoteList.GetAtr((int)ArgDic["atrLookbackPeriods"]).ToList();
+						var atr = tu.QuoteList.GetAtr(Convert.ToInt32(ArgDic["atrLookbackPeriods"])).ToList();
 						atr1 = atr[atr.Count - 1];
 					}
                   
@@ -136,7 +136,7 @@ namespace QjySDK.Stg
                     var highIndex = 0;
                     var lastLow = q2;
                     var lastHigh = q2;
-                    var lookbackPeriods = (int)ArgDic["lookbackPeriods"];
+                    var lookbackPeriods = Convert.ToInt32(ArgDic["lookbackPeriods"]);
                     for (int i = tu.QuoteList.Count - 3; i >= 0 && i >= tu.QuoteList.Count - lookbackPeriods; --i)
                     {
                         var q3 = tu.QuoteList[i];

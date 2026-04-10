@@ -118,21 +118,21 @@ namespace QjySDK.Stg
             
             if (!isFinal) return;
             
-            int swingLookback = (int)ArgDic["swingLookback"];
+            int swingLookback = Convert.ToInt32(ArgDic["swingLookback"]);
             int minBars = swingLookback * 2 + 5;
             
             if (tu.QuoteList.Count < minBars) return;
 
             // 获取参数
-            double minSwingPercent = (double)ArgDic["minSwingPercent"];
-            int confirmBars = (int)ArgDic["confirmBars"];
-            double breakoutPercent = (double)ArgDic["breakoutPercent"];
-            decimal stopLossPercent = (decimal)ArgDic["stopLossPercent"];
-            decimal takeProfitPercent = (decimal)ArgDic["takeProfitPercent"];
-            int trailingStopEnabled = (int)ArgDic["trailingStop"];
-            decimal trailingPercent = (decimal)ArgDic["trailingPercent"];
-            int mode = (int)ArgDic["mode"];
-            int sendMode = (int)ArgDic["sendMode"];
+            double minSwingPercent = Convert.ToDouble(ArgDic["minSwingPercent"]);
+            int confirmBars = Convert.ToInt32(ArgDic["confirmBars"]);
+            double breakoutPercent = Convert.ToDouble(ArgDic["breakoutPercent"]);
+            decimal stopLossPercent = Convert.ToDecimal(ArgDic["stopLossPercent"]);
+            decimal takeProfitPercent = Convert.ToDecimal(ArgDic["takeProfitPercent"]);
+            int trailingStopEnabled = Convert.ToInt32(ArgDic["trailingStop"]);
+            decimal trailingPercent = Convert.ToDecimal(ArgDic["trailingPercent"]);
+            int mode = Convert.ToInt32(ArgDic["mode"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
             var q = tu.QuoteList.Last();
             
@@ -443,13 +443,13 @@ namespace QjySDK.Stg
         // 计算手数
         private decimal CalculateLots(string mktSymbol, decimal price)
         {
-            var lotsMode = (int)ArgDic["lotsMode"];
-            var num = (decimal)ArgDic["lots"];
+            var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
+            var num = Convert.ToDecimal(ArgDic["lots"]);
             
             if (lotsMode == 1)
             {
                 var symbol = GetSymbol(mktSymbol);
-                num = (decimal)ArgDic["money"] / (price * symbol.multiplier * symbol.margin_ratio);
+                num = Convert.ToDecimal(ArgDic["money"]) / (price * symbol.multiplier * symbol.margin_ratio);
                 if (symbol.symbol_type == (int)SymbolType.COIN)
                 {
                     num = (int)(num * 1000) / 1000.0m;

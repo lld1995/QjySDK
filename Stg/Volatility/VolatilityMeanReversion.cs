@@ -116,18 +116,18 @@ namespace QjySDK.Stg
 
 		private decimal CalcNum(TableUnit tu, decimal price)
 		{
-			var lotsMode = (int)ArgDic["lotsMode"];
+			var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 			if (lotsMode == 1)
 			{
 				var sym = GetSymbol(tu.MktSymbol);
-				var num = (decimal)ArgDic["money"] / (price * sym.multiplier * sym.margin_ratio);
+				var num = Convert.ToDecimal(ArgDic["money"]) / (price * sym.multiplier * sym.margin_ratio);
 				if (sym.symbol_type == (int)SymbolType.COIN)
 					num = (int)(num * 1000) / 1000.0m;
 				else
 					num = (int)num;
 				return num;
 			}
-			return (decimal)ArgDic["lots"];
+			return Convert.ToDecimal(ArgDic["lots"]);
 		}
 
 		/// <summary>
@@ -159,11 +159,11 @@ namespace QjySDK.Stg
 			base.OnBar(period, tu, isFinal, tq);
 			if (!isFinal) return;
 
-			int hvPeriod = (int)ArgDic["hvPeriod"];
-			int hvRankPeriod = (int)ArgDic["hvRankPeriod"];
-			int rsiPeriod = (int)ArgDic["rsiPeriod"];
-			int smaPeriod = (int)ArgDic["smaPeriod"];
-			int atrPeriod = (int)ArgDic["atrPeriod"];
+			int hvPeriod = Convert.ToInt32(ArgDic["hvPeriod"]);
+			int hvRankPeriod = Convert.ToInt32(ArgDic["hvRankPeriod"]);
+			int rsiPeriod = Convert.ToInt32(ArgDic["rsiPeriod"]);
+			int smaPeriod = Convert.ToInt32(ArgDic["smaPeriod"]);
+			int atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
 			int minBars = Math.Max(hvPeriod + hvRankPeriod, Math.Max(smaPeriod, Math.Max(rsiPeriod, atrPeriod))) + 5;
 			if (tu.QuoteList.Count < minBars) return;
 
@@ -171,14 +171,14 @@ namespace QjySDK.Stg
 			var s = GetOrCreateState(sk);
 			var q = tu.QuoteList[tu.QuoteList.Count - 1];
 
-			double highVolPct = (double)ArgDic["highVolPercentile"];
-			double lowVolPct = (double)ArgDic["lowVolPercentile"];
-			double rsiOB = (double)ArgDic["rsiOverbought"];
-			double rsiOS = (double)ArgDic["rsiOversold"];
-			double stopAtr = (double)ArgDic["stopLossAtr"];
-			double profitAtr = (double)ArgDic["takeProfitAtr"];
-			int mode = (int)ArgDic["mode"];
-			int sendMode = (int)ArgDic["sendMode"];
+			double highVolPct = Convert.ToDouble(ArgDic["highVolPercentile"]);
+			double lowVolPct = Convert.ToDouble(ArgDic["lowVolPercentile"]);
+			double rsiOB = Convert.ToDouble(ArgDic["rsiOverbought"]);
+			double rsiOS = Convert.ToDouble(ArgDic["rsiOversold"]);
+			double stopAtr = Convert.ToDouble(ArgDic["stopLossAtr"]);
+			double profitAtr = Convert.ToDouble(ArgDic["takeProfitAtr"]);
+			int mode = Convert.ToInt32(ArgDic["mode"]);
+			int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
 			// 计算当前HV
 			int lastIdx = tu.QuoteList.Count - 1;
@@ -233,7 +233,7 @@ namespace QjySDK.Stg
 
 			if (s.Status == 0)
 			{
-				double maxSmaDev = (double)ArgDic["maxSmaDeviation"];
+				double maxSmaDev = Convert.ToDouble(ArgDic["maxSmaDeviation"]);
 				double smaDeviation = Math.Abs((double)q.Close - sma.Sma.Value) / atr.Atr.Value;
 
 				// 高波动率 + RSI极端 + 偏离不过大 → 逆向均值回归交易

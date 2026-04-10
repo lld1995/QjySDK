@@ -571,19 +571,19 @@ namespace QjySDK.Stg
             if (!isFinal) return;
 
             // 获取参数
-            int lookback = (int)ArgDic["lookback"];
-            int numComponents = (int)ArgDic["numComponents"];
-            int trainPeriod = (int)ArgDic["trainPeriod"];
-            int retrainInterval = (int)ArgDic["retrainInterval"];
+            int lookback = Convert.ToInt32(ArgDic["lookback"]);
+            int numComponents = Convert.ToInt32(ArgDic["numComponents"]);
+            int trainPeriod = Convert.ToInt32(ArgDic["trainPeriod"]);
+            int retrainInterval = Convert.ToInt32(ArgDic["retrainInterval"]);
             double anomalyThreshold = Convert.ToDouble(ArgDic["anomalyThreshold"]);
             double pc1Threshold = Convert.ToDouble(ArgDic["pc1Threshold"]);
-            int momentumPeriod = (int)ArgDic["momentumPeriod"];
-            int signalSmooth = (int)ArgDic["signalSmooth"];
-            int atrPeriod = (int)ArgDic["atrPeriod"];
+            int momentumPeriod = Convert.ToInt32(ArgDic["momentumPeriod"]);
+            int signalSmooth = Convert.ToInt32(ArgDic["signalSmooth"]);
+            int atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
             double atrMultiplier = Convert.ToDouble(ArgDic["atrMultiplier"]);
             double takeProfitMultiplier = Convert.ToDouble(ArgDic["takeProfitMultiplier"]);
-            int mode = (int)ArgDic["mode"];
-            int sendMode = (int)ArgDic["sendMode"];
+            int mode = Convert.ToInt32(ArgDic["mode"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
             // 检查数据量
             int minBars = Math.Max(lookback + trainPeriod, atrPeriod + 1);
@@ -672,12 +672,12 @@ namespace QjySDK.Stg
             Plot("sub3", "signal", PlotType.CURVE, signal);
 
             // 计算手数
-            var num = (decimal)ArgDic["lots"];
-            var lotsMode = (int)ArgDic["lotsMode"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
+            var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
                 var symbol = GetSymbol(tu.MktSymbol);
-                num = ((decimal)ArgDic["money"] / (q.Close * symbol.multiplier * symbol.margin_ratio));
+                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * symbol.multiplier * symbol.margin_ratio));
                 if (symbol.symbol_type == (int)SymbolType.COIN)
                 {
                     num = Math.Floor(num * 1000) / 1000m;

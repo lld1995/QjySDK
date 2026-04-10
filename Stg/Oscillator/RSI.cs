@@ -89,19 +89,19 @@ namespace QjySDK.Stg
 
             if (!isFinal) return;
 
-            int rsiPeriod = (int)ArgDic["rsiPeriod"];
-            int rsiPeriod2 = (int)ArgDic["rsiPeriod2"];
-            int signalMode = (int)ArgDic["signalMode"];
+            int rsiPeriod = Convert.ToInt32(ArgDic["rsiPeriod"]);
+            int rsiPeriod2 = Convert.ToInt32(ArgDic["rsiPeriod2"]);
+            int signalMode = Convert.ToInt32(ArgDic["signalMode"]);
 
             // 确保有足够的数据
             int minBars = signalMode == 2 ? Math.Max(rsiPeriod, rsiPeriod2) + 2 : rsiPeriod + 2;
             if (tu.QuoteList.Count < minBars) return;
 
-            int mode = (int)ArgDic["mode"];
-            int sendMode = (int)ArgDic["sendMode"];
-            int overbought = (int)ArgDic["overbought"];
-            int oversold = (int)ArgDic["oversold"];
-            int midLine = (int)ArgDic["midLine"];
+            int mode = Convert.ToInt32(ArgDic["mode"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+            int overbought = Convert.ToInt32(ArgDic["overbought"]);
+            int oversold = Convert.ToInt32(ArgDic["oversold"]);
+            int midLine = Convert.ToInt32(ArgDic["midLine"]);
 
             var q = tu.QuoteList.Last();
 
@@ -137,12 +137,12 @@ namespace QjySDK.Stg
             }
 
             // 计算手数
-            var num = (decimal)ArgDic["lots"];
-            var lotsMode = (int)ArgDic["lotsMode"];
+            var num = Convert.ToDecimal(ArgDic["lots"]);
+            var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
                 var sym = GetSymbol(tu.MktSymbol);
-                num = ((decimal)ArgDic["money"] / (q.Close * sym.multiplier * sym.margin_ratio));
+                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * sym.multiplier * sym.margin_ratio));
                 if (sym.symbol_type == (int)SymbolType.COIN)
                 {
                     num = (int)(num * 1000) / 1000.0m;
@@ -233,7 +233,7 @@ namespace QjySDK.Stg
             else if (s.Status == 1)
             {
                 // 止损检查
-                var sl = (decimal)ArgDic["stopLoss"];
+                var sl = Convert.ToDecimal(ArgDic["stopLoss"]);
                 if (sl > 0 && s.EntryPrice > 0 && q.Close < s.EntryPrice * (1 - sl / 100m))
                 {
                     Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
@@ -266,7 +266,7 @@ namespace QjySDK.Stg
             else if (s.Status == 2)
             {
                 // 止损检查
-                var sl2 = (decimal)ArgDic["stopLoss"];
+                var sl2 = Convert.ToDecimal(ArgDic["stopLoss"]);
                 if (sl2 > 0 && s.EntryPrice > 0 && q.Close > s.EntryPrice * (1 + sl2 / 100m))
                 {
                     Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
