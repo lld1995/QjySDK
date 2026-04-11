@@ -51,11 +51,7 @@
 **泉金盈策略开发 SDK** 是泉金盈量化交易平台的官方策略开发工具包，为开发者提供标准化的策略开发接口。通过本 SDK，您可以快速开发、调试并部署自定义量化交易策略至泉金盈平台。
 
 <p align="center">
-  <a href="https://qjydownload.cdn.bcebos.com/product.mp4">
-    <img src="images/zhuye.png" alt="产品宣传视频" width="600">
-  </a>
-  <br>
-  <sub>🎬 点击上图观看产品宣传视频</sub>
+  <video src="https://github.com/user-attachments/assets/720ee370-9bf2-4c4f-9bd9-7053c4570a77" controls width="600"></video>
 </p>
 
 ### 核心优势
