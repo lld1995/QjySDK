@@ -36,7 +36,6 @@
   - [网格交易类 (Grid)](#网格交易类-grid)
   - [机器学习类 (MachineLearning)](#机器学习类-machinelearning)
   - [Polymarket 策略类 (Polymarket)](#polymarket-策略类-polymarket)
-- [泉金盈客户端功能演示](#泉金盈客户端功能演示)
 - [SDK 功能特性](#sdk-功能特性)
 - [系统要求](#系统要求)
 - [快速开始](#快速开始)
@@ -50,6 +49,10 @@
 ## 概述
 
 **泉金盈策略开发 SDK** 是泉金盈量化交易平台的官方策略开发工具包，为开发者提供标准化的策略开发接口。通过本 SDK，您可以快速开发、调试并部署自定义量化交易策略至泉金盈平台。
+
+<p align="center">
+  <video src="product.mp4" controls width="600"></video>
+</p>
 
 ### 核心优势
 - **全平台支持** - 支持Windows/Mac/Linux/Android/iOS/Web
@@ -203,44 +206,6 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 |---------|------|------|
 | 极端反转策略 | `ExtremeReversal.cs` | 5维评分反转策略：连续K线+RSI+StochK+放量+BB全部极端时反向交易，ETH 5M 胜率~60% |
 | 混合专家预测 | `MoEPredict.cs` | 7维极端条件评分，4+/7条件同时触发时交易，融合多个技术指标的混合专家系统 |
-
----
-
-## 泉金盈客户端功能演示
-
-本 SDK 需配合泉金盈客户端使用。泉金盈客户端是一款专业的智能量化交易平台，以下为核心功能演示：
-
-### ![](images/icons/watchlist.svg) 自选管理
-
-添加、删除、排序自选品种，实时推送价格变动与涨跌幅。
-
-<p align="center">
-  <img src="images/zixuan.gif" alt="自选管理" width="600">
-</p>
-
-### ![](images/icons/analysis.svg) 智能分析
-
-多维度行情分析，一键生成专业投资报告。
-
-<p align="center">
-  <img src="images/ai.gif" alt="AI智能分析" width="600">
-</p>
-
-### ![](images/icons/backtest.svg) 极速回测
-
-历史数据回测验证策略效果，多策略多标的批量回测对比。
-
-<p align="center">
-  <img src="images/huice.gif" alt="策略回测" width="600">
-</p>
-
-### ![](images/icons/realtime.svg) 实时运行
-
-策略云端实时运行，实时监控持仓与信号，支持消息推送通知。
-
-<p align="center">
-  <img src="images/shishi.gif" alt="实时运行" width="600">
-</p>
 
 ---
 

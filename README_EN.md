@@ -36,7 +36,6 @@
   - [Grid Trading (Grid)](#grid-trading-grid)
   - [Machine Learning (MachineLearning)](#machine-learning-machinelearning)
   - [Polymarket Strategies (Polymarket)](#polymarket-strategies-polymarket)
-- [Client Feature Demos](#client-feature-demos)
 - [SDK Features](#sdk-features)
 - [System Requirements](#system-requirements)
 - [Quick Start](#quick-start)
@@ -50,6 +49,10 @@
 ## Overview
 
 **QuanJinYing Strategy Development SDK** is the official strategy development toolkit for the QuanJinYing quantitative trading platform, providing developers with standardized strategy development interfaces. With this SDK, you can quickly develop, debug, and deploy custom quantitative trading strategies to the QuanJinYing platform.
+
+<p align="center">
+  <video src="product.mp4" controls width="600"></video>
+</p>
 
 ### Core Advantages
 - **Cross-Platform Support** - Windows/Mac/Linux/Android/iOS/Web
@@ -203,44 +206,6 @@ The SDK includes a rich set of quantitative trading strategies, categorized as f
 |--------------|------|-------------|
 | Extreme Reversal | `ExtremeReversal.cs` | 5-dimension reversal scoring: consecutive K-lines + RSI + StochK + volume + BB, trades reversal when all conditions reach extremes, ~60% win rate on ETH 5M |
 | Mixture of Experts Prediction | `MoEPredict.cs` | 7-dimension extreme condition scoring, trades when 4+/7 conditions trigger simultaneously, a mixture-of-experts system fusing multiple technical indicators |
-
----
-
-## Client Feature Demos
-
-This SDK requires the QuanJinYing client. QuanJinYing client is a professional intelligent quantitative trading platform. Here are the core feature demos:
-
-### ![](images/icons/watchlist.svg) Watchlist Management
-
-Add, delete, sort watchlist symbols with real-time price changes and percentage updates.
-
-<p align="center">
-  <img src="images/zixuan.gif" alt="Watchlist Management" width="600">
-</p>
-
-### ![](images/icons/analysis.svg) Smart Analysis
-
-Multi-dimensional market analysis, generating professional investment reports with one click.
-
-<p align="center">
-  <img src="images/ai.gif" alt="AI Analysis" width="600">
-</p>
-
-### ![](images/icons/backtest.svg) Fast Backtesting
-
-Historical data backtesting to verify strategy performance, multi-strategy multi-symbol batch comparison.
-
-<p align="center">
-  <img src="images/huice.gif" alt="Strategy Backtesting" width="600">
-</p>
-
-### ![](images/icons/realtime.svg) Live Running
-
-Cloud-based live strategy execution with real-time position and signal monitoring, push notifications.
-
-<p align="center">
-  <img src="images/shishi.gif" alt="Live Running" width="600">
-</p>
 
 ---
 
