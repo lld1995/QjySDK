@@ -51,7 +51,11 @@
 **QuanJinYing Strategy Development SDK** is the official strategy development toolkit for the QuanJinYing quantitative trading platform, providing developers with standardized strategy development interfaces. With this SDK, you can quickly develop, debug, and deploy custom quantitative trading strategies to the QuanJinYing platform.
 
 <p align="center">
-  <video src="product.mp4" controls width="600"></video>
+  <a href="https://qjydownload.cdn.bcebos.com/product.mp4">
+    <img src="images/zhuye.png" alt="Product Video" width="600">
+  </a>
+  <br>
+  <sub>🎬 Click the image above to watch the product video</sub>
 </p>
 
 ### Core Advantages
