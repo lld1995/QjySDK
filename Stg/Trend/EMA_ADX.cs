@@ -98,7 +98,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["TakeProfitAtrMultiplier"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "止盈距离 = ATR × 此倍数" };
             sd.ArgDic["TakeProfitAtrMultiplier"] = 4.0;
 
-            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0:固定手数 1:固定金额" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
             sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量" };
             sd.ArgDic["lots"] = 1.0m;

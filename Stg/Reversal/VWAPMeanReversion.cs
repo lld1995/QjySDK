@@ -1,4 +1,4 @@
-﻿using Common;
+using Common;
 using Model;
 using Skender.Stock.Indicators;
 using stgInterface;
@@ -50,12 +50,18 @@ namespace QjySDK.Stg
 			// 止损
 			sd.ArgDic["stopLossPercent"] = 3.0m;
 
-			sd.ArgDescDic["lookback"] = new ArgDesc() { Text = "回溯周期", Explain = "计算VWAP和标准差的K线周期" };
-			sd.ArgDescDic["stdDevMultiplier"] = new ArgDesc() { Text = "标准差倍数", Explain = "VWAP偏离的标准差倍数，用于判断均值回归触发线" };
-			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "方向", Explain = "0 双向 1 仅做多 2 仅做空" };
-			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
-			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
-			sd.ArgDescDic["stopLossPercent"] = new ArgDesc() { Text = "硬止损百分比%", Explain = "避免极端单边行情不回头" };
+			sd.ArgDescDic["lookback"] = new ArgDesc() { Text = "回溯周期", Explain = "计算VWAP和标准差的K线周期", Type = "number" };
+			sd.ArgDescDic["stdDevMultiplier"] = new ArgDesc() { Text = "标准差倍数", Explain = "VWAP偏离的标准差倍数，用于判断均值回归触发线", Type = "number" };
+			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+			sd.ArgDescDic["stopLossPercent"] = new ArgDesc() { Text = "硬止损百分比%", Explain = "避免极端单边行情不回头", Type = "number" };
+
+
+			sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+
+			sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
 
 			sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;

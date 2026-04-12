@@ -58,15 +58,21 @@ namespace QjySDK.Stg
 			// 冷却
 			sd.ArgDic["cooldownBars"] = 3;
 
-			sd.ArgDescDic["gridPercent"] = new ArgDesc() { Text = "网格间距%", Explain = "每层加仓的价格间距百分比" };
-			sd.ArgDescDic["maxLayers"] = new ArgDesc() { Text = "最大加仓层数", Explain = "最多加仓次数，防止无限加仓" };
-			sd.ArgDescDic["multiplier"] = new ArgDesc() { Text = "手数倍率", Explain = "每层手数=基础手数*倍率^层数，经典马丁为2" };
-			sd.ArgDescDic["takeProfitPercent"] = new ArgDesc() { Text = "止盈百分比", Explain = "价格高于持仓均价此百分比时止盈" };
-			sd.ArgDescDic["totalStopLossPercent"] = new ArgDesc() { Text = "总体止损%", Explain = "价格偏离首次入场价超过此百分比时全部止损" };
-			sd.ArgDescDic["direction"] = new ArgDesc() { Text = "方向", Explain = "0 做多(逢跌加仓) 1 做空(逢涨加仓)" };
-			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
-			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
-			sd.ArgDescDic["cooldownBars"] = new ArgDesc() { Text = "冷却K线数", Explain = "止损后等待N根K线再重新入场，0为不冷却" };
+			sd.ArgDescDic["gridPercent"] = new ArgDesc() { Text = "网格间距%", Explain = "每层加仓的价格间距百分比", Type = "number" };
+			sd.ArgDescDic["maxLayers"] = new ArgDesc() { Text = "最大加仓层数", Explain = "最多加仓次数，防止无限加仓", Type = "number" };
+			sd.ArgDescDic["multiplier"] = new ArgDesc() { Text = "手数倍率", Explain = "每层手数=基础手数*倍率^层数，经典马丁为2", Type = "number" };
+			sd.ArgDescDic["takeProfitPercent"] = new ArgDesc() { Text = "止盈百分比", Explain = "价格高于持仓均价此百分比时止盈", Type = "number" };
+			sd.ArgDescDic["totalStopLossPercent"] = new ArgDesc() { Text = "总体止损%", Explain = "价格偏离首次入场价超过此百分比时全部止损", Type = "number" };
+			sd.ArgDescDic["direction"] = new ArgDesc() { Text = "方向", Explain = "交易方向", Options = "0:做多(逢跌加仓)|1:做空(逢涨加仓)", Type = "select" };
+			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+			sd.ArgDescDic["cooldownBars"] = new ArgDesc() { Text = "冷却K线数", Explain = "止损后等待N根K线再重新入场，0为不冷却", Type = "number" };
+
+
+			sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+
+			sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
 
 			sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;

@@ -78,7 +78,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["minHalfLife"] = new ArgDesc { Text = "最小半衰期", Explain = "残差半衰期低于此值不交易(太不稳定)" };
             sd.ArgDic["minHalfLife"] = 3;
 
-            sd.ArgDescDic["useVarianceRatioTest"] = new ArgDesc { Text = "方差比检验", Explain = "1=启用方差比检验辅助判断平稳性 0=仅用半衰期" };
+            sd.ArgDescDic["useVarianceRatioTest"] = new ArgDesc { Text = "方差比检验", Explain = "辅助判断价差平稳性", Options = "1:启用方差比检验辅助判断平稳性|0:仅用半衰期", Type = "bool" };
             sd.ArgDic["useVarianceRatioTest"] = 1;
 
             sd.ArgDescDic["varianceRatioThreshold"] = new ArgDesc { Text = "方差比阈值", Explain = "方差比低于此值认为平稳(理想值=1表示随机游走)" };
@@ -94,14 +94,14 @@ namespace QjySDK.Stg
             sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "超过此数量强制平仓" };
             sd.ArgDic["maxHoldBars"] = 15;
 
-            sd.ArgDescDic["useTimeDecay"] = new ArgDesc { Text = "时间衰减", Explain = "1=持仓越久出场阈值越宽松 0=固定" };
+            sd.ArgDescDic["useTimeDecay"] = new ArgDesc { Text = "时间衰减", Explain = "持仓时间衰减", Options = "1:持仓越久出场阈值越宽松|0:固定", Type = "select" };
             sd.ArgDic["useTimeDecay"] = 1;
 
             // ==================== 交易参数 ====================
-            sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "0=立即 1=下个开盘" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
             sd.ArgDic["sendMode"] = 0;
 
-            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0=固定手数 1=固定金额" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
             sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量" };

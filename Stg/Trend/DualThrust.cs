@@ -80,25 +80,25 @@ namespace QjySDK.Stg
             sd.ArgDic["money"] = 10000m;         // 固定金额
 
             // 参数说明
-            sd.ArgDescDic["lookbackDays"] = new ArgDesc() { Text = "回溯天数", Explain = "计算Range使用的历史天数N" };
-            sd.ArgDescDic["k1"] = new ArgDesc() { Text = "上轨系数K1", Explain = "上轨 = 开盘价 + K1 × Range" };
-            sd.ArgDescDic["k2"] = new ArgDesc() { Text = "下轨系数K2", Explain = "下轨 = 开盘价 - K2 × Range" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "0:双向交易 1:仅做多 2:仅做空" };
-            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0:立即发单 1:下个开盘发单" };
-            sd.ArgDescDic["exitMode"] = new ArgDesc() { Text = "平仓模式", Explain = "0:收盘平仓 1:反向信号平仓 2:持仓过夜" };
-            sd.ArgDescDic["useStopLoss"] = new ArgDesc() { Text = "使用止损", Explain = "0:不使用 1:使用固定比例止损" };
-            sd.ArgDescDic["stopLossRatio"] = new ArgDesc() { Text = "止损比例", Explain = "相对入场价的止损比例" };
-            sd.ArgDescDic["useTakeProfit"] = new ArgDesc() { Text = "使用止盈", Explain = "0:不使用 1:使用固定比例止盈" };
-            sd.ArgDescDic["takeProfitRatio"] = new ArgDesc() { Text = "止盈比例", Explain = "相对入场价的止盈比例" };
-            sd.ArgDescDic["startHour"] = new ArgDesc() { Text = "开始时间(时)", Explain = "允许开仓的开始小时" };
-            sd.ArgDescDic["startMinute"] = new ArgDesc() { Text = "开始时间(分)", Explain = "允许开仓的开始分钟" };
-            sd.ArgDescDic["endHour"] = new ArgDesc() { Text = "停止时间(时)", Explain = "停止开仓的小时" };
-            sd.ArgDescDic["endMinute"] = new ArgDesc() { Text = "停止时间(分)", Explain = "停止开仓的分钟" };
-            sd.ArgDescDic["closeHour"] = new ArgDesc() { Text = "平仓时间(时)", Explain = "收盘平仓的小时" };
-            sd.ArgDescDic["closeMinute"] = new ArgDesc() { Text = "平仓时间(分)", Explain = "收盘平仓的分钟" };
-            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0:固定手数 1:固定金额" };
-            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "固定手数", Explain = "每次交易的固定手数" };
-            sd.ArgDescDic["money"] = new ArgDesc() { Text = "固定金额", Explain = "每次交易的固定金额" };
+            sd.ArgDescDic["lookbackDays"] = new ArgDesc() { Text = "回溯天数", Explain = "计算Range使用的历史天数N", Type = "number" };
+            sd.ArgDescDic["k1"] = new ArgDesc() { Text = "上轨系数K1", Explain = "上轨 = 开盘价 + K1 × Range", Type = "number" };
+            sd.ArgDescDic["k2"] = new ArgDesc() { Text = "下轨系数K2", Explain = "下轨 = 开盘价 - K2 × Range", Type = "number" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向交易|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即发单|1:下个开盘发单", Type = "select" };
+            sd.ArgDescDic["exitMode"] = new ArgDesc() { Text = "平仓模式", Explain = "平仓触发条件", Options = "0:收盘平仓|1:反向信号平仓|2:持仓过夜", Type = "select" };
+            sd.ArgDescDic["useStopLoss"] = new ArgDesc() { Text = "使用止损", Explain = "触及止损价自动平仓", Options = "0:不使用|1:使用固定比例止损", Type = "bool" };
+            sd.ArgDescDic["stopLossRatio"] = new ArgDesc() { Text = "止损比例", Explain = "相对入场价的止损比例", Type = "number" };
+            sd.ArgDescDic["useTakeProfit"] = new ArgDesc() { Text = "使用止盈", Explain = "触及止盈价自动平仓", Options = "0:不使用|1:使用固定比例止盈", Type = "bool" };
+            sd.ArgDescDic["takeProfitRatio"] = new ArgDesc() { Text = "止盈比例", Explain = "相对入场价的止盈比例", Type = "number" };
+            sd.ArgDescDic["startHour"] = new ArgDesc() { Text = "开始时间(时)", Explain = "允许开仓的开始小时", Type = "number" };
+            sd.ArgDescDic["startMinute"] = new ArgDesc() { Text = "开始时间(分)", Explain = "允许开仓的开始分钟", Type = "number" };
+            sd.ArgDescDic["endHour"] = new ArgDesc() { Text = "停止时间(时)", Explain = "停止开仓的小时", Type = "number" };
+            sd.ArgDescDic["endMinute"] = new ArgDesc() { Text = "停止时间(分)", Explain = "停止开仓的分钟", Type = "number" };
+            sd.ArgDescDic["closeHour"] = new ArgDesc() { Text = "平仓时间(时)", Explain = "收盘平仓的小时", Type = "number" };
+            sd.ArgDescDic["closeMinute"] = new ArgDesc() { Text = "平仓时间(分)", Explain = "收盘平仓的分钟", Type = "number" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "固定手数", Explain = "每次交易的固定手数", Type = "number" };
+            sd.ArgDescDic["money"] = new ArgDesc() { Text = "固定金额", Explain = "每次交易的固定金额", Type = "number" };
 
             sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;

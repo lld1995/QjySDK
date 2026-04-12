@@ -64,20 +64,26 @@ namespace QjySDK.Stg
 			sd.ArgDic["lots"] = 1.0m;
 			sd.ArgDic["money"] = 10000m;
 
-			sd.ArgDescDic["bbPeriod"] = new ArgDesc() { Text = "布林带周期", Explain = "布林带计算周期" };
-			sd.ArgDescDic["bbStdDev"] = new ArgDesc() { Text = "布林带标准差", Explain = "布林带标准差倍数" };
-			sd.ArgDescDic["squeezeLookback"] = new ArgDesc() { Text = "Squeeze回溯期", Explain = "检测BBW最低值的回溯周期" };
-			sd.ArgDescDic["squeezeThreshold"] = new ArgDesc() { Text = "Squeeze阈值", Explain = "BBW低于历史最低值*此倍数判定为Squeeze" };
-			sd.ArgDescDic["squeezeGraceBars"] = new ArgDesc() { Text = "Squeeze缓冲K线", Explain = "Squeeze结束后允许多少根K线内触发突破" };
-			sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期" };
-			sd.ArgDescDic["atrExpansionRatio"] = new ArgDesc() { Text = "ATR扩张比", Explain = "当前ATR/前一ATR超过此值确认扩张" };
-			sd.ArgDescDic["atrStopMultiplier"] = new ArgDesc() { Text = "ATR止损倍数", Explain = "止损距离=ATR*此倍数" };
-			sd.ArgDescDic["atrProfitMultiplier"] = new ArgDesc() { Text = "ATR止盈倍数", Explain = "止盈距离=ATR*此倍数" };
-			sd.ArgDescDic["useTrailingStop"] = new ArgDesc() { Text = "跟踪止损", Explain = "0 关闭 1 启用" };
-			sd.ArgDescDic["trailingAtrMultiplier"] = new ArgDesc() { Text = "跟踪止损ATR倍数", Explain = "跟踪止损距离=ATR*此倍数" };
-			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0 双向 1 仅做多 2 仅做空" };
-			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
-			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
+			sd.ArgDescDic["bbPeriod"] = new ArgDesc() { Text = "布林带周期", Explain = "布林带计算周期", Type = "number" };
+			sd.ArgDescDic["bbStdDev"] = new ArgDesc() { Text = "布林带标准差", Explain = "布林带标准差倍数", Type = "number" };
+			sd.ArgDescDic["squeezeLookback"] = new ArgDesc() { Text = "Squeeze回溯期", Explain = "检测BBW最低值的回溯周期", Type = "number" };
+			sd.ArgDescDic["squeezeThreshold"] = new ArgDesc() { Text = "Squeeze阈值", Explain = "BBW低于历史最低值*此倍数判定为Squeeze", Type = "number" };
+			sd.ArgDescDic["squeezeGraceBars"] = new ArgDesc() { Text = "Squeeze缓冲K线", Explain = "Squeeze结束后允许多少根K线内触发突破", Type = "number" };
+			sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期", Type = "number" };
+			sd.ArgDescDic["atrExpansionRatio"] = new ArgDesc() { Text = "ATR扩张比", Explain = "当前ATR/前一ATR超过此值确认扩张", Type = "number" };
+			sd.ArgDescDic["atrStopMultiplier"] = new ArgDesc() { Text = "ATR止损倍数", Explain = "止损距离=ATR*此倍数", Type = "number" };
+			sd.ArgDescDic["atrProfitMultiplier"] = new ArgDesc() { Text = "ATR止盈倍数", Explain = "止盈距离=ATR*此倍数", Type = "number" };
+			sd.ArgDescDic["useTrailingStop"] = new ArgDesc() { Text = "跟踪止损", Explain = "跟踪最高/低点调整止损", Options = "0:关闭|1:启用", Type = "bool" };
+			sd.ArgDescDic["trailingAtrMultiplier"] = new ArgDesc() { Text = "跟踪止损ATR倍数", Explain = "跟踪止损距离=ATR*此倍数", Type = "number" };
+			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+
+
+			sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+
+			sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
 
 			sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;

@@ -138,7 +138,7 @@ namespace QjySDK.Stg
             sd.ArgDic["takeProfitAtrMultiplier"] = 3.0;
 
             // 交易参数
-            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0=固定手数 1=固定金额" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
             sd.ArgDescDic["lots"] = new ArgDesc { Text = "固定手数", Explain = "每次交易的固定手数" };
@@ -157,7 +157,7 @@ namespace QjySDK.Stg
             sd.ArgDic["maxHoldBars"] = 0;
 
             // 共振模式
-            sd.ArgDescDic["resonanceMode"] = new ArgDesc { Text = "共振模式", Explain = "0=标准共振 1=严格共振(需RSI也在超卖/超买区)" };
+            sd.ArgDescDic["resonanceMode"] = new ArgDesc { Text = "共振模式", Explain = "共振确认方式", Options = "0:标准共振|1:严格共振(需RSI也在超卖/超买区)", Type = "select" };
             sd.ArgDic["resonanceMode"] = 0;
 
             // 颜色配置

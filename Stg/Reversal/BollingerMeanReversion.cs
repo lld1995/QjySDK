@@ -75,22 +75,26 @@ namespace QjySDK.Stg
             sd.ArgDic["money"] = 10000m;
 
             // 参数说明
-            sd.ArgDescDic["bollPeriod"] = new ArgDesc() { Text = "布林带周期", Explain = "计算布林带的周期数，默认20" };
-            sd.ArgDescDic["stdDev"] = new ArgDesc() { Text = "标准差倍数", Explain = "布林带上下轨的标准差倍数，默认2.0" };
-            sd.ArgDescDic["rsiPeriod"] = new ArgDesc() { Text = "RSI周期", Explain = "RSI指标计算周期，默认14" };
-            sd.ArgDescDic["rsiOversold"] = new ArgDesc() { Text = "RSI超卖阈值", Explain = "RSI低于此值视为超卖，默认30" };
-            sd.ArgDescDic["rsiOverbought"] = new ArgDesc() { Text = "RSI超买阈值", Explain = "RSI高于此值视为超买，默认70" };
-            sd.ArgDescDic["useRsiFilter"] = new ArgDesc() { Text = "RSI过滤", Explain = "0:不使用 1:使用RSI确认信号" };
-            sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR指标计算周期，默认14" };
-            sd.ArgDescDic["atrMultiplier"] = new ArgDesc() { Text = "ATR止损倍数", Explain = "止损距离=ATR*倍数，默认2.0" };
-            sd.ArgDescDic["useAtrStop"] = new ArgDesc() { Text = "ATR止损", Explain = "0:不使用 1:使用ATR动态止损" };
-            sd.ArgDescDic["minBandWidth"] = new ArgDesc() { Text = "最小带宽", Explain = "布林带宽度低于此值不交易，默认0.01(1%)" };
-            sd.ArgDescDic["useBandWidthFilter"] = new ArgDesc() { Text = "带宽过滤", Explain = "0:不使用 1:使用带宽过滤" };
-            sd.ArgDescDic["exitMode"] = new ArgDesc() { Text = "出场模式", Explain = "0:中轨止盈 1:对侧轨道止盈 2:中轨+部分止盈" };
-            sd.ArgDescDic["partialExitRatio"] = new ArgDesc() { Text = "部分止盈比例", Explain = "模式2下首次止盈的比例，默认0.5" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易方向", Explain = "0:双向 1:仅做多 2:仅做空" };
-            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0:立即 1:下个开盘" };
-            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0:固定手数 1:固定金额" };
+            sd.ArgDescDic["bollPeriod"] = new ArgDesc() { Text = "布林带周期", Explain = "计算布林带的周期数，默认20", Type = "number" };
+            sd.ArgDescDic["stdDev"] = new ArgDesc() { Text = "标准差倍数", Explain = "布林带上下轨的标准差倍数，默认2.0", Type = "number" };
+            sd.ArgDescDic["rsiPeriod"] = new ArgDesc() { Text = "RSI周期", Explain = "RSI指标计算周期，默认14", Type = "number" };
+            sd.ArgDescDic["rsiOversold"] = new ArgDesc() { Text = "RSI超卖阈值", Explain = "RSI低于此值视为超卖，默认30", Type = "number" };
+            sd.ArgDescDic["rsiOverbought"] = new ArgDesc() { Text = "RSI超买阈值", Explain = "RSI高于此值视为超买，默认70", Type = "number" };
+            sd.ArgDescDic["useRsiFilter"] = new ArgDesc() { Text = "RSI过滤", Explain = "需要RSI位置过滤", Options = "0:不使用|1:使用RSI确认信号", Type = "bool" };
+            sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR指标计算周期，默认14", Type = "number" };
+            sd.ArgDescDic["atrMultiplier"] = new ArgDesc() { Text = "ATR止损倍数", Explain = "止损距离=ATR*倍数，默认2.0", Type = "number" };
+            sd.ArgDescDic["useAtrStop"] = new ArgDesc() { Text = "ATR止损", Explain = "使用ATR动态止损", Options = "0:不使用|1:使用ATR动态止损", Type = "bool" };
+            sd.ArgDescDic["minBandWidth"] = new ArgDesc() { Text = "最小带宽", Explain = "布林带宽度低于此值不交易，默认0.01(1%)", Type = "number" };
+            sd.ArgDescDic["useBandWidthFilter"] = new ArgDesc() { Text = "带宽过滤", Explain = "带宽过低时不交易", Options = "0:不使用|1:使用带宽过滤", Type = "bool" };
+            sd.ArgDescDic["exitMode"] = new ArgDesc() { Text = "出场模式", Explain = "平仓触发条件", Options = "0:中轨止盈|1:对侧轨道止盈|2:中轨+部分止盈", Type = "select" };
+            sd.ArgDescDic["partialExitRatio"] = new ArgDesc() { Text = "部分止盈比例", Explain = "模式2下首次止盈的比例，默认0.5", Type = "number" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+
+            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+            sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
 
             sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;

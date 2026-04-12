@@ -47,17 +47,21 @@ namespace QjySDK.Stg
             sd.ArgDic["money"] = 10000m;
 
             // 参数说明
-            sd.ArgDescDic["swingLookback"] = new ArgDesc() { Text = "波峰波谷回溯", Explain = "识别波峰波谷的回溯K线数" };
-            sd.ArgDescDic["minSwingPercent"] = new ArgDesc() { Text = "最小波动幅度", Explain = "有效波峰波谷的最小幅度百分比" };
-            sd.ArgDescDic["confirmBars"] = new ArgDesc() { Text = "确认K线数", Explain = "趋势确认所需的K线数量" };
-            sd.ArgDescDic["breakoutPercent"] = new ArgDesc() { Text = "突破确认", Explain = "突破前高/低的确认百分比" };
-            sd.ArgDescDic["stopLossPercent"] = new ArgDesc() { Text = "止损百分比", Explain = "止损触发的价格百分比" };
-            sd.ArgDescDic["takeProfitPercent"] = new ArgDesc() { Text = "止盈百分比", Explain = "止盈触发的价格百分比" };
-            sd.ArgDescDic["trailingStop"] = new ArgDesc() { Text = "移动止损", Explain = "0-关闭 1-开启" };
-            sd.ArgDescDic["trailingPercent"] = new ArgDesc() { Text = "移动止损幅度", Explain = "从最高/低点回撤的百分比" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "0-双向 1-仅做多 2-仅做空" };
-            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0-立即 1-下个开盘" };
-            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0-固定手数 1-固定金额" };
+            sd.ArgDescDic["swingLookback"] = new ArgDesc() { Text = "波峰波谷回溯", Explain = "识别波峰波谷的回溯K线数", Type = "number" };
+            sd.ArgDescDic["minSwingPercent"] = new ArgDesc() { Text = "最小波动幅度", Explain = "有效波峰波谷的最小幅度百分比", Type = "number" };
+            sd.ArgDescDic["confirmBars"] = new ArgDesc() { Text = "确认K线数", Explain = "趋势确认所需的K线数量", Type = "number" };
+            sd.ArgDescDic["breakoutPercent"] = new ArgDesc() { Text = "突破确认", Explain = "突破前高/低的确认百分比", Type = "number" };
+            sd.ArgDescDic["stopLossPercent"] = new ArgDesc() { Text = "止损百分比", Explain = "止损触发的价格百分比", Type = "number" };
+            sd.ArgDescDic["takeProfitPercent"] = new ArgDesc() { Text = "止盈百分比", Explain = "止盈触发的价格百分比", Type = "number" };
+            sd.ArgDescDic["trailingStop"] = new ArgDesc() { Text = "移动止损", Explain = "跟踪最高/低点调整止损", Options = "0:关闭|1:开启", Type = "bool" };
+            sd.ArgDescDic["trailingPercent"] = new ArgDesc() { Text = "移动止损幅度", Explain = "从最高/低点回撤的百分比", Type = "number" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+
+            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+            sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
 
             sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;

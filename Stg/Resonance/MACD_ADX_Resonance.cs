@@ -134,13 +134,13 @@ namespace QjySDK.Stg
             sd.ArgDic["DiDiffThreshold"] = 5.0;
 
             // ========== 共振模式参数 ==========
-            sd.ArgDescDic["ResonanceMode"] = new ArgDesc { Text = "共振模式", Explain = "0=严格共振(交叉同时发生) 1=宽松共振(趋势一致即可) 2=MACD主导 3=ADX/DI主导" };
+            sd.ArgDescDic["ResonanceMode"] = new ArgDesc { Text = "共振模式", Explain = "共振确认方式", Options = "0:严格共振(交叉同时发生)|1:宽松共振(趋势一致即可)|2:MACD主导|3:ADX/DI主导", Type = "select" };
             sd.ArgDic["ResonanceMode"] = 1;
 
-            sd.ArgDescDic["UseZeroAxisFilter"] = new ArgDesc { Text = "零轴过滤", Explain = "1=启用(多头需MACD>0,空头需MACD<0) 0=禁用" };
+            sd.ArgDescDic["UseZeroAxisFilter"] = new ArgDesc { Text = "零轴过滤", Explain = "仅在零轴同侧交易", Options = "1:启用(多头需MACD>0,空头需MACD<0)|0:禁用", Type = "bool" };
             sd.ArgDic["UseZeroAxisFilter"] = 0;
 
-            sd.ArgDescDic["UseHistogramConfirm"] = new ArgDesc { Text = "柱状图确认", Explain = "1=启用Histogram方向确认 0=禁用" };
+            sd.ArgDescDic["UseHistogramConfirm"] = new ArgDesc { Text = "柱状图确认", Explain = "要求Histogram方向一致", Options = "1:启用Histogram方向确认|0:禁用", Type = "bool" };
             sd.ArgDic["UseHistogramConfirm"] = 1;
 
             sd.ArgDescDic["HistogramConfirmBars"] = new ArgDesc { Text = "柱状图确认K线数", Explain = "Histogram需连续多少根K线同向" };
@@ -156,7 +156,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["TakeProfitAtrMultiplier"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "止盈距离 = ATR × 此倍数" };
             sd.ArgDic["TakeProfitAtrMultiplier"] = 4.0;
 
-            sd.ArgDescDic["UseTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "1=启用 0=禁用" };
+            sd.ArgDescDic["UseTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "跟踪最高/低点调整止损", Options = "1:启用|0:禁用", Type = "bool" };
             sd.ArgDic["UseTrailingStop"] = 1;
 
             sd.ArgDescDic["TrailingStopAtrMultiplier"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数" };
@@ -166,17 +166,17 @@ namespace QjySDK.Stg
             sd.ArgDic["TrailingActivationMultiplier"] = 1.0;
 
             // ========== 交易参数 ==========
-            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0:固定手数 1:固定金额" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
             sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量" };
             sd.ArgDic["lots"] = 1.0m;
             sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量" };
             sd.ArgDic["money"] = 10000m;
 
-            sd.ArgDescDic["TradeMode"] = new ArgDesc { Text = "交易模式", Explain = "0=双向 1=仅做多 2=仅做空" };
+            sd.ArgDescDic["TradeMode"] = new ArgDesc { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDic["TradeMode"] = 0;
 
-            sd.ArgDescDic["SendMode"] = new ArgDesc { Text = "下单模式", Explain = "0=立即下单 1=下根K线开盘下单" };
+            sd.ArgDescDic["SendMode"] = new ArgDesc { Text = "下单模式", Explain = "下单执行时机", Options = "0:立即下单|1:下根K线开盘下单", Type = "select" };
             sd.ArgDic["SendMode"] = 0;
 
             sd.ArgDescDic["MaxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "持仓超过此数量K线强制平仓（0=不限制）" };

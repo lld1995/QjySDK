@@ -29,8 +29,26 @@ namespace QjySDK.Stg
             sd.ArgDic["lotsMode"] = 1;
             sd.ArgDic["lots"] = 1.0m;
             sd.ArgDic["money"] = 10000m;
-            sd.ArgDescDic["zigzagDepth"] = new ArgDesc() { Text = "ZigZag Depth", Explain = "Depth for pivot detection" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "Mode", Explain = "0 Standard 1 Long Only 2 Short Only" };
+            sd.ArgDescDic["zigzagDepth"] = new ArgDesc() { Text = "ZigZag深度", Explain = "波峰波谷识别的回溯周期", Type = "number" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0:标准|1:仅做多|2:仅做空", Type = "select" };
+
+            sd.ArgDescDic["lossRate"] = new ArgDesc() { Text = "止损比例", Explain = "止损触发的价格百分比", Type = "number" };
+
+            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+
+            sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
+
+            sd.ArgDescDic["profitRate"] = new ArgDesc() { Text = "止盈比例", Explain = "止盈触发的价格百分比", Type = "number" };
+
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+
+            sd.ArgDescDic["trailingPercent"] = new ArgDesc() { Text = "移动止损幅度", Explain = "从最高/低点回撤的百分比", Type = "number" };
+
+            sd.ArgDescDic["trailingStop"] = new ArgDesc() { Text = "移动止损", Explain = "跟踪最高/低点调整止损", Options = "0:关闭|1:启用", Type = "bool" };
+
+            sd.ArgDescDic["zigzagDeviation"] = new ArgDesc() { Text = "ZigZag偏差", Explain = "ZigZag最小波动幅度百分比", Type = "number" };
             sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;
             sd.SubChartNum = 2;

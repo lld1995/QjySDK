@@ -63,19 +63,25 @@ namespace QjySDK.Stg
 			sd.ArgDic["lots"] = 1.0m;
 			sd.ArgDic["money"] = 10000m;
 
-			sd.ArgDescDic["erPeriod"] = new ArgDesc() { Text = "ER周期", Explain = "效率比计算周期" };
-			sd.ArgDescDic["fastPeriod"] = new ArgDesc() { Text = "快速周期", Explain = "自适应均线快速常数对应周期" };
-			sd.ArgDescDic["slowPeriod"] = new ArgDesc() { Text = "慢速周期", Explain = "自适应均线慢速常数对应周期" };
-			sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期" };
-			sd.ArgDescDic["atrRankPeriod"] = new ArgDesc() { Text = "ATR排名周期", Explain = "ATR百分位排名回溯" };
-			sd.ArgDescDic["minStopAtr"] = new ArgDesc() { Text = "最小止损ATR倍数", Explain = "低波动时的止损ATR倍数" };
-			sd.ArgDescDic["maxStopAtr"] = new ArgDesc() { Text = "最大止损ATR倍数", Explain = "高波动时的止损ATR倍数" };
-			sd.ArgDescDic["trendSmaPeriod"] = new ArgDesc() { Text = "趋势均线周期", Explain = "长期趋势判断均线" };
-			sd.ArgDescDic["adxPeriod"] = new ArgDesc() { Text = "ADX周期", Explain = "ADX趋势强度周期" };
-			sd.ArgDescDic["adxThreshold"] = new ArgDesc() { Text = "ADX阈值", Explain = "ADX高于此值确认有趋势" };
-			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0 双向 1 仅做多 2 仅做空" };
-			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
-			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
+			sd.ArgDescDic["erPeriod"] = new ArgDesc() { Text = "ER周期", Explain = "效率比计算周期", Type = "number" };
+			sd.ArgDescDic["fastPeriod"] = new ArgDesc() { Text = "快速周期", Explain = "自适应均线快速常数对应周期", Type = "number" };
+			sd.ArgDescDic["slowPeriod"] = new ArgDesc() { Text = "慢速周期", Explain = "自适应均线慢速常数对应周期", Type = "number" };
+			sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期", Type = "number" };
+			sd.ArgDescDic["atrRankPeriod"] = new ArgDesc() { Text = "ATR排名周期", Explain = "ATR百分位排名回溯", Type = "number" };
+			sd.ArgDescDic["minStopAtr"] = new ArgDesc() { Text = "最小止损ATR倍数", Explain = "低波动时的止损ATR倍数", Type = "number" };
+			sd.ArgDescDic["maxStopAtr"] = new ArgDesc() { Text = "最大止损ATR倍数", Explain = "高波动时的止损ATR倍数", Type = "number" };
+			sd.ArgDescDic["trendSmaPeriod"] = new ArgDesc() { Text = "趋势均线周期", Explain = "长期趋势判断均线", Type = "number" };
+			sd.ArgDescDic["adxPeriod"] = new ArgDesc() { Text = "ADX周期", Explain = "ADX趋势强度周期", Type = "number" };
+			sd.ArgDescDic["adxThreshold"] = new ArgDesc() { Text = "ADX阈值", Explain = "ADX高于此值确认有趋势", Type = "number" };
+			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+
+
+			sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+
+			sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
 
 			sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;

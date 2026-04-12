@@ -115,7 +115,7 @@ namespace QjySDK.Stg
             sd.ArgDic["TakeProfitAtrMultiplier"] = 3.0;
 
             // 交易参数
-            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0:固定手数 1:固定金额" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
             sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量" };
             sd.ArgDic["lots"] = 1.0m;

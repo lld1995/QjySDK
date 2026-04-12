@@ -82,7 +82,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["rebalanceBars"] = new ArgDesc { Text = "再平衡周期", Explain = "每隔多少根K线重新排名调仓" };
             sd.ArgDic["rebalanceBars"] = 5;
 
-            sd.ArgDescDic["forceRebalance"] = new ArgDesc { Text = "强制再平衡", Explain = "1=到期必须调仓 0=只在排名变化时调仓" };
+            sd.ArgDescDic["forceRebalance"] = new ArgDesc { Text = "强制再平衡", Explain = "到期强制调仓", Options = "1:到期必须调仓|0:只在排名变化时调仓", Type = "select" };
             sd.ArgDic["forceRebalance"] = 0;
 
             // ==================== 风控参数 ====================
@@ -99,10 +99,10 @@ namespace QjySDK.Stg
             sd.ArgDic["minMomentumScore"] = -90.0;
 
             // ==================== 交易参数 ====================
-            sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "0=立即 1=下个开盘" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
             sd.ArgDic["sendMode"] = 0;
 
-            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0=固定手数 1=固定金额" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
             sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量" };

@@ -61,17 +61,23 @@ namespace QjySDK.Stg
 			sd.ArgDic["useStopLoss"] = 1;
 			sd.ArgDic["stopLossPercent"] = 6.0m;
 
-			sd.ArgDescDic["fastEmaPeriod"] = new ArgDesc() { Text = "快EMA周期", Explain = "趋势判断快速均线" };
-			sd.ArgDescDic["slowEmaPeriod"] = new ArgDesc() { Text = "慢EMA周期", Explain = "趋势判断慢速均线" };
-			sd.ArgDescDic["trendGapPercent"] = new ArgDesc() { Text = "趋势确认间距%", Explain = "快EMA与慢EMA差距超过慢EMA的此百分比才确认趋势，低于则为中性区" };
-			sd.ArgDescDic["gridPercent"] = new ArgDesc() { Text = "网格间距%", Explain = "每格价格变动百分比" };
-			sd.ArgDescDic["gridCount"] = new ArgDesc() { Text = "网格数量", Explain = "单方向网格层数" };
-			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
-			sd.ArgDescDic["dynamicGrid"] = new ArgDesc() { Text = "动态网格", Explain = "0 关闭 1 启用ATR动态调整" };
-			sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "动态网格使用的ATR周期" };
-			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
-			sd.ArgDescDic["useStopLoss"] = new ArgDesc() { Text = "启用止损", Explain = "0 关闭 1 启用" };
-			sd.ArgDescDic["stopLossPercent"] = new ArgDesc() { Text = "止损百分比", Explain = "持仓总亏损超过此百分比时全部平仓" };
+			sd.ArgDescDic["fastEmaPeriod"] = new ArgDesc() { Text = "快EMA周期", Explain = "趋势判断快速均线", Type = "number" };
+			sd.ArgDescDic["slowEmaPeriod"] = new ArgDesc() { Text = "慢EMA周期", Explain = "趋势判断慢速均线", Type = "number" };
+			sd.ArgDescDic["trendGapPercent"] = new ArgDesc() { Text = "趋势确认间距%", Explain = "快EMA与慢EMA差距超过慢EMA的此百分比才确认趋势，低于则为中性区", Type = "number" };
+			sd.ArgDescDic["gridPercent"] = new ArgDesc() { Text = "网格间距%", Explain = "每格价格变动百分比", Type = "number" };
+			sd.ArgDescDic["gridCount"] = new ArgDesc() { Text = "网格数量", Explain = "单方向网格层数", Type = "number" };
+			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+			sd.ArgDescDic["dynamicGrid"] = new ArgDesc() { Text = "动态网格", Explain = "根据ATR自动调整网格间距", Options = "0:关闭|1:启用ATR动态调整", Type = "bool" };
+			sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "动态网格使用的ATR周期", Type = "number" };
+			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+			sd.ArgDescDic["useStopLoss"] = new ArgDesc() { Text = "启用止损", Explain = "触及止损价自动平仓", Options = "0:关闭|1:启用", Type = "bool" };
+			sd.ArgDescDic["stopLossPercent"] = new ArgDesc() { Text = "止损百分比", Explain = "持仓总亏损超过此百分比时全部平仓", Type = "number" };
+
+
+			sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+
+			sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
 
 			sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;

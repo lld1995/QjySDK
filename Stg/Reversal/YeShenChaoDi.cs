@@ -63,20 +63,24 @@ namespace QjySDK.Stg
 			sd.ArgDic["money"] = 10000m;
 
 			// 参数说明
-			sd.ArgDescDic["rsiPeriod"] = new ArgDesc() { Text = "RSI周期", Explain = "RSI指标计算周期" };
-			sd.ArgDescDic["rsiOversold"] = new ArgDesc() { Text = "RSI超卖线", Explain = "RSI低于此值视为超卖" };
-			sd.ArgDescDic["rsiOverbought"] = new ArgDesc() { Text = "RSI超买线", Explain = "RSI高于此值视为超买，用于止盈" };
-			sd.ArgDescDic["emaPeriod"] = new ArgDesc() { Text = "EMA周期", Explain = "均线周期" };
-			sd.ArgDescDic["useEmaFilter"] = new ArgDesc() { Text = "使用均线过滤", Explain = "0: 不使用 1: 价格需在均线下方才抄底" };
-			sd.ArgDescDic["stopLossRate"] = new ArgDesc() { Text = "止损比例", Explain = "开仓价下跌此比例后止损" };
-			sd.ArgDescDic["takeProfitRate"] = new ArgDesc() { Text = "止盈比例", Explain = "开仓价上涨此比例后止盈" };
-			sd.ArgDescDic["useRsiExit"] = new ArgDesc() { Text = "RSI止盈", Explain = "1: RSI超买时止盈 0: 不使用" };
-			sd.ArgDescDic["lookbackPeriod"] = new ArgDesc() { Text = "回看周期", Explain = "寻找近期最低点的周期" };
-			sd.ArgDescDic["maxAddNum"] = new ArgDesc() { Text = "最大加仓次数", Explain = "允许的最大加仓次数" };
-			sd.ArgDescDic["addThreshold"] = new ArgDesc() { Text = "加仓阈值", Explain = "价格上涨此比例后可加仓" };
-			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0: 仅做多抄底 1: 双向" };
-			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0: 立即 1: 下个开盘" };
-			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0: 固定手数 1: 固定金额" };
+			sd.ArgDescDic["rsiPeriod"] = new ArgDesc() { Text = "RSI周期", Explain = "RSI指标计算周期", Type = "number" };
+			sd.ArgDescDic["rsiOversold"] = new ArgDesc() { Text = "RSI超卖线", Explain = "RSI低于此值视为超卖", Type = "number" };
+			sd.ArgDescDic["rsiOverbought"] = new ArgDesc() { Text = "RSI超买线", Explain = "RSI高于此值视为超买，用于止盈", Type = "number" };
+			sd.ArgDescDic["emaPeriod"] = new ArgDesc() { Text = "EMA周期", Explain = "均线周期", Type = "number" };
+			sd.ArgDescDic["useEmaFilter"] = new ArgDesc() { Text = "使用均线过滤", Explain = "价格需在均线特定侧", Options = "0: 不使用|1: 价格需在均线下方才抄底", Type = "bool" };
+			sd.ArgDescDic["stopLossRate"] = new ArgDesc() { Text = "止损比例", Explain = "开仓价下跌此比例后止损", Type = "number" };
+			sd.ArgDescDic["takeProfitRate"] = new ArgDesc() { Text = "止盈比例", Explain = "开仓价上涨此比例后止盈", Type = "number" };
+			sd.ArgDescDic["useRsiExit"] = new ArgDesc() { Text = "RSI止盈", Explain = "RSI超买/超卖时止盈", Options = "1: RSI超买时止盈|0: 不使用", Type = "bool" };
+			sd.ArgDescDic["lookbackPeriod"] = new ArgDesc() { Text = "回看周期", Explain = "寻找近期最低点的周期", Type = "number" };
+			sd.ArgDescDic["maxAddNum"] = new ArgDesc() { Text = "最大加仓次数", Explain = "允许的最大加仓次数", Type = "number" };
+			sd.ArgDescDic["addThreshold"] = new ArgDesc() { Text = "加仓阈值", Explain = "价格上涨此比例后可加仓", Type = "number" };
+			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0: 仅做多抄底|1: 双向", Type = "select" };
+			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0: 立即|1: 下个开盘", Type = "select" };
+			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0: 固定手数|1: 固定金额", Type = "select" };
+
+			sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+			sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
 			
 			sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;

@@ -136,7 +136,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["takeProfitAtr"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "止盈距离 = ATR × 此倍数" };
             sd.ArgDic["takeProfitAtr"] = 3.0;
 
-            sd.ArgDescDic["useTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "1=启用 0=禁用" };
+            sd.ArgDescDic["useTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "跟踪最高/低点调整止损", Options = "1:启用|0:禁用", Type = "bool" };
             sd.ArgDic["useTrailingStop"] = 1;
 
             sd.ArgDescDic["trailingStopAtr"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数" };
@@ -146,13 +146,13 @@ namespace QjySDK.Stg
             sd.ArgDic["maxHoldBars"] = 50;
 
             // ==================== 交易参数 ====================
-            sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易模式", Explain = "0=双向 1=仅做多 2=仅做空" };
+            sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDic["mode"] = 0;
 
-            sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "0=立即 1=下个开盘" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
             sd.ArgDic["sendMode"] = 0;
 
-            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0=固定手数 1=固定金额" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
             sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量" };

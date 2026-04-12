@@ -60,22 +60,26 @@ namespace QjySDK.Stg
             sd.ArgDic["money"] = 10000m;
 
             // 参数说明
-            sd.ArgDescDic["lookback"] = new ArgDesc() { Text = "回看周期", Explain = "特征计算窗口长度" };
-            sd.ArgDescDic["hiddenLayers"] = new ArgDesc() { Text = "隐藏层结构", Explain = "各隐藏层神经元数量，逗号分隔" };
-            sd.ArgDescDic["learningRate"] = new ArgDesc() { Text = "学习率", Explain = "模型训练学习率" };
-            sd.ArgDescDic["epochs"] = new ArgDesc() { Text = "训练轮数", Explain = "训练迭代次数" };
-            sd.ArgDescDic["batchSize"] = new ArgDesc() { Text = "批量大小", Explain = "每批训练样本数" };
-            sd.ArgDescDic["dropout"] = new ArgDesc() { Text = "Dropout", Explain = "Dropout比率防止过拟合" };
-            sd.ArgDescDic["l2Lambda"] = new ArgDesc() { Text = "L2正则化", Explain = "L2正则化系数" };
-            sd.ArgDescDic["trainPeriod"] = new ArgDesc() { Text = "训练周期", Explain = "用于训练的历史K线数量" };
-            sd.ArgDescDic["retrainInterval"] = new ArgDesc() { Text = "重训间隔", Explain = "每隔多少根K线重新训练模型" };
-            sd.ArgDescDic["threshold"] = new ArgDesc() { Text = "预测阈值", Explain = "预测涨跌幅超过此值才交易" };
-            sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "计算ATR的周期" };
-            sd.ArgDescDic["atrMultiplier"] = new ArgDesc() { Text = "止损倍数", Explain = "ATR止损倍数" };
-            sd.ArgDescDic["takeProfitMultiplier"] = new ArgDesc() { Text = "止盈倍数", Explain = "ATR止盈倍数" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "0:双向 1:仅做多 2:仅做空" };
-            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0:立即 1:下个开盘" };
-            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0:固定手数 1:固定金额" };
+            sd.ArgDescDic["lookback"] = new ArgDesc() { Text = "回看周期", Explain = "特征计算窗口长度", Type = "number" };
+            sd.ArgDescDic["hiddenLayers"] = new ArgDesc() { Text = "隐藏层结构", Explain = "各隐藏层神经元数量，逗号分隔", Type = "number" };
+            sd.ArgDescDic["learningRate"] = new ArgDesc() { Text = "学习率", Explain = "模型训练学习率", Type = "number" };
+            sd.ArgDescDic["epochs"] = new ArgDesc() { Text = "训练轮数", Explain = "训练迭代次数", Type = "number" };
+            sd.ArgDescDic["batchSize"] = new ArgDesc() { Text = "批量大小", Explain = "每批训练样本数", Type = "number" };
+            sd.ArgDescDic["dropout"] = new ArgDesc() { Text = "Dropout", Explain = "Dropout比率防止过拟合", Type = "number" };
+            sd.ArgDescDic["l2Lambda"] = new ArgDesc() { Text = "L2正则化", Explain = "L2正则化系数", Type = "number" };
+            sd.ArgDescDic["trainPeriod"] = new ArgDesc() { Text = "训练周期", Explain = "用于训练的历史K线数量", Type = "number" };
+            sd.ArgDescDic["retrainInterval"] = new ArgDesc() { Text = "重训间隔", Explain = "每隔多少根K线重新训练模型", Type = "number" };
+            sd.ArgDescDic["threshold"] = new ArgDesc() { Text = "预测阈值", Explain = "预测涨跌幅超过此值才交易", Type = "number" };
+            sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "计算ATR的周期", Type = "number" };
+            sd.ArgDescDic["atrMultiplier"] = new ArgDesc() { Text = "止损倍数", Explain = "ATR止损倍数", Type = "number" };
+            sd.ArgDescDic["takeProfitMultiplier"] = new ArgDesc() { Text = "止盈倍数", Explain = "ATR止盈倍数", Type = "number" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+
+            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+            sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
 
             sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;

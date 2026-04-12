@@ -69,7 +69,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["bollStdDev"] = new ArgDesc { Text = "布林带标准差", Explain = "布林带标准差倍数" };
             sd.ArgDic["bollStdDev"] = 2.0;
 
-            sd.ArgDescDic["useAdaptiveBoll"] = new ArgDesc { Text = "自适应布林带", Explain = "1=根据波动率调整标准差 0=固定" };
+            sd.ArgDescDic["useAdaptiveBoll"] = new ArgDesc { Text = "自适应布林带", Explain = "根据波动率调整标准差", Options = "1:根据波动率调整标准差|0:固定", Type = "select" };
             sd.ArgDic["useAdaptiveBoll"] = 1;
 
             sd.ArgDescDic["minStdDev"] = new ArgDesc { Text = "最小标准差", Explain = "自适应模式下的最小标准差倍数" };
@@ -88,7 +88,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["rsiOversold"] = new ArgDesc { Text = "RSI超卖线", Explain = "RSI超卖阈值" };
             sd.ArgDic["rsiOversold"] = 30.0;
 
-            sd.ArgDescDic["useAdaptiveRsi"] = new ArgDesc { Text = "自适应RSI阈值", Explain = "1=根据波动率调整RSI阈值 0=固定" };
+            sd.ArgDescDic["useAdaptiveRsi"] = new ArgDesc { Text = "自适应RSI阈值", Explain = "根据波动率调整RSI阈值", Options = "1:根据波动率调整RSI阈值|0:固定", Type = "select" };
             sd.ArgDic["useAdaptiveRsi"] = 1;
 
             sd.ArgDescDic["rsiExitLevel"] = new ArgDesc { Text = "RSI出场水平", Explain = "RSI回归到此水平出场" };
@@ -101,11 +101,11 @@ namespace QjySDK.Stg
             sd.ArgDescDic["keltnerMultiplier"] = new ArgDesc { Text = "Keltner倍数", Explain = "Keltner通道ATR倍数" };
             sd.ArgDic["keltnerMultiplier"] = 1.5;
 
-            sd.ArgDescDic["useKeltnerFilter"] = new ArgDesc { Text = "Keltner过滤", Explain = "1=使用Keltner通道确认 0=不使用" };
+            sd.ArgDescDic["useKeltnerFilter"] = new ArgDesc { Text = "Keltner过滤", Explain = "使用Keltner通道确认", Options = "1:使用Keltner通道确认|0:不使用", Type = "select" };
             sd.ArgDic["useKeltnerFilter"] = 1;
 
             // ==================== 挤压检测参数 ====================
-            sd.ArgDescDic["useSqueezeFilter"] = new ArgDesc { Text = "挤压过滤", Explain = "1=挤压期不入场 0=不过滤" };
+            sd.ArgDescDic["useSqueezeFilter"] = new ArgDesc { Text = "挤压过滤", Explain = "挤压期不入场", Options = "1:挤压期不入场|0:不过滤", Type = "select" };
             sd.ArgDic["useSqueezeFilter"] = 1;
 
             sd.ArgDescDic["squeezeReleaseBars"] = new ArgDesc { Text = "挤压释放K线数", Explain = "挤压释放后等待的K线数" };
@@ -118,13 +118,13 @@ namespace QjySDK.Stg
             sd.ArgDescDic["stopLossAtr"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离 = ATR × 此倍数" };
             sd.ArgDic["stopLossAtr"] = 2.0;
 
-            sd.ArgDescDic["takeProfitMode"] = new ArgDesc { Text = "止盈模式", Explain = "0=回归中轨 1=ATR倍数 2=RSI回归" };
+            sd.ArgDescDic["takeProfitMode"] = new ArgDesc { Text = "止盈模式", Explain = "止盈触发方式", Options = "0:回归中轨|1:ATR倍数|2:RSI回归", Type = "select" };
             sd.ArgDic["takeProfitMode"] = 0;
 
             sd.ArgDescDic["takeProfitAtr"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "止盈距离 = ATR × 此倍数(模式1)" };
             sd.ArgDic["takeProfitAtr"] = 2.0;
 
-            sd.ArgDescDic["useTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "1=启用 0=禁用" };
+            sd.ArgDescDic["useTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "跟踪最高/低点调整止损", Options = "1:启用|0:禁用", Type = "bool" };
             sd.ArgDic["useTrailingStop"] = 1;
 
             sd.ArgDescDic["trailingStopAtr"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数" };
@@ -134,13 +134,13 @@ namespace QjySDK.Stg
             sd.ArgDic["maxHoldBars"] = 20;
 
             // ==================== 交易参数 ====================
-            sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易模式", Explain = "0=双向 1=仅做多 2=仅做空" };
+            sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDic["mode"] = 0;
 
-            sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "0=立即 1=下个开盘" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
             sd.ArgDic["sendMode"] = 0;
 
-            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0=固定手数 1=固定金额 2=波动率反比" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额|2:波动率反比", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
             sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量" };
@@ -149,7 +149,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下的交易金额" };
             sd.ArgDic["money"] = 10000m;
 
-            sd.ArgDescDic["requireBollTouch"] = new ArgDesc { Text = "要求触及布林带", Explain = "1=价格必须触及布林带 0=突破即可" };
+            sd.ArgDescDic["requireBollTouch"] = new ArgDesc { Text = "要求触及布林带", Explain = "价格需触及布林带", Options = "1:价格必须触及布林带|0:突破即可", Type = "select" };
             sd.ArgDic["requireBollTouch"] = 0;
 
             // ==================== 颜色配置 ====================

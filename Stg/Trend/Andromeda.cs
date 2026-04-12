@@ -98,28 +98,28 @@ namespace QjySDK.Stg
             sd.ArgDic["requireVolatilityFilter"] = 1; // 是否启用波动率过滤 0:否 1:是
 
             // ========== 参数说明 ==========
-            sd.ArgDescDic["fastEMA"] = new ArgDesc() { Text = "快速EMA", Explain = "短期趋势周期" };
-            sd.ArgDescDic["midEMA"] = new ArgDesc() { Text = "中速EMA", Explain = "中期趋势周期" };
-            sd.ArgDescDic["slowEMA"] = new ArgDesc() { Text = "慢速EMA", Explain = "长期趋势周期" };
-            sd.ArgDescDic["rocPeriod"] = new ArgDesc() { Text = "ROC周期", Explain = "动量变化率计算周期" };
-            sd.ArgDescDic["rocThreshold"] = new ArgDesc() { Text = "ROC阈值", Explain = "动量确认的最小绝对值" };
-            sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期" };
-            sd.ArgDescDic["atrStopMultiplier"] = new ArgDesc() { Text = "初始止损ATR倍数", Explain = "初始止损距离=ATR×倍数" };
-            sd.ArgDescDic["trailingATRMultiplier"] = new ArgDesc() { Text = "跟踪止损ATR倍数", Explain = "跟踪止损距离=ATR×倍数" };
-            sd.ArgDescDic["volatilityFilterPeriod"] = new ArgDesc() { Text = "波动率过滤周期", Explain = "计算平均ATR的周期" };
-            sd.ArgDescDic["minVolatilityRatio"] = new ArgDesc() { Text = "最小波动率比率", Explain = "当前ATR/平均ATR的最小值" };
-            sd.ArgDescDic["maxVolatilityRatio"] = new ArgDesc() { Text = "最大波动率比率", Explain = "当前ATR/平均ATR的最大值" };
-            sd.ArgDescDic["riskPerTrade"] = new ArgDesc() { Text = "单笔风险比例", Explain = "每笔交易占账户权益的比例" };
-            sd.ArgDescDic["accountEquity"] = new ArgDesc() { Text = "账户权益", Explain = "用于计算仓位的账户权益" };
-            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0:固定手数 1:固定金额 2:按风险计算" };
-            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "固定手数", Explain = "固定手数模式下的手数" };
-            sd.ArgDescDic["money"] = new ArgDesc() { Text = "固定金额", Explain = "固定金额模式下的金额" };
-            sd.ArgDescDic["maxHoldingBars"] = new ArgDesc() { Text = "最大持仓周期", Explain = "持仓超过此周期数自动平仓(0=不限制)" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易方向", Explain = "0:双向 1:仅做多 2:仅做空" };
-            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0:立即发单 1:下个开盘发单" };
-            sd.ArgDescDic["requirePriceAboveEMA"] = new ArgDesc() { Text = "价格位置确认", Explain = "0:不要求 1:要求价格在EMA正确一侧" };
-            sd.ArgDescDic["requireMomentum"] = new ArgDesc() { Text = "动量确认", Explain = "0:不要求 1:要求动量方向一致" };
-            sd.ArgDescDic["requireVolatilityFilter"] = new ArgDesc() { Text = "波动率过滤", Explain = "0:不启用 1:启用波动率过滤" };
+            sd.ArgDescDic["fastEMA"] = new ArgDesc() { Text = "快速EMA", Explain = "短期趋势周期", Type = "number" };
+            sd.ArgDescDic["midEMA"] = new ArgDesc() { Text = "中速EMA", Explain = "中期趋势周期", Type = "number" };
+            sd.ArgDescDic["slowEMA"] = new ArgDesc() { Text = "慢速EMA", Explain = "长期趋势周期", Type = "number" };
+            sd.ArgDescDic["rocPeriod"] = new ArgDesc() { Text = "ROC周期", Explain = "动量变化率计算周期", Type = "number" };
+            sd.ArgDescDic["rocThreshold"] = new ArgDesc() { Text = "ROC阈值", Explain = "动量确认的最小绝对值", Type = "number" };
+            sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期", Type = "number" };
+            sd.ArgDescDic["atrStopMultiplier"] = new ArgDesc() { Text = "初始止损ATR倍数", Explain = "初始止损距离=ATR×倍数", Type = "number" };
+            sd.ArgDescDic["trailingATRMultiplier"] = new ArgDesc() { Text = "跟踪止损ATR倍数", Explain = "跟踪止损距离=ATR×倍数", Type = "number" };
+            sd.ArgDescDic["volatilityFilterPeriod"] = new ArgDesc() { Text = "波动率过滤周期", Explain = "计算平均ATR的周期", Type = "number" };
+            sd.ArgDescDic["minVolatilityRatio"] = new ArgDesc() { Text = "最小波动率比率", Explain = "当前ATR/平均ATR的最小值", Type = "number" };
+            sd.ArgDescDic["maxVolatilityRatio"] = new ArgDesc() { Text = "最大波动率比率", Explain = "当前ATR/平均ATR的最大值", Type = "number" };
+            sd.ArgDescDic["riskPerTrade"] = new ArgDesc() { Text = "单笔风险比例", Explain = "每笔交易占账户权益的比例", Type = "number" };
+            sd.ArgDescDic["accountEquity"] = new ArgDesc() { Text = "账户权益", Explain = "用于计算仓位的账户权益", Type = "number" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额|2:按风险计算", Type = "select" };
+            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "固定手数", Explain = "固定手数模式下的手数", Type = "number" };
+            sd.ArgDescDic["money"] = new ArgDesc() { Text = "固定金额", Explain = "固定金额模式下的金额", Type = "number" };
+            sd.ArgDescDic["maxHoldingBars"] = new ArgDesc() { Text = "最大持仓周期", Explain = "持仓超过此周期数自动平仓(0=不限制)", Type = "number" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即发单|1:下个开盘发单", Type = "select" };
+            sd.ArgDescDic["requirePriceAboveEMA"] = new ArgDesc() { Text = "价格位置确认", Explain = "要求价格在EMA正确一侧", Options = "0:不要求|1:要求价格在EMA正确一侧", Type = "bool" };
+            sd.ArgDescDic["requireMomentum"] = new ArgDesc() { Text = "动量确认", Explain = "要求动量方向一致", Options = "0:不要求|1:要求动量方向一致", Type = "bool" };
+            sd.ArgDescDic["requireVolatilityFilter"] = new ArgDesc() { Text = "波动率过滤", Explain = "波动率异常时不入场", Options = "0:不启用|1:启用波动率过滤", Type = "bool" };
 
             sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;

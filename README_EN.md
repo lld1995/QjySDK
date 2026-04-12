@@ -217,7 +217,7 @@ The SDK includes a rich set of quantitative trading strategies, categorized as f
 | **Trade Orders** | Buy, sell, close position and other order types |
 | **Symbol Query** | Get detailed trading symbol information |
 | **Chart Bindings** | Bind curves, rectangles, text and other graphical elements to charts |
-| **Parameter Configuration** | Flexible strategy parameter definition and configuration |
+| **Parameter Configuration** | Flexible strategy parameter definition with dropdown/toggle/numeric control types |
 
 ### Supported Periods
 
@@ -363,10 +363,32 @@ Strategy description class for defining strategy parameters and configuration.
 | Property | Type | Description |
 |----------|------|-------------|
 | `ArgDic` | `Dictionary<string, object>` | Parameter default values |
-| `ArgDescDic` | `Dictionary<string, ArgDesc>` | Parameter descriptions |
+| `ArgDescDic` | `Dictionary<string, ArgDesc>` | Parameter descriptions (with control types and options) |
 | `MaxSymbolNum` | `int` | Maximum number of symbols |
 | `SubChartNum` | `int` | Number of sub-charts |
 | `ColorDic` | `Dictionary<string, string>` | Color configuration |
+
+### ArgDesc
+
+Parameter description class, defines display name, explanation text, and UI control type for each strategy parameter.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Text` | `string` | Parameter display name |
+| `Explain` | `string` | Parameter explanation text, displayed below the parameter name |
+| `Type` | `string` | Control type, determines the UI control rendered in the client |
+| `Options` | `string` | Option definitions for select/bool types, `"value:label"` format separated by `\|` |
+
+#### Type Values
+
+| Type Value | Control | Options Format | Example |
+|------------|---------|---------------|--------|
+| `"select"` | Dropdown | `"0:OptionA\|1:OptionB\|2:OptionC"` | `Options = "0:Both\|1:Long Only\|2:Short Only"` |
+| `"bool"` | Toggle Switch | `"0:Off Label\|1:On Label"` | `Options = "0:Off\|1:Enable"` |
+| `"number"` | Numeric Input | Options not needed | `Explain = "RSI calculation period, usually 14"` |
+| `null` / omitted | Text Input | Options not needed | Backward compatible, old strategies unaffected |
+
+> **Note**: `Explain` describes the parameter's purpose, while `Options` defines the selection list. The two fields have separate responsibilities.
 
 ### TableUnit
 
@@ -491,6 +513,12 @@ public class MaStrategy : StgBase
     {
         var desc = new StgDesc();
         desc.ArgDic["period"] = 20;
+        desc.ArgDic["mode"] = 0;
+        desc.ArgDic["useTrendFilter"] = 0;
+
+        desc.ArgDescDic["period"] = new ArgDesc() { Text = "MA Period", Explain = "Moving average calculation period", Type = "number" };
+        desc.ArgDescDic["mode"] = new ArgDesc() { Text = "Trade Mode", Explain = "Trade direction control", Options = "0:Both|1:Long Only|2:Short Only", Type = "select" };
+        desc.ArgDescDic["useTrendFilter"] = new ArgDesc() { Text = "Trend Filter", Explain = "Only trade in main trend direction", Options = "0:Off|1:Enable", Type = "bool" };
         return desc;
     }
 

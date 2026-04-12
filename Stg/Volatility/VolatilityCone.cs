@@ -67,20 +67,26 @@ namespace QjySDK.Stg
 			sd.ArgDic["lots"] = 1.0m;
 			sd.ArgDic["money"] = 10000m;
 
-			sd.ArgDescDic["shortHvPeriod"] = new ArgDesc() { Text = "短期HV周期", Explain = "短期历史波动率计算窗口" };
-			sd.ArgDescDic["midHvPeriod"] = new ArgDesc() { Text = "中期HV周期", Explain = "中期历史波动率计算窗口" };
-			sd.ArgDescDic["longHvPeriod"] = new ArgDesc() { Text = "长期HV周期", Explain = "长期历史波动率计算窗口" };
-			sd.ArgDescDic["rankLookback"] = new ArgDesc() { Text = "排名回溯期", Explain = "百分位排名的历史回溯周期" };
-			sd.ArgDescDic["extremeHighPct"] = new ArgDesc() { Text = "极高百分位", Explain = "波动率百分位高于此值为极端高" };
-			sd.ArgDescDic["extremeLowPct"] = new ArgDesc() { Text = "极低百分位", Explain = "波动率百分位低于此值为极端低" };
-			sd.ArgDescDic["smaPeriod"] = new ArgDesc() { Text = "慢均线周期", Explain = "趋势判断长均线" };
-			sd.ArgDescDic["fastSmaPeriod"] = new ArgDesc() { Text = "快均线周期", Explain = "趋势判断短均线" };
-			sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期" };
-			sd.ArgDescDic["stopLossAtr"] = new ArgDesc() { Text = "止损ATR倍数", Explain = "止损距离=ATR*此倍数" };
-			sd.ArgDescDic["takeProfitAtr"] = new ArgDesc() { Text = "止盈ATR倍数", Explain = "止盈距离=ATR*此倍数" };
-			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0 双向 1 仅做多 2 仅做空" };
-			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
-			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
+			sd.ArgDescDic["shortHvPeriod"] = new ArgDesc() { Text = "短期HV周期", Explain = "短期历史波动率计算窗口", Type = "number" };
+			sd.ArgDescDic["midHvPeriod"] = new ArgDesc() { Text = "中期HV周期", Explain = "中期历史波动率计算窗口", Type = "number" };
+			sd.ArgDescDic["longHvPeriod"] = new ArgDesc() { Text = "长期HV周期", Explain = "长期历史波动率计算窗口", Type = "number" };
+			sd.ArgDescDic["rankLookback"] = new ArgDesc() { Text = "排名回溯期", Explain = "百分位排名的历史回溯周期", Type = "number" };
+			sd.ArgDescDic["extremeHighPct"] = new ArgDesc() { Text = "极高百分位", Explain = "波动率百分位高于此值为极端高", Type = "number" };
+			sd.ArgDescDic["extremeLowPct"] = new ArgDesc() { Text = "极低百分位", Explain = "波动率百分位低于此值为极端低", Type = "number" };
+			sd.ArgDescDic["smaPeriod"] = new ArgDesc() { Text = "慢均线周期", Explain = "趋势判断长均线", Type = "number" };
+			sd.ArgDescDic["fastSmaPeriod"] = new ArgDesc() { Text = "快均线周期", Explain = "趋势判断短均线", Type = "number" };
+			sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期", Type = "number" };
+			sd.ArgDescDic["stopLossAtr"] = new ArgDesc() { Text = "止损ATR倍数", Explain = "止损距离=ATR*此倍数", Type = "number" };
+			sd.ArgDescDic["takeProfitAtr"] = new ArgDesc() { Text = "止盈ATR倍数", Explain = "止盈距离=ATR*此倍数", Type = "number" };
+			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+
+
+			sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+
+			sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
 
 			sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;

@@ -86,6 +86,41 @@ namespace QjySDK.Stg
 			sd.ArgDic["_useDetrend"] = 1;              // 使用变化率去趋势（保留趋势持仓特性）
 
 			// 图表颜色配置
+
+
+			sd.ArgDescDic["confirmBars"] = new ArgDesc() { Text = "确认K线数", Explain = "信号确认所需K线数量", Type = "number" };
+
+			sd.ArgDescDic["cooldownBars"] = new ArgDesc() { Text = "冷却K线数", Explain = "平仓后冷却等待的K线数", Type = "number" };
+
+			sd.ArgDescDic["fftPeriod"] = new ArgDesc() { Text = "FFT周期", Explain = "FFT分析周期（必须是2的幂次）", Type = "number" };
+
+			sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+
+			sd.ArgDescDic["maxCyclePeriod"] = new ArgDesc() { Text = "最大周期", Explain = "过滤超低频的最大周期", Type = "number" };
+
+			sd.ArgDescDic["minCyclePeriod"] = new ArgDesc() { Text = "最小周期", Explain = "过滤高频噪声的最小周期", Type = "number" };
+
+			sd.ArgDescDic["minHoldBars"] = new ArgDesc() { Text = "最小持仓K线数", Explain = "持仓期间不平仓的最小K线数", Type = "number" };
+
+			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+
+			sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
+
+			sd.ArgDescDic["phaseChangeThreshold"] = new ArgDesc() { Text = "相位变化阈值", Explain = "相位变化的触发阈值", Type = "number" };
+
+			sd.ArgDescDic["powerThreshold"] = new ArgDesc() { Text = "功率阈值", Explain = "过滤弱周期的功率阈值(0-1)", Type = "number" };
+
+			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+
+			sd.ArgDescDic["stopLossPercent"] = new ArgDesc() { Text = "止损百分比", Explain = "止损触发的价格百分比", Type = "number" };
+
+			sd.ArgDescDic["takeProfitPercent"] = new ArgDesc() { Text = "止盈百分比", Explain = "止盈触发的价格百分比", Type = "number" };
+
+			sd.ArgDescDic["useStopLoss"] = new ArgDesc() { Text = "启用止损", Explain = "触及止损价自动平仓", Options = "0:关闭|1:启用", Type = "bool" };
+
+			sd.ArgDescDic["useTakeProfit"] = new ArgDesc() { Text = "启用止盈", Explain = "触及止盈价自动平仓", Options = "0:关闭|1:启用", Type = "bool" };
 			sd.ColorDic["fft-phase"] = "#2196F3";     // 相位线颜色（蓝色）
 			sd.ColorDic["fft-power"] = "#FF9800";     // 功率线颜色（橙色）
 			sd.ColorDic["fft-cycle"] = "#9C27B0";     // 周期线颜色（紫色）

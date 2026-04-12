@@ -58,10 +58,10 @@ namespace QjySDK.Stg
             sd.ArgDescDic["lookbackPeriod"] = new ArgDesc { Text = "回溯周期", Explain = "计算蝶式价差均值和标准差的滚动窗口" };
             sd.ArgDic["lookbackPeriod"] = 60;
 
-            sd.ArgDescDic["spreadMode"] = new ArgDesc { Text = "价差模式", Explain = "0=原始价格差 1=标准化(除以B价格)" };
+            sd.ArgDescDic["spreadMode"] = new ArgDesc { Text = "价差模式", Explain = "价差计算方式", Options = "0:原始价格差|1:标准化(除以B价格)", Type = "select" };
             sd.ArgDic["spreadMode"] = 1;
 
-            sd.ArgDescDic["selectionMode"] = new ArgDesc { Text = "组合选择模式", Explain = "0=自动选最优三元组 1=按品种顺序固定分组(每3个一组)" };
+            sd.ArgDescDic["selectionMode"] = new ArgDesc { Text = "组合选择模式", Explain = "蝶式组合选择方式", Options = "0:自动选最优三元组|1:按品种顺序固定分组(每3个一组)", Type = "select" };
             sd.ArgDic["selectionMode"] = 0;
 
             // ==================== Z-Score阈值 ====================
@@ -78,7 +78,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["minCorrelation"] = new ArgDesc { Text = "最小相关系数", Explain = "三品种两两相关系数最小值" };
             sd.ArgDic["minCorrelation"] = 0.6;
 
-            sd.ArgDescDic["useHalfLifeFilter"] = new ArgDesc { Text = "半衰期过滤", Explain = "1=启用 0=禁用" };
+            sd.ArgDescDic["useHalfLifeFilter"] = new ArgDesc { Text = "半衰期过滤", Explain = "半衰期不合理时不入场", Options = "1:启用|0:禁用", Type = "bool" };
             sd.ArgDic["useHalfLifeFilter"] = 1;
 
             sd.ArgDescDic["minHalfLife"] = new ArgDesc { Text = "最小半衰期", Explain = "半衰期低于此值不入场" };
@@ -94,14 +94,14 @@ namespace QjySDK.Stg
             sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "超过此数量强制平仓" };
             sd.ArgDic["maxHoldBars"] = 20;
 
-            sd.ArgDescDic["useTimeDecay"] = new ArgDesc { Text = "时间衰减", Explain = "1=持仓越久出场阈值越宽松 0=固定" };
+            sd.ArgDescDic["useTimeDecay"] = new ArgDesc { Text = "时间衰减", Explain = "持仓时间衰减", Options = "1:持仓越久出场阈值越宽松|0:固定", Type = "select" };
             sd.ArgDic["useTimeDecay"] = 1;
 
             // ==================== 交易参数 ====================
-            sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "0=立即 1=下个开盘" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
             sd.ArgDic["sendMode"] = 0;
 
-            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0=固定手数 1=固定金额" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
             sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下两端品种的交易数量(中间腿为2倍)" };

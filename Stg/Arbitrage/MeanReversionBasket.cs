@@ -56,7 +56,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["basketSize"] = new ArgDesc { Text = "篮子大小", Explain = "每个篮子的品种数(0=自动，取总数的25%)" };
             sd.ArgDic["basketSize"] = 0;
 
-            sd.ArgDescDic["useWeightedReturn"] = new ArgDesc { Text = "加权收益率", Explain = "1=成交量加权收益率 0=简单收益率" };
+            sd.ArgDescDic["useWeightedReturn"] = new ArgDesc { Text = "加权收益率", Explain = "收益率加权方式", Options = "1:成交量加权收益率|0:简单收益率", Type = "select" };
             sd.ArgDic["useWeightedReturn"] = 0;
 
             // ==================== 分化度阈值 ====================
@@ -83,7 +83,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "超过此数量强制平仓" };
             sd.ArgDic["maxHoldBars"] = 15;
 
-            sd.ArgDescDic["useTimeDecay"] = new ArgDesc { Text = "时间衰减", Explain = "1=持仓越久出场阈值越宽松 0=固定" };
+            sd.ArgDescDic["useTimeDecay"] = new ArgDesc { Text = "时间衰减", Explain = "持仓时间衰减", Options = "1:持仓越久出场阈值越宽松|0:固定", Type = "select" };
             sd.ArgDic["useTimeDecay"] = 1;
 
             sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR计算周期" };
@@ -93,10 +93,10 @@ namespace QjySDK.Stg
             sd.ArgDic["atrStopMultiplier"] = 0.0;
 
             // ==================== 交易参数 ====================
-            sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "0=立即 1=下个开盘" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
             sd.ArgDic["sendMode"] = 0;
 
-            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0=固定手数 1=固定金额" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
             sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量" };

@@ -91,26 +91,30 @@ namespace QjySDK.Stg
             sd.ArgDic["money"] = 10000m;
 
             // 参数说明
-            sd.ArgDescDic["fastPeriod"] = new ArgDesc() { Text = "快速EMA周期", Explain = "MACD快速线周期，默认12" };
-            sd.ArgDescDic["slowPeriod"] = new ArgDesc() { Text = "慢速EMA周期", Explain = "MACD慢速线周期，默认26" };
-            sd.ArgDescDic["signalPeriod"] = new ArgDesc() { Text = "信号线周期", Explain = "MACD信号线周期，默认9" };
-            sd.ArgDescDic["lookbackPeriod"] = new ArgDesc() { Text = "极值回溯周期", Explain = "寻找价格和MACD极值点的回溯周期" };
-            sd.ArgDescDic["minDivergenceBars"] = new ArgDesc() { Text = "最小背离间隔", Explain = "两个极值点之间最少K线数" };
-            sd.ArgDescDic["maxDivergenceBars"] = new ArgDesc() { Text = "最大背离间隔", Explain = "两个极值点之间最多K线数" };
-            sd.ArgDescDic["signalMode"] = new ArgDesc() { Text = "信号模式", Explain = "0:背离+零轴双确认 1:仅背离 2:仅零轴交叉 3:任一触发" };
-            sd.ArgDescDic["zeroCrossConfirmBars"] = new ArgDesc() { Text = "零轴确认K线", Explain = "MACD穿越零轴后需要确认的K线数" };
-            sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期" };
-            sd.ArgDescDic["atrStopMultiplier"] = new ArgDesc() { Text = "ATR止损倍数", Explain = "止损距离=ATR*此倍数" };
-            sd.ArgDescDic["atrProfitMultiplier"] = new ArgDesc() { Text = "ATR止盈倍数", Explain = "止盈距离=ATR*此倍数" };
-            sd.ArgDescDic["useAtrStop"] = new ArgDesc() { Text = "ATR止损", Explain = "0:使用固定百分比 1:使用ATR动态止损" };
-            sd.ArgDescDic["stopLossPercent"] = new ArgDesc() { Text = "止损百分比", Explain = "固定止损百分比" };
-            sd.ArgDescDic["takeProfitPercent"] = new ArgDesc() { Text = "止盈百分比", Explain = "固定止盈百分比" };
-            sd.ArgDescDic["useTrailingStop"] = new ArgDesc() { Text = "移动止损", Explain = "0:不使用 1:使用移动止损" };
-            sd.ArgDescDic["trailingActivation"] = new ArgDesc() { Text = "移动止损激活", Explain = "盈利达到ATR*此值时激活移动止损" };
-            sd.ArgDescDic["trailingDistance"] = new ArgDesc() { Text = "移动止损距离", Explain = "移动止损与最高/低点的距离（ATR倍数）" };
-            sd.ArgDescDic["tradeDirection"] = new ArgDesc() { Text = "交易方向", Explain = "0:双向 1:仅做多 2:仅做空" };
-            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0:立即 1:下个开盘" };
-            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0:固定手数 1:固定金额" };
+            sd.ArgDescDic["fastPeriod"] = new ArgDesc() { Text = "快速EMA周期", Explain = "MACD快速线周期，默认12", Type = "number" };
+            sd.ArgDescDic["slowPeriod"] = new ArgDesc() { Text = "慢速EMA周期", Explain = "MACD慢速线周期，默认26", Type = "number" };
+            sd.ArgDescDic["signalPeriod"] = new ArgDesc() { Text = "信号线周期", Explain = "MACD信号线周期，默认9", Type = "number" };
+            sd.ArgDescDic["lookbackPeriod"] = new ArgDesc() { Text = "极值回溯周期", Explain = "寻找价格和MACD极值点的回溯周期", Type = "number" };
+            sd.ArgDescDic["minDivergenceBars"] = new ArgDesc() { Text = "最小背离间隔", Explain = "两个极值点之间最少K线数", Type = "number" };
+            sd.ArgDescDic["maxDivergenceBars"] = new ArgDesc() { Text = "最大背离间隔", Explain = "两个极值点之间最多K线数", Type = "number" };
+            sd.ArgDescDic["signalMode"] = new ArgDesc() { Text = "信号模式", Explain = "信号触发方式", Options = "0:背离+零轴双确认|1:仅背离|2:仅零轴交叉|3:任一触发", Type = "select" };
+            sd.ArgDescDic["zeroCrossConfirmBars"] = new ArgDesc() { Text = "零轴确认K线", Explain = "MACD穿越零轴后需要确认的K线数", Type = "number" };
+            sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期", Type = "number" };
+            sd.ArgDescDic["atrStopMultiplier"] = new ArgDesc() { Text = "ATR止损倍数", Explain = "止损距离=ATR*此倍数", Type = "number" };
+            sd.ArgDescDic["atrProfitMultiplier"] = new ArgDesc() { Text = "ATR止盈倍数", Explain = "止盈距离=ATR*此倍数", Type = "number" };
+            sd.ArgDescDic["useAtrStop"] = new ArgDesc() { Text = "ATR止损", Explain = "使用ATR动态止损", Options = "0:使用固定百分比|1:使用ATR动态止损", Type = "select" };
+            sd.ArgDescDic["stopLossPercent"] = new ArgDesc() { Text = "止损百分比", Explain = "固定止损百分比", Type = "number" };
+            sd.ArgDescDic["takeProfitPercent"] = new ArgDesc() { Text = "止盈百分比", Explain = "固定止盈百分比", Type = "number" };
+            sd.ArgDescDic["useTrailingStop"] = new ArgDesc() { Text = "移动止损", Explain = "跟踪最高/低点调整止损", Options = "0:不使用|1:使用移动止损", Type = "bool" };
+            sd.ArgDescDic["trailingActivation"] = new ArgDesc() { Text = "移动止损激活", Explain = "盈利达到ATR*此值时激活移动止损", Type = "number" };
+            sd.ArgDescDic["trailingDistance"] = new ArgDesc() { Text = "移动止损距离", Explain = "移动止损与最高/低点的距离（ATR倍数）", Type = "number" };
+            sd.ArgDescDic["tradeDirection"] = new ArgDesc() { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+
+            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+            sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
 
             sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;

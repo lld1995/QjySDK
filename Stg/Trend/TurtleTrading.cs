@@ -83,22 +83,22 @@ namespace QjySDK.Stg
             // 系统1规则：如果上次突破盈利，则忽略本次突破信号
 
             // ========== 参数说明 ==========
-            sd.ArgDescDic["systemType"] = new ArgDesc() { Text = "系统类型", Explain = "1:系统1(短期20/10) 2:系统2(长期55/20)" };
-            sd.ArgDescDic["entryPeriod"] = new ArgDesc() { Text = "入场周期", Explain = "唐奇安通道入场周期" };
-            sd.ArgDescDic["exitPeriod"] = new ArgDesc() { Text = "出场周期", Explain = "唐奇安通道出场周期" };
-            sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期(N值)" };
-            sd.ArgDescDic["atrStopMultiplier"] = new ArgDesc() { Text = "止损ATR倍数", Explain = "止损距离=ATR×倍数" };
-            sd.ArgDescDic["enablePyramiding"] = new ArgDesc() { Text = "启用加仓", Explain = "0:不加仓 1:金字塔加仓" };
-            sd.ArgDescDic["pyramidingATR"] = new ArgDesc() { Text = "加仓ATR间隔", Explain = "每上涨N个ATR加仓一次" };
-            sd.ArgDescDic["maxUnits"] = new ArgDesc() { Text = "最大单位数", Explain = "单品种最大持仓单位" };
-            sd.ArgDescDic["riskPerTrade"] = new ArgDesc() { Text = "单笔风险比例", Explain = "每笔交易占账户权益的比例" };
-            sd.ArgDescDic["accountEquity"] = new ArgDesc() { Text = "账户权益", Explain = "用于计算仓位的账户权益" };
-            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0:固定手数 1:固定金额 2:按风险计算" };
-            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "固定手数", Explain = "固定手数模式下的手数" };
-            sd.ArgDescDic["money"] = new ArgDesc() { Text = "固定金额", Explain = "固定金额模式下的金额" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易方向", Explain = "0:双向 1:仅做多 2:仅做空" };
-            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0:立即发单 1:下个开盘发单" };
-            sd.ArgDescDic["useLastTradeFilter"] = new ArgDesc() { Text = "上次交易过滤", Explain = "系统1:上次盈利则忽略本次信号" };
+            sd.ArgDescDic["systemType"] = new ArgDesc() { Text = "系统类型", Explain = "海龟系统选择", Options = "1:系统1(短期20/10)|2:系统2(长期55/20)", Type = "select" };
+            sd.ArgDescDic["entryPeriod"] = new ArgDesc() { Text = "入场周期", Explain = "唐奇安通道入场周期", Type = "number" };
+            sd.ArgDescDic["exitPeriod"] = new ArgDesc() { Text = "出场周期", Explain = "唐奇安通道出场周期", Type = "number" };
+            sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期(N值)", Type = "number" };
+            sd.ArgDescDic["atrStopMultiplier"] = new ArgDesc() { Text = "止损ATR倍数", Explain = "止损距离=ATR×倍数", Type = "number" };
+            sd.ArgDescDic["enablePyramiding"] = new ArgDesc() { Text = "启用加仓", Explain = "是否启用金字塔加仓", Options = "0:不加仓|1:金字塔加仓", Type = "bool" };
+            sd.ArgDescDic["pyramidingATR"] = new ArgDesc() { Text = "加仓ATR间隔", Explain = "每上涨N个ATR加仓一次", Type = "number" };
+            sd.ArgDescDic["maxUnits"] = new ArgDesc() { Text = "最大单位数", Explain = "单品种最大持仓单位", Type = "number" };
+            sd.ArgDescDic["riskPerTrade"] = new ArgDesc() { Text = "单笔风险比例", Explain = "每笔交易占账户权益的比例", Type = "number" };
+            sd.ArgDescDic["accountEquity"] = new ArgDesc() { Text = "账户权益", Explain = "用于计算仓位的账户权益", Type = "number" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额|2:按风险计算", Type = "select" };
+            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "固定手数", Explain = "固定手数模式下的手数", Type = "number" };
+            sd.ArgDescDic["money"] = new ArgDesc() { Text = "固定金额", Explain = "固定金额模式下的金额", Type = "number" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即发单|1:下个开盘发单", Type = "select" };
+            sd.ArgDescDic["useLastTradeFilter"] = new ArgDesc() { Text = "上次交易过滤", Explain = "系统1:上次盈利则忽略本次信号", Type = "number" };
 
             sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;

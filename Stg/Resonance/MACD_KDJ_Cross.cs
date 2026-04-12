@@ -60,21 +60,25 @@ namespace QjySDK.Stg
             sd.ArgDic["money"] = 10000m;
 
             // 参数说明
-            sd.ArgDescDic["fastPeriods"] = new ArgDesc() { Text = "MACD快线", Explain = "MACD快线周期，通常为12" };
-            sd.ArgDescDic["slowPeriods"] = new ArgDesc() { Text = "MACD慢线", Explain = "MACD慢线周期，通常为26" };
-            sd.ArgDescDic["signalPeriods"] = new ArgDesc() { Text = "MACD信号线", Explain = "MACD信号线周期，通常为9" };
-            sd.ArgDescDic["kPeriod"] = new ArgDesc() { Text = "KDJ K周期", Explain = "RSV计算周期，通常为9" };
-            sd.ArgDescDic["dPeriod"] = new ArgDesc() { Text = "KDJ D周期", Explain = "D线平滑周期，通常为3" };
-            sd.ArgDescDic["resonanceWindow"] = new ArgDesc() { Text = "共振窗口", Explain = "两个信号在N根K线内出现视为共振，0表示必须同时出现" };
-            sd.ArgDescDic["useZoneFilter"] = new ArgDesc() { Text = "区域过滤", Explain = "0 不过滤 1 KDJ超买超卖区过滤" };
-            sd.ArgDescDic["overbought"] = new ArgDesc() { Text = "超买线", Explain = "KDJ超买区域阈值" };
-            sd.ArgDescDic["oversold"] = new ArgDesc() { Text = "超卖线", Explain = "KDJ超卖区域阈值" };
-            sd.ArgDescDic["macdZeroFilter"] = new ArgDesc() { Text = "零轴过滤", Explain = "0 不过滤 1 零轴上方做多 2 零轴下方做空 3 两者都启用" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0 标准 1 仅做多 2 仅做空" };
-            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
-            sd.ArgDescDic["exitMode"] = new ArgDesc() { Text = "出场模式", Explain = "0 共振反向出场 1 任一死叉/金叉出场 2 MACD反向出场 3 KDJ反向出场" };
-            sd.ArgDescDic["stopLoss"] = new ArgDesc() { Text = "止损%", Explain = "固定止损百分比，0为不启用" };
-            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
+            sd.ArgDescDic["fastPeriods"] = new ArgDesc() { Text = "MACD快线", Explain = "MACD快线周期，通常为12", Type = "number" };
+            sd.ArgDescDic["slowPeriods"] = new ArgDesc() { Text = "MACD慢线", Explain = "MACD慢线周期，通常为26", Type = "number" };
+            sd.ArgDescDic["signalPeriods"] = new ArgDesc() { Text = "MACD信号线", Explain = "MACD信号线周期，通常为9", Type = "number" };
+            sd.ArgDescDic["kPeriod"] = new ArgDesc() { Text = "KDJ K周期", Explain = "RSV计算周期，通常为9", Type = "number" };
+            sd.ArgDescDic["dPeriod"] = new ArgDesc() { Text = "KDJ D周期", Explain = "D线平滑周期，通常为3", Type = "number" };
+            sd.ArgDescDic["resonanceWindow"] = new ArgDesc() { Text = "共振窗口", Explain = "两个信号在N根K线内出现视为共振，0表示必须同时出现", Type = "number" };
+            sd.ArgDescDic["useZoneFilter"] = new ArgDesc() { Text = "区域过滤", Explain = "KDJ超买超卖区过滤", Options = "0:不过滤|1:KDJ超买超卖区过滤", Type = "bool" };
+            sd.ArgDescDic["overbought"] = new ArgDesc() { Text = "超买线", Explain = "KDJ超买区域阈值", Type = "number" };
+            sd.ArgDescDic["oversold"] = new ArgDesc() { Text = "超卖线", Explain = "KDJ超卖区域阈值", Type = "number" };
+            sd.ArgDescDic["macdZeroFilter"] = new ArgDesc() { Text = "零轴过滤", Explain = "MACD零轴方向过滤", Options = "0:不过滤|1:零轴上方做多|2:零轴下方做空|3:两者都启用", Type = "select" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0:标准|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+            sd.ArgDescDic["exitMode"] = new ArgDesc() { Text = "出场模式", Explain = "平仓触发条件", Options = "0:共振反向出场|1:任一死叉/金叉出场|2:MACD反向出场|3:KDJ反向出场", Type = "select" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+			sd.ArgDescDic["stopLoss"] = new ArgDesc() { Text = "止损%", Explain = "固定止损百分比，0为不启用", Type = "number" };
+
+            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+            sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
 
             sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;

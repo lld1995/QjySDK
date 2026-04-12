@@ -68,21 +68,27 @@ namespace QjySDK.Stg
 			sd.ArgDic["lots"] = 1.0m;
 			sd.ArgDic["money"] = 10000m;
 
-			sd.ArgDescDic["hvPeriod"] = new ArgDesc() { Text = "HV周期", Explain = "历史波动率计算周期" };
-			sd.ArgDescDic["hvRankPeriod"] = new ArgDesc() { Text = "HV排名周期", Explain = "百分位排名的回溯周期" };
-			sd.ArgDescDic["highVolPercentile"] = new ArgDesc() { Text = "高波动百分位", Explain = "HV百分位高于此值触发逆向交易" };
-			sd.ArgDescDic["lowVolPercentile"] = new ArgDesc() { Text = "低波动百分位", Explain = "HV百分位低于此值等待突破" };
-			sd.ArgDescDic["rsiPeriod"] = new ArgDesc() { Text = "RSI周期", Explain = "RSI指标计算周期" };
-			sd.ArgDescDic["rsiOverbought"] = new ArgDesc() { Text = "RSI超买", Explain = "RSI超买线" };
-			sd.ArgDescDic["rsiOversold"] = new ArgDesc() { Text = "RSI超卖", Explain = "RSI超卖线" };
-			sd.ArgDescDic["smaPeriod"] = new ArgDesc() { Text = "均线周期", Explain = "均线回归目标的SMA周期" };
-			sd.ArgDescDic["maxSmaDeviation"] = new ArgDesc() { Text = "最大均线偏离%", Explain = "价格偏离SMA超过此ATR倍数时不做均值回归(趋势太强)" };
-			sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期" };
-			sd.ArgDescDic["stopLossAtr"] = new ArgDesc() { Text = "止损ATR倍数", Explain = "止损距离=ATR*此倍数" };
-			sd.ArgDescDic["takeProfitAtr"] = new ArgDesc() { Text = "止盈ATR倍数", Explain = "止盈距离=ATR*此倍数" };
-			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0 双向 1 仅做多 2 仅做空" };
-			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
-			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
+			sd.ArgDescDic["hvPeriod"] = new ArgDesc() { Text = "HV周期", Explain = "历史波动率计算周期", Type = "number" };
+			sd.ArgDescDic["hvRankPeriod"] = new ArgDesc() { Text = "HV排名周期", Explain = "百分位排名的回溯周期", Type = "number" };
+			sd.ArgDescDic["highVolPercentile"] = new ArgDesc() { Text = "高波动百分位", Explain = "HV百分位高于此值触发逆向交易", Type = "number" };
+			sd.ArgDescDic["lowVolPercentile"] = new ArgDesc() { Text = "低波动百分位", Explain = "HV百分位低于此值等待突破", Type = "number" };
+			sd.ArgDescDic["rsiPeriod"] = new ArgDesc() { Text = "RSI周期", Explain = "RSI指标计算周期", Type = "number" };
+			sd.ArgDescDic["rsiOverbought"] = new ArgDesc() { Text = "RSI超买", Explain = "RSI超买线", Type = "number" };
+			sd.ArgDescDic["rsiOversold"] = new ArgDesc() { Text = "RSI超卖", Explain = "RSI超卖线", Type = "number" };
+			sd.ArgDescDic["smaPeriod"] = new ArgDesc() { Text = "均线周期", Explain = "均线回归目标的SMA周期", Type = "number" };
+			sd.ArgDescDic["maxSmaDeviation"] = new ArgDesc() { Text = "最大均线偏离%", Explain = "价格偏离SMA超过此ATR倍数时不做均值回归(趋势太强)", Type = "number" };
+			sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期", Type = "number" };
+			sd.ArgDescDic["stopLossAtr"] = new ArgDesc() { Text = "止损ATR倍数", Explain = "止损距离=ATR*此倍数", Type = "number" };
+			sd.ArgDescDic["takeProfitAtr"] = new ArgDesc() { Text = "止盈ATR倍数", Explain = "止盈距离=ATR*此倍数", Type = "number" };
+			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+
+
+			sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+
+			sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
 
 			sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;

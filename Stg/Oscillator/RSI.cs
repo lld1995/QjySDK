@@ -47,18 +47,18 @@ namespace QjySDK.Stg
             sd.ArgDic["money"] = 10000m;            // 固定金额
 
             // 参数说明
-            sd.ArgDescDic["rsiPeriod"] = new ArgDesc() { Text = "RSI周期", Explain = "RSI计算周期，通常为14" };
-            sd.ArgDescDic["rsiPeriod2"] = new ArgDesc() { Text = "RSI短周期", Explain = "双RSI模式的短周期，通常为7" };
-            sd.ArgDescDic["overbought"] = new ArgDesc() { Text = "超买线", Explain = "超买区域阈值，通常为70" };
-            sd.ArgDescDic["oversold"] = new ArgDesc() { Text = "超卖线", Explain = "超卖区域阈值，通常为30" };
-            sd.ArgDescDic["midLine"] = new ArgDesc() { Text = "中轴线", Explain = "RSI中轴线，通常为50" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "0 双向交易 1 仅做多 2 仅做空" };
-            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即发单 1 下个开盘发单" };
-            sd.ArgDescDic["signalMode"] = new ArgDesc() { Text = "信号模式", Explain = "0 超买超卖反转 1 中轴穿越 2 双RSI交叉" };
-            sd.ArgDescDic["stopLoss"] = new ArgDesc() { Text = "止损%", Explain = "固定止损百分比，0为不启用" };
-            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
-            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数数量" };
-            sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额数量" };
+            sd.ArgDescDic["rsiPeriod"] = new ArgDesc() { Text = "RSI周期", Explain = "RSI计算周期，通常为14", Type = "number" };
+            sd.ArgDescDic["rsiPeriod2"] = new ArgDesc() { Text = "RSI短周期", Explain = "双RSI模式的短周期，通常为7", Type = "number" };
+            sd.ArgDescDic["overbought"] = new ArgDesc() { Text = "超买线", Explain = "超买区域阈值，通常为70", Type = "number" };
+            sd.ArgDescDic["oversold"] = new ArgDesc() { Text = "超卖线", Explain = "超卖区域阈值，通常为30", Type = "number" };
+            sd.ArgDescDic["midLine"] = new ArgDesc() { Text = "中轴线", Explain = "RSI中轴线，通常为50", Type = "number" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向交易|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即发单|1:下个开盘发单", Type = "select" };
+            sd.ArgDescDic["signalMode"] = new ArgDesc() { Text = "信号模式", Explain = "信号触发方式", Options = "0:超买超卖反转|1:中轴穿越|2:双RSI交叉", Type = "select" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+			sd.ArgDescDic["stopLoss"] = new ArgDesc() { Text = "止损%", Explain = "固定止损百分比，0为不启用", Type = "number" };
+            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数数量", Type = "number" };
+            sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额数量", Type = "number" };
 
             sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;

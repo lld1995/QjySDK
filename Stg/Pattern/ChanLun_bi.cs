@@ -194,13 +194,27 @@ namespace QjySDK.Stg
 			sd.ArgDic["useStopLoss"] = 1;        // 是否使用止损（0否 1是）
 			sd.ArgDic["stopLossPercent"] = 5.0m; // 止损比例（百分比，如3表示3%）
 
-			//sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0 标准 1 仅做多 2 仅做空" };
-			//sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
-			//sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
-			//sd.ArgDescDic["useZhongShu"] = new ArgDesc() { Text = "使用中枢", Explain = "0 否 1 是" };
-			//sd.ArgDescDic["useDivergence"] = new ArgDesc() { Text = "使用背驰", Explain = "0 否 1 是" };
-			//sd.ArgDescDic["zhongshuMinStrokes"] = new ArgDesc() { Text = "中枢最少笔数", Explain = "形成中枢所需的最少笔数，默认3" };
-			//sd.ArgDescDic["strokeMinBars"] = new ArgDesc() { Text = "笔最少K线", Explain = "笔的最少独立K线数，缠论标准为5" };
+			sd.ArgDescDic["minBarCount"] = new ArgDesc() { Text = "最少K线数", Explain = "至少需要形成2个分型", Type = "number" };
+			sd.ArgDescDic["strokeMinBars"] = new ArgDesc() { Text = "笔最少K线", Explain = "笔的最少独立K线数，缠论标准为5", Type = "number" };
+			sd.ArgDescDic["zhongshuMinStrokes"] = new ArgDesc() { Text = "中枢最少笔数", Explain = "形成中枢所需的最少笔数，默认3", Type = "number" };
+			sd.ArgDescDic["useZhongShu"] = new ArgDesc() { Text = "使用中枢", Explain = "启用中枢分析辅助交易", Options = "0:关闭|1:启用", Type = "bool" };
+			sd.ArgDescDic["useDivergence"] = new ArgDesc() { Text = "使用背驰", Explain = "启用背驰检测辅助交易", Options = "0:关闭|1:启用", Type = "bool" };
+			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:标准|1:仅做多|2:仅做空", Type = "select" };
+			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+			sd.ArgDescDic["lots"] = new ArgDesc() { Text = "固定手数", Explain = "固定手数模式下的手数", Type = "number" };
+			sd.ArgDescDic["money"] = new ArgDesc() { Text = "固定金额", Explain = "固定金额模式下的金额", Type = "number" };
+			sd.ArgDescDic["useStopLoss"] = new ArgDesc() { Text = "使用止损", Explain = "触及止损价自动平仓", Options = "0:关闭|1:启用", Type = "bool" };
+			sd.ArgDescDic["stopLossPercent"] = new ArgDesc() { Text = "止损百分比", Explain = "硬止损触发的价格百分比", Type = "number" };
+			sd.ArgDescDic["useTrailingStop"] = new ArgDesc() { Text = "移动止损", Explain = "跟踪最高/低点调整止损", Options = "0:关闭|1:启用", Type = "bool" };
+			sd.ArgDescDic["trailingActivatePercent"] = new ArgDesc() { Text = "移动止损激活", Explain = "盈利达到此百分比后激活移动止损", Type = "number" };
+			sd.ArgDescDic["trailingStopPercent"] = new ArgDesc() { Text = "移动止损幅度", Explain = "从最高盈利回撤此百分比触发止损", Type = "number" };
+			sd.ArgDescDic["signalExpiryBars"] = new ArgDesc() { Text = "信号过期K线数", Explain = "一买/一卖信号超过此K线数后不再派生二买/二卖，0为不过期", Type = "number" };
+			sd.ArgDescDic["useZhongShuExit"] = new ArgDesc() { Text = "中枢回归平仓", Explain = "中枢回归时平仓", Options = "0:关闭|1:启用，价格回到中枢内部时平仓", Type = "bool" };
+			sd.ArgDescDic["minHoldBarsForExit"] = new ArgDesc() { Text = "最小持仓K线", Explain = "中枢退出最小持仓K线数", Type = "number" };
+			sd.ArgDescDic["tradeCooldownBars"] = new ArgDesc() { Text = "交易冷却期", Explain = "平仓后冷却K线数，冷却期内仅Buy1/Sell1可开仓", Type = "number" };
+			sd.ArgDescDic["noReversalOnBuy3Sell3"] = new ArgDesc() { Text = "Buy3/Sell3禁止反转", Explain = "禁止Buy3/Sell3反手", Options = "0:允许|1:禁止，禁止后Buy3/Sell3只能从空仓开仓", Type = "bool" };
+			sd.ArgDescDic["zhongShuExitScope"] = new ArgDesc() { Text = "中枢平仓范围", Explain = "中枢退出范围", Options = "0:仅Buy3/Sell3|1:Buy2/Buy3/Sell2/Sell3|2:所有买卖点", Type = "select" };
 
 			sd.ColorDic["macd-macd"] = "#BA55D3";
 			sd.ColorDic["macd-signal"] = "";

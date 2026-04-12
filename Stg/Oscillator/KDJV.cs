@@ -1,4 +1,4 @@
-﻿using Common;
+using Common;
 using Model;
 using Skender.Stock.Indicators;
 using stgInterface;
@@ -36,9 +36,33 @@ namespace QjySDK.Stg
             sd.ArgDic["lots"] = 1.0m;
             sd.ArgDic["money"] = 10000m;
 
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0 标准 1 仅做多 2 仅做空" }; 
-            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
-            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0:标准|1:仅做多|2:仅做空", Type = "select" }; 
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+
+
+            sd.ArgDescDic["highJ"] = new ArgDesc() { Text = "J值上限", Explain = "J值高于此值视为超买", Type = "number" };
+
+
+            sd.ArgDescDic["lookbackPeriods"] = new ArgDesc() { Text = "KDJ周期", Explain = "KDJ指标计算周期", Type = "number" };
+
+
+            sd.ArgDescDic["lossRate"] = new ArgDesc() { Text = "止损比例", Explain = "止损触发的价格百分比", Type = "number" };
+
+
+            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+
+            sd.ArgDescDic["lowJ"] = new ArgDesc() { Text = "J值下限", Explain = "J值低于此值视为超卖", Type = "number" };
+
+
+            sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
+
+
+            sd.ArgDescDic["signalPeriods"] = new ArgDesc() { Text = "信号线周期", Explain = "D线平滑周期", Type = "number" };
+
+
+            sd.ArgDescDic["smoothPeriods"] = new ArgDesc() { Text = "平滑周期", Explain = "K线平滑周期", Type = "number" };
             sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;
             sd.SubChartNum = 1;

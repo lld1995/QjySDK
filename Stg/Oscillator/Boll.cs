@@ -43,13 +43,17 @@ namespace QjySDK.Stg
             sd.ArgDic["money"] = 10000m;
 
             // 参数说明
-            sd.ArgDescDic["period"] = new ArgDesc() { Text = "布林带周期", Explain = "计算布林带的周期数" };
-            sd.ArgDescDic["stdDev"] = new ArgDesc() { Text = "标准差倍数", Explain = "布林带上下轨的标准差倍数" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "0 标准 1 仅做多 2 仅做空" };
-            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
-            sd.ArgDescDic["exitMode"] = new ArgDesc() { Text = "平仓模式", Explain = "0 回归中轨平仓 1 反向突破平仓" };
-            sd.ArgDescDic["stopLoss"] = new ArgDesc() { Text = "止损%", Explain = "固定止损百分比，0为不启用" };
-            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
+            sd.ArgDescDic["period"] = new ArgDesc() { Text = "布林带周期", Explain = "计算布林带的周期数", Type = "number" };
+            sd.ArgDescDic["stdDev"] = new ArgDesc() { Text = "标准差倍数", Explain = "布林带上下轨的标准差倍数", Type = "number" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0:标准|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+            sd.ArgDescDic["exitMode"] = new ArgDesc() { Text = "平仓模式", Explain = "平仓触发条件", Options = "0:回归中轨平仓|1:反向突破平仓", Type = "select" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+			sd.ArgDescDic["stopLoss"] = new ArgDesc() { Text = "止损%", Explain = "固定止损百分比，0为不启用", Type = "number" };
+
+            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+            sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
 
             sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;

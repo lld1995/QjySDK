@@ -54,7 +54,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["lookbackPeriod"] = new ArgDesc { Text = "回溯周期", Explain = "计算比值均值和标准差的滚动窗口" };
             sd.ArgDic["lookbackPeriod"] = 60;
 
-            sd.ArgDescDic["useAdaptivePeriod"] = new ArgDesc { Text = "自适应周期", Explain = "1=根据半衰期自动调整周期 0=固定周期" };
+            sd.ArgDescDic["useAdaptivePeriod"] = new ArgDesc { Text = "自适应周期", Explain = "根据半衰期自动调整周期", Options = "1:根据半衰期自动调整周期|0:固定周期", Type = "select" };
             sd.ArgDic["useAdaptivePeriod"] = 1;
 
             sd.ArgDescDic["minLookback"] = new ArgDesc { Text = "最小回溯周期", Explain = "自适应模式下的最小周期" };
@@ -63,7 +63,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["maxLookback"] = new ArgDesc { Text = "最大回溯周期", Explain = "自适应模式下的最大周期" };
             sd.ArgDic["maxLookback"] = 120;
 
-            sd.ArgDescDic["spreadMode"] = new ArgDesc { Text = "价差模式", Explain = "0=价格比值(Ratio) 1=价格差(Spread)" };
+            sd.ArgDescDic["spreadMode"] = new ArgDesc { Text = "价差模式", Explain = "价差计算方式", Options = "0:价格比值(Ratio)|1:价格差(Spread)", Type = "select" };
             sd.ArgDic["spreadMode"] = 0;
 
             // ==================== Z-Score阈值 ====================
@@ -77,7 +77,7 @@ namespace QjySDK.Stg
             sd.ArgDic["stopLossZScore"] = 3.5;
 
             // ==================== 半衰期过滤 ====================
-            sd.ArgDescDic["useHalfLifeFilter"] = new ArgDesc { Text = "半衰期过滤", Explain = "1=启用 0=禁用" };
+            sd.ArgDescDic["useHalfLifeFilter"] = new ArgDesc { Text = "半衰期过滤", Explain = "半衰期不合理时不入场", Options = "1:启用|0:禁用", Type = "bool" };
             sd.ArgDic["useHalfLifeFilter"] = 1;
 
             sd.ArgDescDic["minHalfLife"] = new ArgDesc { Text = "最小半衰期", Explain = "半衰期低于此值不入场(回归太快不稳定)" };
@@ -97,14 +97,14 @@ namespace QjySDK.Stg
             sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "超过此数量强制平仓" };
             sd.ArgDic["maxHoldBars"] = 50;
 
-            sd.ArgDescDic["useTimeDecay"] = new ArgDesc { Text = "时间衰减", Explain = "1=持仓越久出场阈值越宽松 0=固定" };
+            sd.ArgDescDic["useTimeDecay"] = new ArgDesc { Text = "时间衰减", Explain = "持仓时间衰减", Options = "1:持仓越久出场阈值越宽松|0:固定", Type = "select" };
             sd.ArgDic["useTimeDecay"] = 1;
 
             // ==================== 交易参数 ====================
-            sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "0=立即 1=下个开盘" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
             sd.ArgDic["sendMode"] = 0;
 
-            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0=固定手数 1=固定金额" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
             sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量" };

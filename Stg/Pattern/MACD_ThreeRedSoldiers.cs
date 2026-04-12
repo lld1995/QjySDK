@@ -97,26 +97,26 @@ namespace QjySDK.Stg
             sd.ArgDic["minBodySize"] = 0.1;
 
             // ========== MACD过滤参数 ==========
-            sd.ArgDescDic["macdMode"] = new ArgDesc { Text = "MACD确认模式", Explain = "0=金叉死叉 1=DIF与DEA位置关系 2=柱状图方向 3=综合模式" };
+            sd.ArgDescDic["macdMode"] = new ArgDesc { Text = "MACD确认模式", Explain = "MACD确认方式", Options = "0:金叉死叉|1:DIF与DEA位置关系|2:柱状图方向|3:综合模式", Type = "select" };
             sd.ArgDic["macdMode"] = 3;
 
-            sd.ArgDescDic["useZeroAxisFilter"] = new ArgDesc { Text = "零轴过滤", Explain = "1=启用(多头需MACD接近或高于零轴) 0=禁用" };
+            sd.ArgDescDic["useZeroAxisFilter"] = new ArgDesc { Text = "零轴过滤", Explain = "仅在零轴同侧交易", Options = "1:启用(多头需MACD接近或高于零轴)|0:禁用", Type = "bool" };
             sd.ArgDic["useZeroAxisFilter"] = 0;
 
             sd.ArgDescDic["zeroAxisTolerance"] = new ArgDesc { Text = "零轴容差", Explain = "MACD距离零轴的容差范围" };
             sd.ArgDic["zeroAxisTolerance"] = 0.0;
 
-            sd.ArgDescDic["useHistogramConfirm"] = new ArgDesc { Text = "柱状图确认", Explain = "1=要求柱状图方向与信号一致 0=禁用" };
+            sd.ArgDescDic["useHistogramConfirm"] = new ArgDesc { Text = "柱状图确认", Explain = "要求柱状图方向一致", Options = "1:要求柱状图方向与信号一致|0:禁用", Type = "bool" };
             sd.ArgDic["useHistogramConfirm"] = 1;
 
             // ========== 交易参数 ==========
-            sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易模式", Explain = "0=双向 1=仅做多 2=仅做空" };
+            sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDic["mode"] = 0;
 
-            sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "下单模式", Explain = "0=立即下单 1=下根K线开盘下单" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "下单模式", Explain = "下单执行时机", Options = "0:立即下单|1:下根K线开盘下单", Type = "select" };
             sd.ArgDic["sendMode"] = 0;
 
-            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0=固定手数 1=固定金额" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
             sd.ArgDescDic["lots"] = new ArgDesc { Text = "固定手数", Explain = "每次交易的固定手数" };
@@ -126,19 +126,19 @@ namespace QjySDK.Stg
             sd.ArgDic["money"] = 10000.0;
 
             // ========== 止损止盈参数 ==========
-            sd.ArgDescDic["useStopLoss"] = new ArgDesc { Text = "启用止损", Explain = "1=启用 0=禁用" };
+            sd.ArgDescDic["useStopLoss"] = new ArgDesc { Text = "启用止损", Explain = "触及止损价自动平仓", Options = "1:启用|0:禁用", Type = "bool" };
             sd.ArgDic["useStopLoss"] = 1;
 
             sd.ArgDescDic["stopLossPercent"] = new ArgDesc { Text = "止损百分比", Explain = "止损距离占入场价的百分比" };
             sd.ArgDic["stopLossPercent"] = 5.0m;
 
-            sd.ArgDescDic["useTakeProfit"] = new ArgDesc { Text = "启用止盈", Explain = "1=启用 0=禁用" };
+            sd.ArgDescDic["useTakeProfit"] = new ArgDesc { Text = "启用止盈", Explain = "触及止盈价自动平仓", Options = "1:启用|0:禁用", Type = "bool" };
             sd.ArgDic["useTakeProfit"] = 1;
 
             sd.ArgDescDic["takeProfitPercent"] = new ArgDesc { Text = "止盈百分比", Explain = "止盈距离占入场价的百分比" };
             sd.ArgDic["takeProfitPercent"] = 10.0m;
 
-            sd.ArgDescDic["useMacdExit"] = new ArgDesc { Text = "MACD反向出场", Explain = "1=MACD反向交叉时平仓 0=禁用" };
+            sd.ArgDescDic["useMacdExit"] = new ArgDesc { Text = "MACD反向出场", Explain = "MACD反向交叉时平仓", Options = "1:MACD反向交叉时平仓|0:禁用", Type = "bool" };
             sd.ArgDic["useMacdExit"] = 1;
 
             // ========== 其他参数 ==========

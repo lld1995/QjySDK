@@ -68,6 +68,31 @@ namespace QjySDK.Stg
 			sd.ArgDic["useZeroFilter"] = 0;    // 是否使用零轴过滤（1:只在零轴上方做多，零轴下方做空）
 
 			// 图表颜色配置
+
+
+			sd.ArgDescDic["fastPeriod"] = new ArgDesc() { Text = "快速EMA周期", Explain = "MACD快速EMA计算周期", Type = "number" };
+
+			sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+
+			sd.ArgDescDic["minBarCount"] = new ArgDesc() { Text = "最少K线数", Explain = "策略启动所需的最少K线数量", Type = "number" };
+
+			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+
+			sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
+
+			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+
+			sd.ArgDescDic["signalPeriod"] = new ArgDesc() { Text = "信号线周期", Explain = "MACD信号线周期", Type = "number" };
+
+			sd.ArgDescDic["slowPeriod"] = new ArgDesc() { Text = "慢速EMA周期", Explain = "MACD慢速EMA计算周期", Type = "number" };
+
+			sd.ArgDescDic["stopLossPercent"] = new ArgDesc() { Text = "止损百分比", Explain = "止损触发的价格百分比", Type = "number" };
+
+			sd.ArgDescDic["useStopLoss"] = new ArgDesc() { Text = "启用止损", Explain = "触及止损价自动平仓", Options = "0:关闭|1:启用", Type = "bool" };
+
+			sd.ArgDescDic["useZeroFilter"] = new ArgDesc() { Text = "零轴过滤", Explain = "仅在零轴同侧交易", Options = "0:关闭|1:启用", Type = "bool" };
 			sd.ColorDic["macd-macd"] = "#2196F3";           // MACD线颜色（蓝色）
 			sd.ColorDic["macd-signal"] = "#FF9800";         // 信号线颜色（橙色）
 			sd.ColorDic["macd-histogram"] = "#F6465D;#0ECB81"; // 柱状图颜色（红/绿）

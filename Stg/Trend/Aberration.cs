@@ -61,17 +61,17 @@ namespace QjySDK.Stg
             sd.ArgDic["money"] = 10000m;         // 固定金额
 
             // 参数说明
-            sd.ArgDescDic["maPeriod"] = new ArgDesc() { Text = "均线周期", Explain = "计算中轨的移动平均周期" };
-            sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "计算ATR的周期数" };
-            sd.ArgDescDic["atrMultiplier"] = new ArgDesc() { Text = "ATR倍数", Explain = "通道上下轨距离中轨的ATR倍数" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "0:双向交易 1:仅做多 2:仅做空" };
-            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0:立即发单 1:下个开盘发单" };
-            sd.ArgDescDic["exitMode"] = new ArgDesc() { Text = "平仓模式", Explain = "0:中轨平仓 1:反向突破平仓" };
-            sd.ArgDescDic["useTrailingStop"] = new ArgDesc() { Text = "跟踪止损", Explain = "0:不使用 1:使用ATR跟踪止损" };
-            sd.ArgDescDic["trailingAtrMultiplier"] = new ArgDesc() { Text = "止损ATR倍数", Explain = "跟踪止损距离的ATR倍数" };
-            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0:固定手数 1:固定金额" };
-            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "固定手数", Explain = "每次交易的固定手数" };
-            sd.ArgDescDic["money"] = new ArgDesc() { Text = "固定金额", Explain = "每次交易的固定金额" };
+            sd.ArgDescDic["maPeriod"] = new ArgDesc() { Text = "均线周期", Explain = "计算中轨的移动平均周期", Type = "number" };
+            sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "计算ATR的周期数", Type = "number" };
+            sd.ArgDescDic["atrMultiplier"] = new ArgDesc() { Text = "ATR倍数", Explain = "通道上下轨距离中轨的ATR倍数", Type = "number" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向交易|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即发单|1:下个开盘发单", Type = "select" };
+            sd.ArgDescDic["exitMode"] = new ArgDesc() { Text = "平仓模式", Explain = "平仓触发条件", Options = "0:中轨平仓|1:反向突破平仓", Type = "select" };
+            sd.ArgDescDic["useTrailingStop"] = new ArgDesc() { Text = "跟踪止损", Explain = "跟踪最高/低点调整止损", Options = "0:不使用|1:使用ATR跟踪止损", Type = "bool" };
+            sd.ArgDescDic["trailingAtrMultiplier"] = new ArgDesc() { Text = "止损ATR倍数", Explain = "跟踪止损距离的ATR倍数", Type = "number" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "固定手数", Explain = "每次交易的固定手数", Type = "number" };
+            sd.ArgDescDic["money"] = new ArgDesc() { Text = "固定金额", Explain = "每次交易的固定金额", Type = "number" };
 
             sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;

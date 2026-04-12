@@ -83,10 +83,10 @@ namespace QjySDK.Stg
             sd.ArgDescDic["maxPyramidUnits"] = new ArgDesc { Text = "最大加仓次数", Explain = "最多允许加仓的次数（包括首次建仓）" };
             sd.ArgDic["maxPyramidUnits"] = 4;
 
-            sd.ArgDescDic["enablePyramiding"] = new ArgDesc { Text = "启用加仓", Explain = "0:不加仓 1:金字塔加仓" };
+            sd.ArgDescDic["enablePyramiding"] = new ArgDesc { Text = "启用加仓", Explain = "是否启用金字塔加仓", Options = "0:不加仓|1:金字塔加仓", Type = "bool" };
             sd.ArgDic["enablePyramiding"] = 0;
 
-            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "0:固定手数 1:固定金额" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
             sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量" };
             sd.ArgDic["lots"] = 1.0m;

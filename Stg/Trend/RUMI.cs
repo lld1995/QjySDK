@@ -90,29 +90,29 @@ namespace QjySDK.Stg
             sd.ArgDic["volumeMultiplier"] = 1.5;      // 成交量倍数阈值
 
             // ========== 参数说明 ==========
-            sd.ArgDescDic["rumiPeriod"] = new ArgDesc() { Text = "RUMI周期", Explain = "相对动量计算周期" };
-            sd.ArgDescDic["rumiSmooth"] = new ArgDesc() { Text = "RUMI平滑", Explain = "RUMI平滑周期" };
-            sd.ArgDescDic["signalPeriod"] = new ArgDesc() { Text = "信号线周期", Explain = "RUMI信号线周期" };
-            sd.ArgDescDic["rumiThreshold"] = new ArgDesc() { Text = "RUMI阈值", Explain = "过滤弱信号的阈值" };
-            sd.ArgDescDic["fastEMA"] = new ArgDesc() { Text = "快速EMA", Explain = "快速EMA周期" };
-            sd.ArgDescDic["slowEMA"] = new ArgDesc() { Text = "慢速EMA", Explain = "慢速EMA周期" };
-            sd.ArgDescDic["trendEMA"] = new ArgDesc() { Text = "趋势EMA", Explain = "趋势过滤EMA周期" };
-            sd.ArgDescDic["useTrendFilter"] = new ArgDesc() { Text = "趋势过滤", Explain = "0:不过滤 1:使用趋势过滤" };
-            sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期" };
-            sd.ArgDescDic["atrStopMultiplier"] = new ArgDesc() { Text = "止损ATR倍数", Explain = "止损距离=ATR×倍数" };
-            sd.ArgDescDic["atrProfitMultiplier"] = new ArgDesc() { Text = "止盈ATR倍数", Explain = "止盈距离=ATR×倍数" };
-            sd.ArgDescDic["useTrailingStop"] = new ArgDesc() { Text = "移动止损", Explain = "0:固定止损 1:移动止损" };
-            sd.ArgDescDic["trailingATR"] = new ArgDesc() { Text = "移动止损ATR", Explain = "移动止损距离ATR倍数" };
-            sd.ArgDescDic["riskPerTrade"] = new ArgDesc() { Text = "单笔风险比例", Explain = "每笔交易占账户权益的比例" };
-            sd.ArgDescDic["accountEquity"] = new ArgDesc() { Text = "账户权益", Explain = "用于计算仓位的账户权益" };
-            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0:固定手数 1:固定金额 2:按风险计算" };
-            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "固定手数", Explain = "固定手数模式下的手数" };
-            sd.ArgDescDic["money"] = new ArgDesc() { Text = "固定金额", Explain = "固定金额模式下的金额" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易方向", Explain = "0:双向 1:仅做多 2:仅做空" };
-            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0:立即发单 1:下个开盘发单" };
-            sd.ArgDescDic["confirmBars"] = new ArgDesc() { Text = "确认K线数", Explain = "信号确认所需K线数" };
-            sd.ArgDescDic["useVolumeFilter"] = new ArgDesc() { Text = "成交量过滤", Explain = "0:不过滤 1:过滤低量信号" };
-            sd.ArgDescDic["volumeMultiplier"] = new ArgDesc() { Text = "成交量倍数", Explain = "成交量需超过均量的倍数" };
+            sd.ArgDescDic["rumiPeriod"] = new ArgDesc() { Text = "RUMI周期", Explain = "相对动量计算周期", Type = "number" };
+            sd.ArgDescDic["rumiSmooth"] = new ArgDesc() { Text = "RUMI平滑", Explain = "RUMI平滑周期", Type = "number" };
+            sd.ArgDescDic["signalPeriod"] = new ArgDesc() { Text = "信号线周期", Explain = "RUMI信号线周期", Type = "number" };
+            sd.ArgDescDic["rumiThreshold"] = new ArgDesc() { Text = "RUMI阈值", Explain = "过滤弱信号的阈值", Type = "number" };
+            sd.ArgDescDic["fastEMA"] = new ArgDesc() { Text = "快速EMA", Explain = "快速EMA周期", Type = "number" };
+            sd.ArgDescDic["slowEMA"] = new ArgDesc() { Text = "慢速EMA", Explain = "慢速EMA周期", Type = "number" };
+            sd.ArgDescDic["trendEMA"] = new ArgDesc() { Text = "趋势EMA", Explain = "趋势过滤EMA周期", Type = "number" };
+            sd.ArgDescDic["useTrendFilter"] = new ArgDesc() { Text = "趋势过滤", Explain = "仅在主趋势方向交易", Options = "0:不过滤|1:使用趋势过滤", Type = "bool" };
+            sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期", Type = "number" };
+            sd.ArgDescDic["atrStopMultiplier"] = new ArgDesc() { Text = "止损ATR倍数", Explain = "止损距离=ATR×倍数", Type = "number" };
+            sd.ArgDescDic["atrProfitMultiplier"] = new ArgDesc() { Text = "止盈ATR倍数", Explain = "止盈距离=ATR×倍数", Type = "number" };
+            sd.ArgDescDic["useTrailingStop"] = new ArgDesc() { Text = "移动止损", Explain = "跟踪最高/低点调整止损", Options = "0:固定止损|1:移动止损", Type = "bool" };
+            sd.ArgDescDic["trailingATR"] = new ArgDesc() { Text = "移动止损ATR", Explain = "移动止损距离ATR倍数", Type = "number" };
+            sd.ArgDescDic["riskPerTrade"] = new ArgDesc() { Text = "单笔风险比例", Explain = "每笔交易占账户权益的比例", Type = "number" };
+            sd.ArgDescDic["accountEquity"] = new ArgDesc() { Text = "账户权益", Explain = "用于计算仓位的账户权益", Type = "number" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额|2:按风险计算", Type = "select" };
+            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "固定手数", Explain = "固定手数模式下的手数", Type = "number" };
+            sd.ArgDescDic["money"] = new ArgDesc() { Text = "固定金额", Explain = "固定金额模式下的金额", Type = "number" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即发单|1:下个开盘发单", Type = "select" };
+            sd.ArgDescDic["confirmBars"] = new ArgDesc() { Text = "确认K线数", Explain = "信号确认所需K线数", Type = "number" };
+            sd.ArgDescDic["useVolumeFilter"] = new ArgDesc() { Text = "成交量过滤", Explain = "过滤低成交量信号", Options = "0:不过滤|1:过滤低量信号", Type = "bool" };
+            sd.ArgDescDic["volumeMultiplier"] = new ArgDesc() { Text = "成交量倍数", Explain = "成交量需超过均量的倍数", Type = "number" };
 
             sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;

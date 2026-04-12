@@ -60,25 +60,25 @@ namespace QjySDK.Stg
             sd.ArgDic["money"] = 10000m;             // 固定金额
 
             // 参数说明
-            sd.ArgDescDic["useAdaptiveRsi"] = new ArgDesc() { Text = "自适应RSI", Explain = "0 使用固定RSI周期 1 使用傅里叶主周期作为RSI周期" };
-            sd.ArgDescDic["rsiPeriod"] = new ArgDesc() { Text = "RSI周期", Explain = "RSI计算周期，自适应关闭时使用，通常为14" };
-            sd.ArgDescDic["rsiPeriodMin"] = new ArgDesc() { Text = "RSI最小周期", Explain = "自适应RSI周期的最小值" };
-            sd.ArgDescDic["rsiPeriodMax"] = new ArgDesc() { Text = "RSI最大周期", Explain = "自适应RSI周期的最大值" };
-            sd.ArgDescDic["overbought"] = new ArgDesc() { Text = "超买线", Explain = "超买区域阈值，通常为70" };
-            sd.ArgDescDic["oversold"] = new ArgDesc() { Text = "超卖线", Explain = "超卖区域阈值，通常为30" };
-            sd.ArgDescDic["fftPeriod"] = new ArgDesc() { Text = "FFT窗口", Explain = "傅里叶变换分析窗口大小，必须是2的幂次(如32,64,128)" };
-            sd.ArgDescDic["dominantPeriodMin"] = new ArgDesc() { Text = "最小周期", Explain = "识别主周期的最小值" };
-            sd.ArgDescDic["dominantPeriodMax"] = new ArgDesc() { Text = "最大周期", Explain = "识别主周期的最大值" };
-            sd.ArgDescDic["phaseThresholdBuy"] = new ArgDesc() { Text = "买入相位", Explain = "买入相位阈值，接近-1表示周期底部" };
-            sd.ArgDescDic["phaseThresholdSell"] = new ArgDesc() { Text = "卖出相位", Explain = "卖出相位阈值，接近1表示周期顶部" };
-            sd.ArgDescDic["harmonics"] = new ArgDesc() { Text = "谐波数", Explain = "用于重构信号的谐波数量" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "0 双向交易 1 仅做多 2 仅做空" };
-            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即发单 1 下个开盘发单" };
-            sd.ArgDescDic["signalMode"] = new ArgDesc() { Text = "信号模式", Explain = "0 RSI+相位综合 1 仅相位信号 2 RSI确认相位" };
-            sd.ArgDescDic["stopLoss"] = new ArgDesc() { Text = "止损%", Explain = "固定止损百分比，0为不启用" };
-            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
-            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数数量" };
-            sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额数量" };
+            sd.ArgDescDic["useAdaptiveRsi"] = new ArgDesc() { Text = "自适应RSI", Explain = "根据波动率调整RSI阈值", Options = "0:使用固定RSI周期|1:使用傅里叶主周期作为RSI周期", Type = "select" };
+            sd.ArgDescDic["rsiPeriod"] = new ArgDesc() { Text = "RSI周期", Explain = "RSI计算周期，自适应关闭时使用，通常为14", Type = "number" };
+            sd.ArgDescDic["rsiPeriodMin"] = new ArgDesc() { Text = "RSI最小周期", Explain = "自适应RSI周期的最小值", Type = "number" };
+            sd.ArgDescDic["rsiPeriodMax"] = new ArgDesc() { Text = "RSI最大周期", Explain = "自适应RSI周期的最大值", Type = "number" };
+            sd.ArgDescDic["overbought"] = new ArgDesc() { Text = "超买线", Explain = "超买区域阈值，通常为70", Type = "number" };
+            sd.ArgDescDic["oversold"] = new ArgDesc() { Text = "超卖线", Explain = "超卖区域阈值，通常为30", Type = "number" };
+            sd.ArgDescDic["fftPeriod"] = new ArgDesc() { Text = "FFT窗口", Explain = "傅里叶变换分析窗口大小，必须是2的幂次(如32,64,128)", Type = "number" };
+            sd.ArgDescDic["dominantPeriodMin"] = new ArgDesc() { Text = "最小周期", Explain = "识别主周期的最小值", Type = "number" };
+            sd.ArgDescDic["dominantPeriodMax"] = new ArgDesc() { Text = "最大周期", Explain = "识别主周期的最大值", Type = "number" };
+            sd.ArgDescDic["phaseThresholdBuy"] = new ArgDesc() { Text = "买入相位", Explain = "买入相位阈值，接近-1表示周期底部", Type = "number" };
+            sd.ArgDescDic["phaseThresholdSell"] = new ArgDesc() { Text = "卖出相位", Explain = "卖出相位阈值，接近1表示周期顶部", Type = "number" };
+            sd.ArgDescDic["harmonics"] = new ArgDesc() { Text = "谐波数", Explain = "用于重构信号的谐波数量", Type = "number" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向交易|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即发单|1:下个开盘发单", Type = "select" };
+            sd.ArgDescDic["signalMode"] = new ArgDesc() { Text = "信号模式", Explain = "信号触发方式", Options = "0:RSI+相位综合|1:仅相位信号|2:RSI确认相位", Type = "select" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+			sd.ArgDescDic["stopLoss"] = new ArgDesc() { Text = "止损%", Explain = "固定止损百分比，0为不启用", Type = "number" };
+            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数数量", Type = "number" };
+            sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额数量", Type = "number" };
 
             sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;

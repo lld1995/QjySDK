@@ -53,14 +53,14 @@ namespace QjySDK.Stg
 			// 发单
 			sd.ArgDic["sendMode"] = 0;
 
-			sd.ArgDescDic["gridRatio"] = new ArgDesc() { Text = "网格比例%", Explain = "相邻网格价格比例百分比，如1.5表示每格间距1.5%" };
-			sd.ArgDescDic["investPerGrid"] = new ArgDesc() { Text = "每格投入金额", Explain = "每个网格投入的金额(非手数)" };
-			sd.ArgDescDic["maxTotalInvest"] = new ArgDesc() { Text = "最大总投入", Explain = "持仓总投入金额上限，0为不限" };
-			sd.ArgDescDic["lowerPriceLimit"] = new ArgDesc() { Text = "价格下限", Explain = "低于此价格停止买入，0为不限" };
-			sd.ArgDescDic["upperPriceLimit"] = new ArgDesc() { Text = "价格上限", Explain = "高于此价格停止卖出，0为不限" };
-			sd.ArgDescDic["useStopLoss"] = new ArgDesc() { Text = "启用止损", Explain = "0 关闭 1 启用" };
-			sd.ArgDescDic["stopLossPercent"] = new ArgDesc() { Text = "止损百分比", Explain = "价格偏离基准超过此百分比时全部止损" };
-			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
+			sd.ArgDescDic["gridRatio"] = new ArgDesc() { Text = "网格比例%", Explain = "相邻网格价格比例百分比，如1.5表示每格间距1.5%", Type = "number" };
+			sd.ArgDescDic["investPerGrid"] = new ArgDesc() { Text = "每格投入金额", Explain = "每个网格投入的金额(非手数)", Type = "number" };
+			sd.ArgDescDic["maxTotalInvest"] = new ArgDesc() { Text = "最大总投入", Explain = "持仓总投入金额上限，0为不限", Type = "number" };
+			sd.ArgDescDic["lowerPriceLimit"] = new ArgDesc() { Text = "价格下限", Explain = "低于此价格停止买入，0为不限", Type = "number" };
+			sd.ArgDescDic["upperPriceLimit"] = new ArgDesc() { Text = "价格上限", Explain = "高于此价格停止卖出，0为不限", Type = "number" };
+			sd.ArgDescDic["useStopLoss"] = new ArgDesc() { Text = "启用止损", Explain = "触及止损价自动平仓", Options = "0:关闭|1:启用", Type = "bool" };
+			sd.ArgDescDic["stopLossPercent"] = new ArgDesc() { Text = "止损百分比", Explain = "价格偏离基准超过此百分比时全部止损", Type = "number" };
+			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
 
 			sd.MaxSymbolNum = 1000;
 			sd.UseGlobalCalc = 0;

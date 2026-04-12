@@ -217,7 +217,7 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 | **交易下单** | 买入、卖出、平仓等订单类型支持 |
 | **品种查询** | 获取交易品种详细信息 |
 | **图表绑定** | 支持绑定曲线、矩形、文本等图形元素 |
-| **参数配置** | 灵活的策略参数定义与配置 |
+| **参数配置** | 灵活的策略参数定义与配置，支持下拉选择/开关/数值等多种控件类型 |
 
 ### 支持的周期
 
@@ -363,10 +363,32 @@ await strategy.Run();
 | 属性 | 类型 | 描述 |
 |------|------|------|
 | `ArgDic` | `Dictionary<string, object>` | 参数默认值 |
-| `ArgDescDic` | `Dictionary<string, ArgDesc>` | 参数描述 |
+| `ArgDescDic` | `Dictionary<string, ArgDesc>` | 参数描述（含控件类型和选项） |
 | `MaxSymbolNum` | `int` | 最大品种数量 |
 | `SubChartNum` | `int` | 副图数量 |
 | `ColorDic` | `Dictionary<string, string>` | 颜色配置 |
+
+### ArgDesc
+
+参数描述类，定义每个策略参数的显示名称、说明文本和控件类型。
+
+| 属性 | 类型 | 描述 |
+|------|------|------|
+| `Text` | `string` | 参数显示名称 |
+| `Explain` | `string` | 参数说明文本，显示在参数名称下方 |
+| `Type` | `string` | 控件类型，决定客户端渲染的 UI 控件 |
+| `Options` | `string` | select/bool 类型的选项定义，`"值:标签"` 格式，`\|` 分隔 |
+
+#### Type 取值说明
+
+| Type 值 | 控件 | Options 格式 | 示例 |
+|---------|------|-------------|------|
+| `"select"` | 下拉选择框 | `"0:选项A\|1:选项B\|2:选项C"` | `Options = "0:双向\|1:仅做多\|2:仅做空"` |
+| `"bool"` | 开关 | `"0:关闭标签\|1:启用标签"` | `Options = "0:关闭\|1:启用"` |
+| `"number"` | 数值输入框 | 不需要 Options | `Explain = "RSI计算周期，通常为14"` |
+| `null` / 不填 | 文本输入框 | 不需要 Options | 向后兼容，旧策略不受影响 |
+
+> **注意**: `Explain` 用于描述参数含义，`Options` 用于定义选项列表，两者职责分离。
 
 ### TableUnit
 
@@ -491,6 +513,12 @@ public class MaStrategy : StgBase
     {
         var desc = new StgDesc();
         desc.ArgDic["period"] = 20;
+        desc.ArgDic["mode"] = 0;
+        desc.ArgDic["useTrendFilter"] = 0;
+
+        desc.ArgDescDic["period"] = new ArgDesc() { Text = "MA周期", Explain = "均线计算周期", Type = "number" };
+        desc.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+        desc.ArgDescDic["useTrendFilter"] = new ArgDesc() { Text = "趋势过滤", Explain = "仅在主趋势方向交易", Options = "0:关闭|1:启用", Type = "bool" };
         return desc;
     }
 

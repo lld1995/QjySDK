@@ -68,22 +68,26 @@ namespace QjySDK.Stg
             sd.ArgDic["money"] = 10000m;
 
             // 参数说明
-            sd.ArgDescDic["maPeriod"] = new ArgDesc() { Text = "MA周期", Explain = "趋势判断的均线周期" };
-            sd.ArgDescDic["maType"] = new ArgDesc() { Text = "MA类型", Explain = "0 简单移动平均SMA 1 指数移动平均EMA" };
-            sd.ArgDescDic["maSlopePeriod"] = new ArgDesc() { Text = "MA斜率周期", Explain = "计算MA方向的回溯周期" };
-            sd.ArgDescDic["macdFast"] = new ArgDesc() { Text = "MACD快线", Explain = "MACD快线周期，通常为12" };
-            sd.ArgDescDic["macdSlow"] = new ArgDesc() { Text = "MACD慢线", Explain = "MACD慢线周期，通常为26" };
-            sd.ArgDescDic["macdSignal"] = new ArgDesc() { Text = "MACD信号线", Explain = "MACD信号线周期，通常为9" };
-            sd.ArgDescDic["macdMode"] = new ArgDesc() { Text = "MACD模式", Explain = "0 金叉死叉 1 DIF与DEA位置 2 柱状图方向" };
-            sd.ArgDescDic["obvMaPeriod"] = new ArgDesc() { Text = "OBV均线周期", Explain = "OBV的移动平均周期" };
-            sd.ArgDescDic["obvMode"] = new ArgDesc() { Text = "OBV模式", Explain = "0 OBV与均线位置 1 OBV金叉死叉" };
-            sd.ArgDescDic["resonanceMode"] = new ArgDesc() { Text = "共振模式", Explain = "0 三因子同时满足 1 至少两因子满足" };
-            sd.ArgDescDic["resonanceWindow"] = new ArgDesc() { Text = "共振窗口", Explain = "信号在N根K线内出现视为共振" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "0 双向交易 1 仅做多 2 仅做空" };
-            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "0 立即 1 下个开盘" };
-            sd.ArgDescDic["exitMode"] = new ArgDesc() { Text = "出场模式", Explain = "0 反向共振 1 任一因子反转 2 MA反转 3 MACD反转" };
-            sd.ArgDescDic["stopLoss"] = new ArgDesc() { Text = "止损%", Explain = "固定止损百分比，0为不启用" };
-            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "0 固定手数 1 固定金额" };
+            sd.ArgDescDic["maPeriod"] = new ArgDesc() { Text = "MA周期", Explain = "趋势判断的均线周期", Type = "number" };
+            sd.ArgDescDic["maType"] = new ArgDesc() { Text = "MA类型", Explain = "均线算法选择", Options = "0:简单移动平均SMA|1:指数移动平均EMA", Type = "select" };
+            sd.ArgDescDic["maSlopePeriod"] = new ArgDesc() { Text = "MA斜率周期", Explain = "计算MA方向的回溯周期", Type = "number" };
+            sd.ArgDescDic["macdFast"] = new ArgDesc() { Text = "MACD快线", Explain = "MACD快线周期，通常为12", Type = "number" };
+            sd.ArgDescDic["macdSlow"] = new ArgDesc() { Text = "MACD慢线", Explain = "MACD慢线周期，通常为26", Type = "number" };
+            sd.ArgDescDic["macdSignal"] = new ArgDesc() { Text = "MACD信号线", Explain = "MACD信号线周期，通常为9", Type = "number" };
+            sd.ArgDescDic["macdMode"] = new ArgDesc() { Text = "MACD模式", Explain = "MACD确认方式", Options = "0:金叉死叉|1:DIF与DEA位置|2:柱状图方向", Type = "select" };
+            sd.ArgDescDic["obvMaPeriod"] = new ArgDesc() { Text = "OBV均线周期", Explain = "OBV的移动平均周期", Type = "number" };
+            sd.ArgDescDic["obvMode"] = new ArgDesc() { Text = "OBV模式", Explain = "OBV信号判断方式", Options = "0:OBV与均线位置|1:OBV金叉死叉", Type = "select" };
+            sd.ArgDescDic["resonanceMode"] = new ArgDesc() { Text = "共振模式", Explain = "共振确认方式", Options = "0:三因子同时满足|1:至少两因子满足", Type = "select" };
+            sd.ArgDescDic["resonanceWindow"] = new ArgDesc() { Text = "共振窗口", Explain = "信号在N根K线内出现视为共振", Type = "number" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向交易|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+            sd.ArgDescDic["exitMode"] = new ArgDesc() { Text = "出场模式", Explain = "平仓触发条件", Options = "0:反向共振|1:任一因子反转|2:MA反转|3:MACD反转", Type = "select" };
+            sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+			sd.ArgDescDic["stopLoss"] = new ArgDesc() { Text = "止损%", Explain = "固定止损百分比，0为不启用", Type = "number" };
+
+            sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
+
+            sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额", Type = "number" };
 
             sd.MaxSymbolNum = 1000;
             sd.UseGlobalCalc = 0;
