@@ -85,7 +85,7 @@ namespace QjySDK.Stg
             sd.ArgDic["sendMode"] = 0;                // 发单模式
 
             // ========== 信号确认 ==========
-            sd.ArgDic["confirmBars"] = 2;             // 信号确认K线数
+            sd.ArgDic["confirmBars"] = 1;             // 信号确认K线数（crossover 为 1-bar 事件，>1 会导致信号无法确认）
             sd.ArgDic["useVolumeFilter"] = 0;         // 是否使用成交量过滤 0:否 1:是
             sd.ArgDic["volumeMultiplier"] = 1.5;      // 成交量倍数阈值
 
@@ -223,6 +223,7 @@ namespace QjySDK.Stg
             decimal trendEmaValue = (decimal)(trendEmaResult.Last().Ema ?? 0);
             decimal prevFastEma = fastEmaResult.Count > 1 ? (decimal)(fastEmaResult[fastEmaResult.Count - 2].Ema ?? 0) : fastEmaValue;
             decimal prevSlowEma = slowEmaResult.Count > 1 ? (decimal)(slowEmaResult[slowEmaResult.Count - 2].Ema ?? 0) : slowEmaValue;
+            decimal prevTrendEma = trendEmaResult.Count > 1 ? (decimal)(trendEmaResult[trendEmaResult.Count - 2].Ema ?? 0) : trendEmaValue;
 
             if (atr <= 0) return;
 
@@ -246,7 +247,7 @@ namespace QjySDK.Stg
 
             // 执行交易逻辑
             ExecuteRumiLogic(tu, period, q, state, unitSize, atr, rumiData,
-                fastEmaValue, slowEmaValue, trendEmaValue, prevFastEma, prevSlowEma,
+                fastEmaValue, slowEmaValue, trendEmaValue, prevFastEma, prevSlowEma, prevTrendEma,
                 mode, sendMode, useTrendFilter, rumiThreshold,
                 atrStopMultiplier, atrProfitMultiplier,
                 useTrailingStop, trailingATR,
@@ -485,7 +486,7 @@ namespace QjySDK.Stg
         /// </summary>
         private void ExecuteRumiLogic(TableUnit tu, Period period, SkQuote q, RumiState state,
             decimal unitSize, decimal atr, RumiData rumiData,
-            decimal fastEma, decimal slowEma, decimal trendEma, decimal prevFastEma, decimal prevSlowEma,
+            decimal fastEma, decimal slowEma, decimal trendEma, decimal prevFastEma, decimal prevSlowEma, decimal prevTrendEma,
             int mode, int sendMode, int useTrendFilter, double rumiThreshold,
             double atrStopMultiplier, double atrProfitMultiplier,
             int useTrailingStop, double trailingATR,
@@ -495,7 +496,7 @@ namespace QjySDK.Stg
             if (state.Direction == 0)
             {
                 HandleEntrySignal(tu, period, q, state, unitSize, atr, rumiData,
-                    fastEma, slowEma, trendEma, prevFastEma, prevSlowEma,
+                    fastEma, slowEma, trendEma, prevFastEma, prevSlowEma, prevTrendEma,
                     mode, sendMode, useTrendFilter, rumiThreshold,
                     atrStopMultiplier, atrProfitMultiplier,
                     confirmBars, useVolumeFilter, volumeMultiplier, avgVolume);
@@ -514,26 +515,22 @@ namespace QjySDK.Stg
         /// </summary>
         private void HandleEntrySignal(TableUnit tu, Period period, SkQuote q, RumiState state,
             decimal unitSize, decimal atr, RumiData rumiData,
-            decimal fastEma, decimal slowEma, decimal trendEma, decimal prevFastEma, decimal prevSlowEma,
+            decimal fastEma, decimal slowEma, decimal trendEma, decimal prevFastEma, decimal prevSlowEma, decimal prevTrendEma,
             int mode, int sendMode, int useTrendFilter, double rumiThreshold,
             double atrStopMultiplier, double atrProfitMultiplier,
             int confirmBars, int useVolumeFilter, double volumeMultiplier, decimal avgVolume)
         {
-            // 检测RUMI交叉信号
+            // 检测RUMI交叉信号（触发事件）
             bool rumiCrossUp = rumiData.PrevRUMI <= rumiData.PrevSignal && rumiData.RUMI > rumiData.Signal;
             bool rumiCrossDown = rumiData.PrevRUMI >= rumiData.PrevSignal && rumiData.RUMI < rumiData.Signal;
 
-            // 检测均线交叉
-            bool emaCrossUp = prevFastEma <= prevSlowEma && fastEma > slowEma;
-            bool emaCrossDown = prevFastEma >= prevSlowEma && fastEma < slowEma;
-
-            // 趋势条件
+            // 趋势条件（EMA方向，不再要求与RUMI同bar发生金叉死叉）
             bool upTrend = fastEma > slowEma;
             bool downTrend = fastEma < slowEma;
 
-            // 趋势过滤条件
-            bool trendFilterLong = useTrendFilter == 0 || q.Close > trendEma;
-            bool trendFilterShort = useTrendFilter == 0 || q.Close < trendEma;
+            // 趋势过滤条件（用趋势线自身斜率，而非close瞬时位置）
+            bool trendFilterLong = useTrendFilter == 0 || trendEma > prevTrendEma;
+            bool trendFilterShort = useTrendFilter == 0 || trendEma < prevTrendEma;
 
             // RUMI强度过滤
             bool rumiStrengthLong = rumiData.RUMI > (decimal)rumiThreshold;
@@ -542,11 +539,11 @@ namespace QjySDK.Stg
             // 成交量过滤
             bool volumeOk = useVolumeFilter == 0 || q.Volume > avgVolume * (decimal)volumeMultiplier;
 
-            // 做多信号（要求RUMI交叉和EMA交叉同时确认）
-            bool longSignal = rumiCrossUp && emaCrossUp && upTrend && trendFilterLong && rumiStrengthLong && volumeOk;
-            
-            // 做空信号（要求RUMI交叉和EMA交叉同时确认）
-            bool shortSignal = rumiCrossDown && emaCrossDown && downTrend && trendFilterShort && rumiStrengthShort && volumeOk;
+            // 做多信号（RUMI交叉为事件，EMA趋势与趋势斜率作为方向过滤）
+            bool longSignal = rumiCrossUp && upTrend && trendFilterLong && rumiStrengthLong && volumeOk;
+
+            // 做空信号（RUMI交叉为事件，EMA趋势与趋势斜率作为方向过滤）
+            bool shortSignal = rumiCrossDown && downTrend && trendFilterShort && rumiStrengthShort && volumeOk;
 
             // 信号确认逻辑
             if (confirmBars > 1)

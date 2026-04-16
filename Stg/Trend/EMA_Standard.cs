@@ -48,8 +48,8 @@ namespace QjySDK.Stg
             sd.ArgDescDic["SlowPeriod"] = new ArgDesc { Text = "慢线周期", Explain = "慢速EMA的计算周期" };
             sd.ArgDic["SlowPeriod"] = 26;
 
-            sd.ArgDescDic["TrendPeriod"] = new ArgDesc { Text = "趋势周期", Explain = "趋势判断EMA的计算周期" };
-            sd.ArgDic["TrendPeriod"] = 50;
+            sd.ArgDescDic["TrendPeriod"] = new ArgDesc { Text = "趋势周期", Explain = "趋势判断EMA的计算周期（建议远大于慢线周期，避免与交叉信号瞬时位置冲突）" };
+            sd.ArgDic["TrendPeriod"] = 100;
 
             sd.ArgDescDic["UseTrendFilter"] = new ArgDesc { Text = "启用趋势过滤", Explain = "是否使用趋势EMA过滤信号(1=启用,0=禁用)" };
             sd.ArgDic["UseTrendFilter"] = 1;
@@ -116,6 +116,7 @@ namespace QjySDK.Stg
             var emaFastPrev = emaFastList[prevIdx].Ema;
             var emaSlowPrev = emaSlowList[prevIdx].Ema;
             var emaTrendCurr = emaTrendList?[lastIdx].Ema;
+            var emaTrendPrev = emaTrendList?[prevIdx].Ema;
 
             if (!emaFastCurr.HasValue || !emaSlowCurr.HasValue ||
                 !emaFastPrev.HasValue || !emaSlowPrev.HasValue) return;
@@ -156,8 +157,9 @@ namespace QjySDK.Stg
                 bool crossUp = emaFastPrev < emaSlowPrev && emaFastCurr >= emaSlowCurr;
                 bool crossDown = emaFastPrev > emaSlowPrev && emaFastCurr <= emaSlowCurr;
 
-                bool trendAllowLong = !_useTrendFilter || (emaTrendCurr.HasValue && currentPrice > (decimal)emaTrendCurr.Value);
-                bool trendAllowShort = !_useTrendFilter || (emaTrendCurr.HasValue && currentPrice < (decimal)emaTrendCurr.Value);
+                // 趋势过滤：用趋势EMA自身斜率，而非close瞬时位置，避免与交叉bar的close噪声冲突
+                bool trendAllowLong = !_useTrendFilter || (emaTrendCurr.HasValue && emaTrendPrev.HasValue && emaTrendCurr.Value > emaTrendPrev.Value);
+                bool trendAllowShort = !_useTrendFilter || (emaTrendCurr.HasValue && emaTrendPrev.HasValue && emaTrendCurr.Value < emaTrendPrev.Value);
 
                 if (crossUp && trendAllowLong)
                 {

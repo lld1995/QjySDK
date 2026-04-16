@@ -183,7 +183,9 @@ namespace QjySDK.Stg
             public int HoldBars { get; set; }         // 持仓K线数
             public decimal EntryAtr { get; set; }     // 入场时ATR
             public double LastMacdHist { get; set; }  // 上一个MACD柱状图值
-            public int BreakoutConfirmCount { get; set; } // 突破确认计数
+            public int BreakoutConfirmCount { get; set; } // 突破确认计数（保留兼容）
+            public int LongBreakoutBars { get; set; }  // 多头突破连续满足bar数
+            public int ShortBreakoutBars { get; set; } // 空头突破连续满足bar数
 
             public void Reset()
             {
@@ -198,6 +200,8 @@ namespace QjySDK.Stg
                 EntryAtr = 0;
                 LastMacdHist = 0;
                 BreakoutConfirmCount = 0;
+                LongBreakoutBars = 0;
+                ShortBreakoutBars = 0;
             }
         }
 
@@ -389,12 +393,21 @@ namespace QjySDK.Stg
             bool shortTrend = useTrendFilter == 0 || (adxVal > adxThreshold && mdi > pdi);
             bool shortVolume = useVolumeFilter == 0 || volumeRatio >= volumeMultiplier;
 
+            // 突破确认计数（breakoutConfirmBars之前声明但未使用，现在接入）
+            if (longBreakout) state.LongBreakoutBars++;
+            else state.LongBreakoutBars = 0;
+            if (shortBreakout) state.ShortBreakoutBars++;
+            else state.ShortBreakoutBars = 0;
+
             // ==================== 交易逻辑 ====================
             if (state.Status == 0)
             {
                 // 空仓：寻找入场信号
-                bool longSignal = longBreakout && longMomentum && longRsi && longTrend && longVolume && mode != 2;
-                bool shortSignal = shortBreakout && shortMomentum && shortRsi && shortTrend && shortVolume && mode != 1;
+                int confirmBars = Math.Max(1, breakoutConfirmBars);
+                bool longConfirmed = state.LongBreakoutBars >= confirmBars;
+                bool shortConfirmed = state.ShortBreakoutBars >= confirmBars;
+                bool longSignal = longConfirmed && longMomentum && longRsi && longTrend && longVolume && mode != 2;
+                bool shortSignal = shortConfirmed && shortMomentum && shortRsi && shortTrend && shortVolume && mode != 1;
 
                 if (longSignal && atrVal > 0)
                 {

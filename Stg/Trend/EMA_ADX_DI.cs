@@ -279,8 +279,8 @@ namespace QjySDK.Stg
             // DI差值必须大于阈值
             if (Math.Abs(diDiff) < (double)_diDiffThreshold) return;
 
-            // 做多条件
-            if (diGoldenCross && currentPrice > ema)
+            // 做多条件（DI金叉为事件，不再叠加 currentPrice > ema 的瞬时位置过滤，避免与SMA同构的信号丢失）
+            if (diGoldenCross)
             {
                 // EMA斜率过滤：斜率必须向上
                 if (_useEmaSlopeFilter && emaSlope <= 0) return;
@@ -288,7 +288,7 @@ namespace QjySDK.Stg
                 OpenLongPosition(state, mktSymbol, currentPrice, atr, period);
             }
             // 做空条件
-            else if (diDeathCross && currentPrice < ema)
+            else if (diDeathCross)
             {
                 // EMA斜率过滤：斜率必须向下
                 if (_useEmaSlopeFilter && emaSlope >= 0) return;

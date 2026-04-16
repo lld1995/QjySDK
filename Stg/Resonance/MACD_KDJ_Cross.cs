@@ -111,6 +111,10 @@ namespace QjySDK.Stg
             public int KdjGoldenCrossBar { get; set; }   // KDJ金叉发生的K线位置
             public int KdjDeathCrossBar { get; set; }    // KDJ死叉发生的K线位置
             public int CurrentBar { get; set; }          // 当前K线计数
+            public bool KdjGoldenInZone { get; set; }    // KDJ金叉时是否在超卖区（交叉瞬间快照）
+            public bool KdjDeathInZone { get; set; }     // KDJ死叉时是否在超买区
+            public bool MacdGoldenAboveZero { get; set; } // MACD金叉时DIF是否在零轴上方
+            public bool MacdDeathBelowZero { get; set; } // MACD死叉时DIF是否在零轴下方
         }
 
         private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -222,11 +226,27 @@ namespace QjySDK.Stg
 
             s.CurrentBar++;
 
-            // 记录金叉死叉发生的K线位置
-            if (macdGoldenCross) s.MacdGoldenCrossBar = s.CurrentBar;
-            if (macdDeathCross) s.MacdDeathCrossBar = s.CurrentBar;
-            if (kdjGoldenCross) s.KdjGoldenCrossBar = s.CurrentBar;
-            if (kdjDeathCross) s.KdjDeathCrossBar = s.CurrentBar;
+            // 记录金叉死叉发生的K线位置（同时快照当时的区域/零轴状态）
+            if (macdGoldenCross)
+            {
+                s.MacdGoldenCrossBar = s.CurrentBar;
+                s.MacdGoldenAboveZero = dif1 >= 0;
+            }
+            if (macdDeathCross)
+            {
+                s.MacdDeathCrossBar = s.CurrentBar;
+                s.MacdDeathBelowZero = dif1 <= 0;
+            }
+            if (kdjGoldenCross)
+            {
+                s.KdjGoldenCrossBar = s.CurrentBar;
+                s.KdjGoldenInZone = k1 <= oversold + 20;
+            }
+            if (kdjDeathCross)
+            {
+                s.KdjDeathCrossBar = s.CurrentBar;
+                s.KdjDeathInZone = k1 >= overbought - 20;
+            }
 
             // 判断共振信号
             bool buyResonance = false;
@@ -240,16 +260,16 @@ namespace QjySDK.Stg
             {
                 buyResonance = true;
 
-                // 区域过滤：KDJ在超卖区金叉更可靠
-                if (useZoneFilter == 1 && k1 > oversold + 20)
+                // 区域过滤：KDJ在超卖区金叉更可靠（用交叉瞬间快照，避免交叉后K值漂移导致滤掉）
+                if (useZoneFilter == 1 && !s.KdjGoldenInZone)
                 {
                     buyResonance = false;
                 }
 
-                // MACD零轴过滤
+                // MACD零轴过滤（用交叉瞬间的DIF状态）
                 if (macdZeroFilter == 1 || macdZeroFilter == 3)
                 {
-                    if (dif1 < 0) buyResonance = false;
+                    if (!s.MacdGoldenAboveZero) buyResonance = false;
                 }
             }
 
@@ -261,16 +281,16 @@ namespace QjySDK.Stg
             {
                 sellResonance = true;
 
-                // 区域过滤：KDJ在超买区死叉更可靠
-                if (useZoneFilter == 1 && k1 < overbought - 20)
+                // 区域过滤：KDJ在超买区死叉更可靠（用交叉瞬间快照）
+                if (useZoneFilter == 1 && !s.KdjDeathInZone)
                 {
                     sellResonance = false;
                 }
 
-                // MACD零轴过滤
+                // MACD零轴过滤（用交叉瞬间的DIF状态）
                 if (macdZeroFilter == 2 || macdZeroFilter == 3)
                 {
-                    if (dif1 > 0) sellResonance = false;
+                    if (!s.MacdDeathBelowZero) sellResonance = false;
                 }
             }
 

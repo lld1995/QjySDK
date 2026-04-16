@@ -40,6 +40,7 @@ namespace QjySDK.Stg
             sd.ArgDic["sendMode"] = 0;               // 发单模式: 0立即 1下个开盘
             sd.ArgDic["signalMode"] = 0;             // 信号模式
             sd.ArgDic["stopLoss"] = 5.0m;             // 止损百分比
+            sd.ArgDic["minHoldBars"] = 3;            // 最小持仓bar数（小于此不允许反手，避免中轴穿越模式频繁互抵）
 
             // 手数控制
             sd.ArgDic["lotsMode"] = 1;               // 0固定手数 1固定金额
@@ -57,6 +58,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["signalMode"] = new ArgDesc() { Text = "信号模式", Explain = "信号触发方式", Options = "0:超买超卖反转|1:中轴穿越|2:双RSI交叉", Type = "select" };
             sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
 			sd.ArgDescDic["stopLoss"] = new ArgDesc() { Text = "止损%", Explain = "固定止损百分比，0为不启用", Type = "number" };
+            sd.ArgDescDic["minHoldBars"] = new ArgDesc() { Text = "最小持仓bar数", Explain = "持仓不足此值时不允许反手，避免频繁往返交易", Type = "number" };
             sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数数量", Type = "number" };
             sd.ArgDescDic["money"] = new ArgDesc() { Text = "金额", Explain = "固定金额数量", Type = "number" };
 
@@ -79,6 +81,7 @@ namespace QjySDK.Stg
             public int Status { get; set; }     // 0:空仓 1:多头 2:空头
             public decimal Num { get; set; }    // 持仓数量
             public decimal EntryPrice { get; set; } // 入场价格
+            public int HoldBars { get; set; }   // 持仓bar数
         }
 
         private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -180,10 +183,10 @@ namespace QjySDK.Stg
                     buySignal = prevRsi < oversold && curRsi >= oversold;
                     // RSI从超买区向下突破做空
                     sellSignal = prevRsi > overbought && curRsi <= overbought;
-                    // 多头平仓：RSI进入超买区
-                    exitLongSignal = curRsi >= overbought;
-                    // 空头平仓：RSI进入超卖区
-                    exitShortSignal = curRsi <= oversold;
+                    // 多头平仓：RSI上突超买线（改为crossover，与入场对称，避免持续超买每bar触发）
+                    exitLongSignal = prevRsi < overbought && curRsi >= overbought;
+                    // 空头平仓：RSI下突超卖线
+                    exitShortSignal = prevRsi > oversold && curRsi <= oversold;
                     break;
 
                 case 1:
@@ -211,6 +214,11 @@ namespace QjySDK.Stg
                     break;
             }
 
+            int minHoldBars = Convert.ToInt32(ArgDic["minHoldBars"]);
+
+            // 持仓bar计数
+            if (s.Status != 0) s.HoldBars++;
+
             // 交易逻辑
             if (s.Status == 0)
             {
@@ -220,6 +228,7 @@ namespace QjySDK.Stg
                     s.Status = 1;
                     s.Num = num;
                     s.EntryPrice = q.Close;
+                    s.HoldBars = 0;
                     Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
                 }
                 else if (sellSignal && mode != 1)
@@ -227,6 +236,7 @@ namespace QjySDK.Stg
                     s.Status = 2;
                     s.Num = num;
                     s.EntryPrice = q.Close;
+                    s.HoldBars = 0;
                     Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
                 }
             }
@@ -237,12 +247,12 @@ namespace QjySDK.Stg
                 if (sl > 0 && s.EntryPrice > 0 && q.Close < s.EntryPrice * (1 - sl / 100m))
                 {
                     Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
-                    s.Status = 0; s.Num = 0; s.EntryPrice = 0;
+                    s.Status = 0; s.Num = 0; s.EntryPrice = 0; s.HoldBars = 0;
                     return;
                 }
 
-                // 多头持仓：检查平仓信号
-                if (exitLongSignal)
+                // 多头持仓：检查平仓信号（持仓达到minHoldBars后才允许平/反手）
+                if (exitLongSignal && s.HoldBars >= minHoldBars)
                 {
                     var oriNum = s.Num;
                     Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oriNum, period, sendMode);
@@ -253,6 +263,7 @@ namespace QjySDK.Stg
                         s.Status = 2;
                         s.Num = num;
                         s.EntryPrice = q.Close;
+                        s.HoldBars = 0;
                         Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
                     }
                     else
@@ -260,6 +271,7 @@ namespace QjySDK.Stg
                         s.Status = 0;
                         s.Num = 0;
                         s.EntryPrice = 0;
+                        s.HoldBars = 0;
                     }
                 }
             }
@@ -270,12 +282,12 @@ namespace QjySDK.Stg
                 if (sl2 > 0 && s.EntryPrice > 0 && q.Close > s.EntryPrice * (1 + sl2 / 100m))
                 {
                     Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
-                    s.Status = 0; s.Num = 0; s.EntryPrice = 0;
+                    s.Status = 0; s.Num = 0; s.EntryPrice = 0; s.HoldBars = 0;
                     return;
                 }
 
-                // 空头持仓：检查平仓信号
-                if (exitShortSignal)
+                // 空头持仓：检查平仓信号（持仓达到minHoldBars后才允许平/反手）
+                if (exitShortSignal && s.HoldBars >= minHoldBars)
                 {
                     var oriNum = s.Num;
                     Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oriNum, period, sendMode);
@@ -286,6 +298,7 @@ namespace QjySDK.Stg
                         s.Status = 1;
                         s.Num = num;
                         s.EntryPrice = q.Close;
+                        s.HoldBars = 0;
                         Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
                     }
                     else
@@ -293,6 +306,7 @@ namespace QjySDK.Stg
                         s.Status = 0;
                         s.Num = 0;
                         s.EntryPrice = 0;
+                        s.HoldBars = 0;
                     }
                 }
             }

@@ -27,8 +27,8 @@ namespace QjySDK.Stg
             sd.ArgDic["smoothPeriods"] = 3;
             sd.ArgDic["mode"] = 0;
             sd.ArgDic["sendMode"] = 0;
-            sd.ArgDic["lowJ"] = 0d;
-            sd.ArgDic["highJ"] = 100d;
+            sd.ArgDic["lowJ"] = 20d;
+            sd.ArgDic["highJ"] = 80d;
             sd.ArgDic["lossRate"] = 5m;
 
             //手数控制

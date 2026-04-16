@@ -30,6 +30,8 @@ namespace QjySDK.Stg
 			public decimal? PrevSignal { get; set; }    // 上一根K线的Signal值
 			public double PrevFourierTrend { get; set; } // 上一根K线的傅里叶趋势值
 			public double PrevFourierCycle { get; set; } // 上一根K线的傅里叶周期值
+			public int BarsSinceGoldenCross { get; set; } = -1; // 金叉后经过的bar数，-1表示无最近金叉
+			public int BarsSinceDeathCross { get; set; } = -1;  // 死叉后经过的bar数
 		}
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -206,13 +208,24 @@ namespace QjySDK.Stg
 			if (!prevMACD.HasValue || !prevSignal.HasValue)
 				return;
 
-			// 计算MACD交叉信号
-			bool goldenCross = prevMACD.Value <= prevSignal.Value && currentMACD > currentSignal; // 金叉
-			bool deathCross = prevMACD.Value >= prevSignal.Value && currentMACD < currentSignal;  // 死叉
+			// 计算MACD交叉信号（1-bar事件）
+			bool goldenCrossEvent = prevMACD.Value <= prevSignal.Value && currentMACD > currentSignal; // 金叉
+			bool deathCrossEvent = prevMACD.Value >= prevSignal.Value && currentMACD < currentSignal;  // 死叉
 
-			// 傅里叶趋势过滤
-			bool fourierBullish = fourierTrend > trendThreshold && fourierTrend > prevFourierTrend;
-			bool fourierBearish = fourierTrend < -trendThreshold && fourierTrend < prevFourierTrend;
+			// 维护交叉记忆窗口（允许傅里叶方向稍晚于MACD交叉确认，避免同bar硬合取导致的信号丢失）
+			const int signalMemoryBars = 3;
+			if (goldenCrossEvent) state.BarsSinceGoldenCross = 0;
+			else if (state.BarsSinceGoldenCross >= 0) state.BarsSinceGoldenCross++;
+			if (deathCrossEvent) state.BarsSinceDeathCross = 0;
+			else if (state.BarsSinceDeathCross >= 0) state.BarsSinceDeathCross++;
+
+			// 当前是否有"近期金叉/死叉"可用（含当前bar，最多回溯signalMemoryBars-1根）
+			bool goldenCross = state.BarsSinceGoldenCross >= 0 && state.BarsSinceGoldenCross < signalMemoryBars;
+			bool deathCross = state.BarsSinceDeathCross >= 0 && state.BarsSinceDeathCross < signalMemoryBars;
+
+			// 傅里叶趋势过滤（只保留level过滤，不再要求斜率与交叉同bar转向）
+			bool fourierBullish = fourierTrend > trendThreshold;
+			bool fourierBearish = fourierTrend < -trendThreshold;
 
 			// 周期信号增强
 			bool cycleConfirmBuy = fourierCycle > cycleWeight;
@@ -280,6 +293,8 @@ namespace QjySDK.Stg
 						state.Position = 1;
 						state.Num = lots;
 						state.EntryPrice = currentPrice;
+						// 消费该金叉信号，防止记忆窗口内重复开仓
+						state.BarsSinceGoldenCross = -1;
 					}
 				}
 			}
@@ -300,6 +315,8 @@ namespace QjySDK.Stg
 						state.Position = -1;
 						state.Num = lots;
 						state.EntryPrice = currentPrice;
+						// 消费该死叉信号
+						state.BarsSinceDeathCross = -1;
 					}
 				}
 			}

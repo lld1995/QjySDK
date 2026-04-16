@@ -394,11 +394,11 @@ namespace QjySDK.Stg
                     break;
 
                 case 1:
-                    // 模式1：CCI + MACD
-                    // 做多：CCI超卖回升 + MACD金叉或柱状图转正
-                    buySignal = (cciOversoldSignal || cciInOversold) && (macdGoldenCross || macdHistogramTurnPositive);
-                    // 做空：CCI超买回落 + MACD死叉或柱状图转负
-                    sellSignal = (cciOverboughtSignal || cciInOverbought) && (macdDeathCross || macdHistogramTurnNegative);
+                    // 模式1：CCI + MACD（MACD部分增加level fallback，避免与CCI事件严格同bar）
+                    // 做多：CCI超卖回升或超卖区 + MACD金叉/柱状图转正/方向性多头
+                    buySignal = (cciOversoldSignal || cciInOversold) && (macdGoldenCross || macdHistogramTurnPositive || macdBullish);
+                    // 做空：CCI超买回落或超买区 + MACD死叉/柱状图转负/方向性空头
+                    sellSignal = (cciOverboughtSignal || cciInOverbought) && (macdDeathCross || macdHistogramTurnNegative || macdBearish);
                     // 多头平仓：CCI超买或MACD死叉
                     exitLongSignal = cciInOverbought || macdDeathCross;
                     // 空头平仓：CCI超卖或MACD金叉
@@ -418,11 +418,11 @@ namespace QjySDK.Stg
                     break;
 
                 case 3:
-                    // 模式3：MACD + 傅里叶
-                    // 做多：相位底部 + MACD金叉或柱状图转正
-                    buySignal = phaseAtBottom && (macdGoldenCross || macdHistogramTurnPositive);
-                    // 做空：相位顶部 + MACD死叉或柱状图转负
-                    sellSignal = phaseAtTop && (macdDeathCross || macdHistogramTurnNegative);
+                    // 模式3：MACD + 傅里叶（MACD部分增加level fallback）
+                    // 做多：相位底部 + MACD金叉/柱状图转正/方向性多头
+                    buySignal = phaseAtBottom && (macdGoldenCross || macdHistogramTurnPositive || macdBullish);
+                    // 做空：相位顶部 + MACD死叉/柱状图转负/方向性空头
+                    sellSignal = phaseAtTop && (macdDeathCross || macdHistogramTurnNegative || macdBearish);
                     // 多头平仓：相位到达顶部或MACD死叉
                     exitLongSignal = phaseAtTop || macdDeathCross;
                     // 空头平仓：相位到达底部或MACD金叉
