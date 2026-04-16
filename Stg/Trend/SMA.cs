@@ -34,7 +34,7 @@ namespace QjySDK.Stg
             // 均线参数
             sd.ArgDic["fastPeriod"] = 20;            // 快线周期
             sd.ArgDic["slowPeriod"] = 60;            // 慢线周期
-            sd.ArgDic["trendPeriod"] = 60;           // 趋势线周期（用于趋势过滤）
+            sd.ArgDic["trendPeriod"] = 120;          // 趋势线周期（用于趋势过滤，需明显长于慢线）
 
             // 交易控制
             sd.ArgDic["mode"] = 0;                   // 交易模式: 0双向 1仅多 2仅空
@@ -126,23 +126,26 @@ namespace QjySDK.Stg
             Plot("main", "fast", PlotType.LINE, fastVal);
             Plot("main", "slow", PlotType.LINE, slowVal);
 
-            // 趋势过滤判断
+            // 趋势过滤判断：使用趋势线自身斜率，而非单bar收盘价比较
+            // 避免交叉bar因close噪声落在趋势线另一侧而永久丢失信号
             bool trendUp = true;
             bool trendDown = true;
             if (useTrendFilter == 1)
             {
                 var trendSmaList = tu.QuoteList.GetSma(trendPeriod).ToList();
                 var trendCur = trendSmaList[trendSmaList.Count - 1];
+                var trendPrev = trendSmaList[trendSmaList.Count - 2];
 
-                if (trendCur.Sma == null) return;
+                if (trendCur.Sma == null || trendPrev.Sma == null) return;
 
                 double trendVal = trendCur.Sma.Value;
+                double trendValPrev = trendPrev.Sma.Value;
                 Plot("main", "trend", PlotType.LINE, trendVal);
 
-                // 价格在趋势线上方才允许做多
-                trendUp = (double)q.Close > trendVal;
-                // 价格在趋势线下方才允许做空
-                trendDown = (double)q.Close < trendVal;
+                // 趋势线向上才允许做多
+                trendUp = trendVal > trendValPrev;
+                // 趋势线向下才允许做空
+                trendDown = trendVal < trendValPrev;
             }
 
             // 计算手数
