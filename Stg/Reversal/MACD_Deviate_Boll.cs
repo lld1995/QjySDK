@@ -87,7 +87,11 @@ namespace QjySDK.Stg
 
 			public decimal EntryPrice { get; set; }
 
-			public int LastCloseBarIndex { get; set; } = -1;
+			// 背离信号ID及止损封锁（以价格极值 pivot 索引作为稳定信号ID；Boll路径触发入场时为 -1代表不记录试探型入场）
+			public int EntryBullPivotIndex { get; set; } = -1;      // 多头入场时使用的底背离 pivot 索引
+			public int EntryBearPivotIndex { get; set; } = -1;      // 空头入场时使用的顶背离 pivot 索引
+			public int BlockedBullPivotIndex { get; set; } = -1;    // 多头止损后封锁的 pivot 索引（含此索引及更早）
+			public int BlockedBearPivotIndex { get; set; } = -1;    // 空头止损后封锁的 pivot 索引（含此索引及更早）
 		}
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -268,11 +272,12 @@ namespace QjySDK.Stg
 							var ml2 = macd[mli2];
 
 							if (l1.Low < l2.Low && ml1.Macd > ml2.Macd && mode != 2
-								&& li1 > s.LastCloseBarIndex)
+								&& li1 > s.BlockedBullPivotIndex)
 							{
 								s.Status = 1;
 								s.Num = num;
 								s.EntryPrice = q.Close;
+								s.EntryBullPivotIndex = li1;
 								Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
 							}
 						}
@@ -289,11 +294,12 @@ namespace QjySDK.Stg
 							var mh2 = macd[mhi2];
 
 							if (h1.High > h2.High && mh1.Macd < mh2.Macd && mode != 1
-								&& hi1 > s.LastCloseBarIndex)
+								&& hi1 > s.BlockedBearPivotIndex)
 							{
 								s.Status = 2;
 								s.Num = num;
 								s.EntryPrice = q.Close;
+								s.EntryBearPivotIndex = hi1;
 								Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
 							}
 						}
@@ -305,8 +311,11 @@ namespace QjySDK.Stg
 						if (_sl > 0 && s.EntryPrice > 0 && q.Close < s.EntryPrice * (1 - _sl / 100m))
 						{
 							Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
+							// 止损封锁本次入场所基于的底背离 pivot
+							if (s.EntryBullPivotIndex >= 0)
+								s.BlockedBullPivotIndex = Math.Max(s.BlockedBullPivotIndex, s.EntryBullPivotIndex);
 							s.Status = 0; s.Num = 0; s.EntryPrice = 0;
-							s.LastCloseBarIndex = tu.QuoteList.Count - 1;
+							s.EntryBullPivotIndex = -1;
 							return;
 						}
 						if (highList.Count > 1 && macdHighList.Count > 1)
@@ -322,6 +331,7 @@ namespace QjySDK.Stg
                             var mh2 = macd[mhi2];
 
                             var isClose = false;
+                            bool hasBearDiv = false;
                             if (q.Close < (decimal)bl1.LowerBand)
                             {
                                 isClose = true;
@@ -329,15 +339,17 @@ namespace QjySDK.Stg
                             else if (h1.High > h2.High && mh1.Macd < mh2.Macd)
 							{
                                 isClose = true;
+                                hasBearDiv = true;
                             }
 							if (isClose)
 							{
                                 var oriNum = s.Num;
                                 Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oriNum, period, sendMode);
+                                s.EntryBullPivotIndex = -1; // 退出多头
+                                _ = hasBearDiv; // 原逻辑本出场后不反向开仓，保持一致
                                 s.Status = 0;
                                 s.Num = 0;
                                 s.EntryPrice = 0;
-                                s.LastCloseBarIndex = tu.QuoteList.Count - 1;
                             }
 						}
 					}
@@ -348,8 +360,11 @@ namespace QjySDK.Stg
 						if (_sl2 > 0 && s.EntryPrice > 0 && q.Close > s.EntryPrice * (1 + _sl2 / 100m))
 						{
 							Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
+							// 止损封锁本次入场所基于的顶背离 pivot
+							if (s.EntryBearPivotIndex >= 0)
+								s.BlockedBearPivotIndex = Math.Max(s.BlockedBearPivotIndex, s.EntryBearPivotIndex);
 							s.Status = 0; s.Num = 0; s.EntryPrice = 0;
-							s.LastCloseBarIndex = tu.QuoteList.Count - 1;
+							s.EntryBearPivotIndex = -1;
 							return;
 						}
 						if (lowList.Count > 1 && macdLowList.Count > 1)
@@ -377,10 +392,10 @@ namespace QjySDK.Stg
 							{
 								var oriNum = s.Num;
 								Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oriNum, period, sendMode);
+								s.EntryBearPivotIndex = -1; // 退出空头
 								s.Status = 0;
 								s.Num = 0;
 								s.EntryPrice = 0;
-								s.LastCloseBarIndex = tu.QuoteList.Count - 1;
 							}
 						}
 					}

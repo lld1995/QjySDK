@@ -121,7 +121,7 @@ namespace QjySDK.Stg
             }
 
             var quotes = tu.QuoteList;
-            int minBars = Math.Max(_entryPeriod, _atrPeriod) + 1;
+            int minBars = Math.Max(Math.Max(_entryPeriod, _exitPeriod), _atrPeriod) + 1;
             if (quotes == null || quotes.Count < minBars)
                 return;
 
@@ -137,8 +137,8 @@ namespace QjySDK.Stg
             var exitDonchian = quotes.GetDonchian(_exitPeriod).ToList();
             decimal atr = CalculateATR(quotes, _atrPeriod);
 
-            var entryChannel = entryDonchian[entryDonchian.Count - 1];
-            var exitChannel = exitDonchian[exitDonchian.Count - 1];
+            var entryChannel = entryDonchian[entryDonchian.Count - 2];
+            var exitChannel = exitDonchian[exitDonchian.Count - 2];
 
             decimal upperBand = (decimal)(entryChannel.UpperBand ?? 0);
             decimal lowerBand = (decimal)(entryChannel.LowerBand ?? 0);
@@ -249,11 +249,13 @@ namespace QjySDK.Stg
 
             if (posInfo.Direction > 0)
             {
-                posInfo.StopLoss = price - _atrMultiplierForStop * atr;
+                decimal newStopLoss = price - _atrMultiplierForStop * atr;
+                posInfo.StopLoss = Math.Max(posInfo.StopLoss, newStopLoss);
             }
             else
             {
-                posInfo.StopLoss = price + _atrMultiplierForStop * atr;
+                decimal newStopLoss = price + _atrMultiplierForStop * atr;
+                posInfo.StopLoss = Math.Min(posInfo.StopLoss, newStopLoss);
             }
         }
 

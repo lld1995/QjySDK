@@ -52,7 +52,7 @@ namespace QjySDK.Stg
             var sd = new StgDesc();
 
             // ========== 系统选择 ==========
-            sd.ArgDic["systemType"] = 1;              // 1:系统1(短期) 2:系统2(长期)
+            sd.ArgDic["systemType"] = 0;              // 0:双系统 1:系统1(短期) 2:系统2(长期)
 
             // ========== 唐奇安通道参数 ==========
             sd.ArgDic["entryPeriod"] = 20;            // 入场通道周期（系统1:20, 系统2:55）
@@ -69,7 +69,7 @@ namespace QjySDK.Stg
 
             // ========== 仓位管理 ==========
             sd.ArgDic["riskPerTrade"] = 0.01;         // 每笔交易风险比例（账户的1%）
-            sd.ArgDic["accountEquity"] = 1000000m;    // 账户权益
+            sd.ArgDic["accountEquity"] = 100000m;    // 账户权益
             sd.ArgDic["lotsMode"] = 1;                // 0:固定手数 1:固定金额 2:按风险计算
             sd.ArgDic["lots"] = 1.0m;                // 固定手数
             sd.ArgDic["money"] = 10000m;              // 固定金额
@@ -83,7 +83,7 @@ namespace QjySDK.Stg
             // 系统1规则：如果上次突破盈利，则忽略本次突破信号
 
             // ========== 参数说明 ==========
-            sd.ArgDescDic["systemType"] = new ArgDesc() { Text = "系统类型", Explain = "海龟系统选择", Options = "1:系统1(短期20/10)|2:系统2(长期55/20)", Type = "select" };
+            sd.ArgDescDic["systemType"] = new ArgDesc() { Text = "系统类型", Explain = "海龟系统选择", Options = "0:双系统|1:系统1(短期20/10)|2:系统2(长期55/20)", Type = "select" };
             sd.ArgDescDic["entryPeriod"] = new ArgDesc() { Text = "入场周期", Explain = "唐奇安通道入场周期", Type = "number" };
             sd.ArgDescDic["exitPeriod"] = new ArgDesc() { Text = "出场周期", Explain = "唐奇安通道出场周期", Type = "number" };
             sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "ATR计算周期(N值)", Type = "number" };
@@ -128,6 +128,29 @@ namespace QjySDK.Stg
             public DateTime EntryTime { get; set; }       // 入场时间
         }
 
+        private class SkippedBreakoutState
+        {
+            public int Direction { get; set; }
+            public List<PositionUnit> Units { get; set; } = new List<PositionUnit>();
+            public decimal LastATR { get; set; }
+            public DateTime EntryTime { get; set; }
+            public bool Active { get; set; }
+
+            public decimal TotalNum => Units.Sum(u => u.Num);
+            public decimal AvgEntryPrice => Units.Count > 0
+                ? Units.Sum(u => u.EntryPrice * u.Num) / TotalNum
+                : 0;
+
+            public void Reset()
+            {
+                Direction = 0;
+                Units.Clear();
+                LastATR = 0;
+                EntryTime = default;
+                Active = false;
+            }
+        }
+
         /// <summary>
         /// 持仓状态
         /// </summary>
@@ -139,6 +162,7 @@ namespace QjySDK.Stg
             public decimal LastBreakoutPrice { get; set; } // 上次突破价格
             public bool LastTradeWin { get; set; }        // 上次交易是否盈利
             public bool SkipNextSignal { get; set; }      // 是否跳过下次信号（系统1过滤）
+            public SkippedBreakoutState SkippedBreakout { get; set; } = new SkippedBreakoutState();
 
             public decimal TotalNum => Units.Sum(u => u.Num);
             public decimal AvgEntryPrice => Units.Count > 0 
@@ -173,15 +197,18 @@ namespace QjySDK.Stg
             int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
             int useLastTradeFilter = Convert.ToInt32(ArgDic["useLastTradeFilter"]);
 
-            // 根据系统类型调整参数
-            if (systemType == 2)
-            {
-                entryPeriod = 55;
-                exitPeriod = 20;
-            }
+            bool runSystem1 = systemType == 0 || systemType == 1;
+            bool runSystem2 = systemType == 0 || systemType == 2;
+            int system2EntryPeriod = 55;
+            int system2ExitPeriod = 20;
 
             // 确保有足够的数据
-            int requiredBars = Math.Max(entryPeriod, atrPeriod) + 1;
+            int requiredBars = atrPeriod;
+            if (runSystem1)
+                requiredBars = Math.Max(requiredBars, Math.Max(entryPeriod, exitPeriod));
+            if (runSystem2)
+                requiredBars = Math.Max(requiredBars, Math.Max(system2EntryPeriod, system2ExitPeriod));
+            requiredBars += 1;
             if (tu.QuoteList.Count < requiredBars) return;
 
             var q = tu.QuoteList.Last();
@@ -191,31 +218,64 @@ namespace QjySDK.Stg
             decimal atr = CalculateATR(tu.QuoteList, atrPeriod);
             if (atr <= 0) return;
 
-            // 计算唐奇安通道
-            var entryDonchian = tu.QuoteList.GetDonchian(entryPeriod).ToList();
-            var exitDonchian = tu.QuoteList.GetDonchian(exitPeriod).ToList();
-            var entryChannel = entryDonchian.Count > 0 ? entryDonchian[entryDonchian.Count - 1] : null;
-            var exitChannel = exitDonchian.Count > 0 ? exitDonchian[exitDonchian.Count - 1] : null;
+            DonchianResult system1EntryChannel = null;
+            DonchianResult system1ExitChannel = null;
+            DonchianResult system2EntryChannel = null;
+            DonchianResult system2ExitChannel = null;
+
+            if (runSystem1)
+            {
+                var entryDonchian = tu.QuoteList.GetDonchian(entryPeriod).ToList();
+                var exitDonchian = tu.QuoteList.GetDonchian(exitPeriod).ToList();
+                system1EntryChannel = entryDonchian.Count > 1 ? entryDonchian[entryDonchian.Count - 2] : null;
+                system1ExitChannel = exitDonchian.Count > 1 ? exitDonchian[exitDonchian.Count - 2] : null;
+            }
+
+            if (runSystem2)
+            {
+                var entryDonchian = tu.QuoteList.GetDonchian(system2EntryPeriod).ToList();
+                var exitDonchian = tu.QuoteList.GetDonchian(system2ExitPeriod).ToList();
+                system2EntryChannel = entryDonchian.Count > 1 ? entryDonchian[entryDonchian.Count - 2] : null;
+                system2ExitChannel = exitDonchian.Count > 1 ? exitDonchian[exitDonchian.Count - 2] : null;
+            }
+
+            var plotEntryChannel = runSystem2 && !runSystem1 ? system2EntryChannel : system1EntryChannel;
+            var plotExitChannel = runSystem2 && !runSystem1 ? system2ExitChannel : system1ExitChannel;
 
             // 绘制通道和ATR
-            PlotChannels(entryChannel, exitChannel, atr);
+            PlotChannels(plotEntryChannel, plotExitChannel, atr);
 
             // 计算单位头寸
-            decimal unitSize = CalculateUnitSize(tu, q, atr);
+            decimal unitSize = CalculateUnitSize(tu, q, atr, (decimal)atrStopMultiplier);
             if (unitSize <= 0) return;
 
             // 获取或创建状态
-            TurtleState state = GetOrCreateState(stateKey);
+            TurtleState system1State = GetOrCreateState(stateKey, 1);
+            TurtleState system2State = GetOrCreateState(stateKey, 2);
 
             decimal prevHigh = tu.QuoteList[tu.QuoteList.Count - 2].High;
             decimal prevLow = tu.QuoteList[tu.QuoteList.Count - 2].Low;
 
-            // 执行交易逻辑
-            ExecuteTurtleLogic(tu, period, q, state, unitSize, atr,
-                entryChannel, exitChannel, mode, sendMode,
-                enablePyramiding, pyramidingATR, maxUnits,
-                atrStopMultiplier, useLastTradeFilter, systemType,
-                prevHigh, prevLow);
+            if (runSystem1 && system1ExitChannel != null)
+            {
+                UpdateSkippedBreakout(q, system1State, system1ExitChannel, atr, atrStopMultiplier, maxUnits, enablePyramiding, pyramidingATR);
+            }
+
+            if (runSystem1)
+            {
+                ExecuteTurtleLogic(tu, period, q, system1State, system2State, 1, unitSize, atr,
+                    system1EntryChannel, system1ExitChannel, mode, sendMode,
+                    enablePyramiding, pyramidingATR, maxUnits,
+                    atrStopMultiplier, useLastTradeFilter, prevHigh, prevLow);
+            }
+
+            if (runSystem2)
+            {
+                ExecuteTurtleLogic(tu, period, q, system2State, system1State, 2, unitSize, atr,
+                    system2EntryChannel, system2ExitChannel, mode, sendMode,
+                    enablePyramiding, pyramidingATR, maxUnits,
+                    atrStopMultiplier, 0, prevHigh, prevLow);
+            }
 
         }
 
@@ -241,7 +301,7 @@ namespace QjySDK.Stg
         /// 计算单位头寸大小
         /// 单位头寸 = 账户权益 × 风险比例 / (ATR × 合约乘数)
         /// </summary>
-        private decimal CalculateUnitSize(TableUnit tu, SkQuote q, decimal atr)
+        private decimal CalculateUnitSize(TableUnit tu, SkQuote q, decimal atr, decimal atrStopMultiplier)
         {
             int lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
 
@@ -269,7 +329,7 @@ namespace QjySDK.Stg
             decimal multiplier = symbol.multiplier;
 
             // 单位头寸 = 账户权益 × 1% / (ATR × 合约乘数)
-            decimal dollarVolatility = atr * multiplier;
+            decimal dollarVolatility = atr * atrStopMultiplier * multiplier;
             if (dollarVolatility <= 0) return 0;
 
             decimal unitSize = accountEquity * (decimal)riskPerTrade / dollarVolatility;
@@ -318,13 +378,124 @@ namespace QjySDK.Stg
         /// <summary>
         /// 获取或创建状态
         /// </summary>
-        private TurtleState GetOrCreateState(string stateKey)
+        private TurtleState GetOrCreateState(string stateKey, int systemId)
         {
-            if (!_stateDic.ContainsKey(stateKey))
+            string systemStateKey = $"{stateKey}:{systemId}";
+            if (!_stateDic.ContainsKey(systemStateKey))
             {
-                _stateDic[stateKey] = new TurtleState();
+                _stateDic[systemStateKey] = new TurtleState();
             }
-            return _stateDic[stateKey];
+            return _stateDic[systemStateKey];
+        }
+
+        private int GetTotalUnitCount(TurtleState state, TurtleState otherState)
+        {
+            int count = state?.Units?.Count ?? 0;
+            count += otherState?.Units?.Count ?? 0;
+            return count;
+        }
+
+        private bool CanOpenDirection(TurtleState state, TurtleState otherState, int direction, int enablePyramiding, int maxUnits)
+        {
+            if (state.Direction != 0 && state.Direction != direction) return false;
+            if (otherState.Direction != 0 && otherState.Direction != direction) return false;
+            if (otherState.Direction == direction && enablePyramiding != 1) return false;
+            if (GetTotalUnitCount(state, otherState) >= maxUnits) return false;
+            return true;
+        }
+
+        private void StartSkippedBreakout(TurtleState state, SkQuote q, decimal atr, int direction, double atrStopMultiplier)
+        {
+            state.SkippedBreakout.Direction = direction;
+            state.SkippedBreakout.LastATR = atr;
+            state.SkippedBreakout.EntryTime = q.Date;
+            state.SkippedBreakout.Active = true;
+
+            decimal entryPrice = q.Close;
+            decimal stopPrice = direction > 0
+                ? entryPrice - (decimal)atrStopMultiplier * atr
+                : entryPrice + (decimal)atrStopMultiplier * atr;
+
+            state.SkippedBreakout.Units.Add(new PositionUnit
+            {
+                EntryPrice = entryPrice,
+                Num = 1m,
+                StopPrice = stopPrice,
+                EntryTime = q.Date
+            });
+        }
+
+        private void AddSkippedPyramiding(TurtleState state, SkQuote q, decimal atr, double atrStopMultiplier, int maxUnits, int enablePyramiding, double pyramidingATR)
+        {
+            if (enablePyramiding != 1) return;
+            if (state.SkippedBreakout.Units.Count >= maxUnits) return;
+
+            int direction = state.SkippedBreakout.Direction;
+            decimal lastEntryPrice = state.SkippedBreakout.Units.Last().EntryPrice;
+            decimal pyramidThreshold = direction > 0
+                ? lastEntryPrice + (decimal)pyramidingATR * state.SkippedBreakout.LastATR
+                : lastEntryPrice - (decimal)pyramidingATR * state.SkippedBreakout.LastATR;
+
+            bool shouldAdd = direction > 0
+                ? q.Close >= pyramidThreshold
+                : q.Close <= pyramidThreshold;
+
+            if (!shouldAdd) return;
+
+            decimal entryPrice = q.Close;
+            decimal stopPrice = direction > 0
+                ? entryPrice - (decimal)atrStopMultiplier * atr
+                : entryPrice + (decimal)atrStopMultiplier * atr;
+
+            state.SkippedBreakout.Units.Add(new PositionUnit
+            {
+                EntryPrice = entryPrice,
+                Num = 1m,
+                StopPrice = stopPrice,
+                EntryTime = q.Date
+            });
+        }
+
+        private void UpdateSkippedBreakout(SkQuote q, TurtleState state, DonchianResult exitChannel, decimal atr, double atrStopMultiplier, int maxUnits, int enablePyramiding, double pyramidingATR)
+        {
+            if (state == null || !state.SkippedBreakout.Active || exitChannel == null) return;
+
+            int direction = state.SkippedBreakout.Direction;
+            decimal currentClose = q.Close;
+
+            AddSkippedPyramiding(state, q, atr, atrStopMultiplier, maxUnits, enablePyramiding, pyramidingATR);
+
+            decimal highestStop = state.SkippedBreakout.Units.Max(u => u.StopPrice);
+            decimal lowestStop = state.SkippedBreakout.Units.Min(u => u.StopPrice);
+
+            bool shouldExit = false;
+
+            if (direction > 0)
+            {
+                decimal exitLower = (decimal)(exitChannel.LowerBand ?? 0);
+                if (currentClose <= highestStop || currentClose < exitLower)
+                {
+                    shouldExit = true;
+                }
+            }
+            else if (direction < 0)
+            {
+                decimal exitUpper = (decimal)(exitChannel.UpperBand ?? 0);
+                if (currentClose >= lowestStop || currentClose > exitUpper)
+                {
+                    shouldExit = true;
+                }
+            }
+
+            if (!shouldExit) return;
+
+            decimal avgEntry = state.SkippedBreakout.AvgEntryPrice;
+            bool tradeWin = direction > 0
+                ? currentClose > avgEntry
+                : currentClose < avgEntry;
+
+            state.SkipNextSignal = tradeWin;
+            state.SkippedBreakout.Reset();
         }
 
         #endregion
@@ -334,10 +505,10 @@ namespace QjySDK.Stg
         /// <summary>
         /// 执行海龟交易逻辑
         /// </summary>
-        private void ExecuteTurtleLogic(TableUnit tu, Period period, SkQuote q, TurtleState state,
+        private void ExecuteTurtleLogic(TableUnit tu, Period period, SkQuote q, TurtleState state, TurtleState otherState, int systemId,
             decimal unitSize, decimal atr, DonchianResult entryChannel, DonchianResult exitChannel,
             int mode, int sendMode, int enablePyramiding, double pyramidingATR, int maxUnits,
-            double atrStopMultiplier, int useLastTradeFilter, int systemType,
+            double atrStopMultiplier, int useLastTradeFilter,
             decimal prevHigh, decimal prevLow)
         {
             if (entryChannel == null || exitChannel == null) return;
@@ -347,21 +518,21 @@ namespace QjySDK.Stg
             // 空仓状态
             if (state.Direction == 0)
             {
-                HandleEntrySignal(tu, period, q, state, unitSize, atr,
+                HandleEntrySignal(tu, period, q, state, otherState, systemId, unitSize, atr,
                     entryChannel, mode, sendMode, atrStopMultiplier,
-                    useLastTradeFilter, systemType, prevHigh, prevLow);
+                    useLastTradeFilter, enablePyramiding, maxUnits, prevHigh, prevLow);
             }
             // 多头持仓
             else if (state.Direction == 1)
             {
-                HandleLongPosition(tu, period, q, state, unitSize, atr,
+                HandleLongPosition(tu, period, q, state, otherState, systemId, unitSize, atr,
                     entryChannel, exitChannel, sendMode,
                     enablePyramiding, pyramidingATR, maxUnits, atrStopMultiplier);
             }
             // 空头持仓
             else if (state.Direction == -1)
             {
-                HandleShortPosition(tu, period, q, state, unitSize, atr,
+                HandleShortPosition(tu, period, q, state, otherState, systemId, unitSize, atr,
                     entryChannel, exitChannel, sendMode,
                     enablePyramiding, pyramidingATR, maxUnits, atrStopMultiplier);
             }
@@ -370,29 +541,29 @@ namespace QjySDK.Stg
         /// <summary>
         /// 处理入场信号
         /// </summary>
-        private void HandleEntrySignal(TableUnit tu, Period period, SkQuote q, TurtleState state,
+        private void HandleEntrySignal(TableUnit tu, Period period, SkQuote q, TurtleState state, TurtleState otherState, int systemId,
             decimal unitSize, decimal atr, DonchianResult entryChannel, int mode, int sendMode,
-            double atrStopMultiplier, int useLastTradeFilter, int systemType,
+            double atrStopMultiplier, int useLastTradeFilter, int enablePyramiding, int maxUnits,
             decimal prevHigh, decimal prevLow)
         {
             decimal upperBand = (decimal)(entryChannel.UpperBand ?? 0);
             decimal lowerBand = (decimal)(entryChannel.LowerBand ?? 0);
             decimal currentClose = q.Close;
 
-            // 系统1过滤规则：如果上次交易盈利，则跳过本次信号
-            if (systemType == 1 && useLastTradeFilter == 1 && state.SkipNextSignal)
+            if (systemId == 1 && state.SkippedBreakout.Active)
             {
-                // 检查是否有突破信号（用于重置跳过标志）
-                if (currentClose > upperBand || currentClose < lowerBand)
-                {
-                    state.SkipNextSignal = false; // 已跳过一次，下次不再跳过
-                }
                 return;
             }
 
             // 突破上轨做多（当前Close突破且前一根High未突破）
-            if (currentClose > upperBand && prevHigh <= upperBand && mode != 2)
+            if (currentClose > upperBand && prevHigh <= upperBand && mode != 2 && CanOpenDirection(state, otherState, 1, enablePyramiding, maxUnits))
             {
+                if (systemId == 1 && useLastTradeFilter == 1 && state.SkipNextSignal)
+                {
+                    StartSkippedBreakout(state, q, atr, 1, atrStopMultiplier);
+                    return;
+                }
+
                 decimal entryPrice = currentClose;
                 decimal stopPrice = entryPrice - (decimal)atrStopMultiplier * atr;
 
@@ -413,8 +584,14 @@ namespace QjySDK.Stg
                 Plot("main", "stopLoss", PlotType.LINE, (double)stopPrice);
             }
             // 突破下轨做空（当前Close跌破且前一根Low未跌破）
-            else if (currentClose < lowerBand && prevLow >= lowerBand && mode != 1)
+            else if (currentClose < lowerBand && prevLow >= lowerBand && mode != 1 && CanOpenDirection(state, otherState, -1, enablePyramiding, maxUnits))
             {
+                if (systemId == 1 && useLastTradeFilter == 1 && state.SkipNextSignal)
+                {
+                    StartSkippedBreakout(state, q, atr, -1, atrStopMultiplier);
+                    return;
+                }
+
                 decimal entryPrice = currentClose;
                 decimal stopPrice = entryPrice + (decimal)atrStopMultiplier * atr;
 
@@ -439,7 +616,7 @@ namespace QjySDK.Stg
         /// <summary>
         /// 处理多头持仓
         /// </summary>
-        private void HandleLongPosition(TableUnit tu, Period period, SkQuote q, TurtleState state,
+        private void HandleLongPosition(TableUnit tu, Period period, SkQuote q, TurtleState state, TurtleState otherState, int systemId,
             decimal unitSize, decimal atr, DonchianResult entryChannel, DonchianResult exitChannel,
             int sendMode, int enablePyramiding, double pyramidingATR, int maxUnits, double atrStopMultiplier)
         {
@@ -447,23 +624,23 @@ namespace QjySDK.Stg
             decimal currentClose = q.Close;
 
             // 1. 检查止损
-            decimal lowestStop = state.Units.Min(u => u.StopPrice);
-            if (currentClose <= lowestStop)
+            decimal highestStop = state.Units.Max(u => u.StopPrice);
+            if (currentClose <= highestStop)
             {
                 // 触发止损，平掉所有仓位
-                CloseAllPositions(tu, period, q, state, sendMode, false);
+                CloseAllPositions(tu, period, q, state, sendMode, systemId);
                 return;
             }
 
             // 2. 检查出场信号（跌破出场通道下轨）
             if (currentClose < exitLower)
             {
-                CloseAllPositions(tu, period, q, state, sendMode, true);
+                CloseAllPositions(tu, period, q, state, sendMode, systemId);
                 return;
             }
 
             // 3. 检查加仓信号
-            if (enablePyramiding == 1 && state.Units.Count < maxUnits)
+            if (enablePyramiding == 1 && GetTotalUnitCount(state, otherState) < maxUnits)
             {
                 decimal lastEntryPrice = state.Units.Last().EntryPrice;
                 decimal pyramidThreshold = lastEntryPrice + (decimal)pyramidingATR * state.LastATR;
@@ -498,7 +675,7 @@ namespace QjySDK.Stg
         /// <summary>
         /// 处理空头持仓
         /// </summary>
-        private void HandleShortPosition(TableUnit tu, Period period, SkQuote q, TurtleState state,
+        private void HandleShortPosition(TableUnit tu, Period period, SkQuote q, TurtleState state, TurtleState otherState, int systemId,
             decimal unitSize, decimal atr, DonchianResult entryChannel, DonchianResult exitChannel,
             int sendMode, int enablePyramiding, double pyramidingATR, int maxUnits, double atrStopMultiplier)
         {
@@ -506,23 +683,23 @@ namespace QjySDK.Stg
             decimal currentClose = q.Close;
 
             // 1. 检查止损
-            decimal highestStop = state.Units.Max(u => u.StopPrice);
-            if (currentClose >= highestStop)
+            decimal lowestStop = state.Units.Min(u => u.StopPrice);
+            if (currentClose >= lowestStop)
             {
                 // 触发止损，平掉所有仓位
-                CloseAllPositions(tu, period, q, state, sendMode, false);
+                CloseAllPositions(tu, period, q, state, sendMode, systemId);
                 return;
             }
 
             // 2. 检查出场信号（突破出场通道上轨）
             if (currentClose > exitUpper)
             {
-                CloseAllPositions(tu, period, q, state, sendMode, true);
+                CloseAllPositions(tu, period, q, state, sendMode, systemId);
                 return;
             }
 
             // 3. 检查加仓信号
-            if (enablePyramiding == 1 && state.Units.Count < maxUnits)
+            if (enablePyramiding == 1 && GetTotalUnitCount(state, otherState) < maxUnits)
             {
                 decimal lastEntryPrice = state.Units.Last().EntryPrice;
                 decimal pyramidThreshold = lastEntryPrice - (decimal)pyramidingATR * state.LastATR;
@@ -584,7 +761,7 @@ namespace QjySDK.Stg
         /// 平掉所有仓位
         /// </summary>
         private void CloseAllPositions(TableUnit tu, Period period, SkQuote q, TurtleState state,
-            int sendMode, bool isNormalExit)
+            int sendMode, int systemId)
         {
             decimal totalNum = state.TotalNum;
             decimal avgEntry = state.AvgEntryPrice;
@@ -607,10 +784,9 @@ namespace QjySDK.Stg
                 state.LastTradeWin = q.Close < avgEntry;
             }
 
-            // 系统1过滤规则：如果本次交易盈利，下次跳过信号
-            if (state.LastTradeWin && isNormalExit)
+            if (systemId == 1)
             {
-                state.SkipNextSignal = true;
+                state.SkipNextSignal = state.LastTradeWin;
             }
             else
             {

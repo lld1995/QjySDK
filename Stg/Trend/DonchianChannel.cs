@@ -60,6 +60,7 @@ namespace QjySDK.Stg
 
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
 			sd.ArgDescDic["stopLoss"] = new ArgDesc() { Text = "止损%", Explain = "固定止损百分比，0为不启用", Type = "number" };
+            sd.ArgDic["stopLoss"] = 0m;
             sd.ArgDic["lotsMode"] = 1;
             sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量" };
             sd.ArgDic["lots"] = 1.0m;
@@ -88,7 +89,8 @@ namespace QjySDK.Stg
             }
 
             var quotes = tu.QuoteList;
-            if (quotes == null || quotes.Count < _entryPeriod + 1)
+            int minBars = Math.Max(_entryPeriod, _exitPeriod) + 1;
+            if (quotes == null || quotes.Count < minBars)
                 return;
 
             string stateKey = tu.GetStateKey();
@@ -102,8 +104,8 @@ namespace QjySDK.Stg
             var entryDonchian = quotes.GetDonchian(_entryPeriod).ToList();
             var exitDonchian = quotes.GetDonchian(_exitPeriod).ToList();
 
-            var entryChannel = entryDonchian[entryDonchian.Count - 1];
-            var exitChannel = exitDonchian[exitDonchian.Count - 1];
+            var entryChannel = entryDonchian[entryDonchian.Count - 2];
+            var exitChannel = exitDonchian[exitDonchian.Count - 2];
 
             decimal upperBand = (decimal)(entryChannel.UpperBand ?? 0);
             decimal lowerBand = (decimal)(entryChannel.LowerBand ?? 0);
@@ -151,7 +153,7 @@ namespace QjySDK.Stg
             else if (position > 0)
             {
                 // 止损检查
-                var _sl = Convert.ToDecimal(ArgDic["stopLoss"]);
+                var _sl = ArgDic.ContainsKey("stopLoss") ? Convert.ToDecimal(ArgDic["stopLoss"]) : 0m;
                 if (_sl > 0 && _entryPrice[stateKey] > 0 && currentClose < _entryPrice[stateKey] * (1 - _sl / 100m))
                 {
                     Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, currentClose, _holdNum[stateKey], period, 0);
@@ -182,7 +184,7 @@ namespace QjySDK.Stg
             else if (position < 0)
             {
                 // 止损检查
-                var _sl2 = Convert.ToDecimal(ArgDic["stopLoss"]);
+                var _sl2 = ArgDic.ContainsKey("stopLoss") ? Convert.ToDecimal(ArgDic["stopLoss"]) : 0m;
                 if (_sl2 > 0 && _entryPrice[stateKey] > 0 && currentClose > _entryPrice[stateKey] * (1 + _sl2 / 100m))
                 {
                     Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, currentClose, _holdNum[stateKey], period, 0);

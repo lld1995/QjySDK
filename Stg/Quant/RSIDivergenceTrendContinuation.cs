@@ -195,6 +195,14 @@ namespace QjySDK.Stg
             public int DivergenceBar { get; set; }                  // 背离发生的K线索引
             public int DivergenceType { get; set; }                 // 背离类型：1=反转 2=延续
 
+            // 背离信号ID及止损封锁（以 latestPriceLow.Index / latestPriceHigh.Index 作为稳定信号ID）
+            public int LastBullPivotIndex { get; set; } = -1;       // 当前已记录的底背离 latest priceLow 索引
+            public int LastBearPivotIndex { get; set; } = -1;       // 当前已记录的顶背离 latest priceHigh 索引
+            public int EntryBullPivotIndex { get; set; } = -1;      // 多头入场时使用的背离 pivot 索引
+            public int EntryBearPivotIndex { get; set; } = -1;      // 空头入场时使用的背离 pivot 索引
+            public int BlockedBullPivotIndex { get; set; } = -1;    // 多头止损后封锁的 pivot 索引
+            public int BlockedBearPivotIndex { get; set; } = -1;    // 空头止损后封锁的 pivot 索引
+
             // 趋势状态
             public int TrendDirection { get; set; }                 // 趋势方向：1=上升 -1=下降 0=震荡
             public decimal TrendHighest { get; set; }               // 趋势中最高价
@@ -228,6 +236,7 @@ namespace QjySDK.Stg
             public int Type { get; set; }               // 类型：1=反转背离 2=趋势延续背离
             public int Direction { get; set; }          // 方向：1=看涨 -1=看跌
             public decimal Strength { get; set; }       // 背离强度（0-1）
+            public int PivotIndex { get; set; } = -1;   // latestPriceLow.Index / latestPriceHigh.Index（稳定信号ID）
         }
 
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
@@ -395,6 +404,7 @@ namespace QjySDK.Stg
                     bullSignal.Type = 1;
                     bullSignal.Direction = 1;
                     bullSignal.Strength = reversalSignals.strength;
+                    bullSignal.PivotIndex = reversalSignals.bullPivotIdx;
                 }
                 if (reversalSignals.bearDiv)
                 {
@@ -402,6 +412,7 @@ namespace QjySDK.Stg
                     bearSignal.Type = 1;
                     bearSignal.Direction = -1;
                     bearSignal.Strength = reversalSignals.strength;
+                    bearSignal.PivotIndex = reversalSignals.bearPivotIdx;
                 }
             }
 
@@ -418,6 +429,7 @@ namespace QjySDK.Stg
                     bullSignal.Type = 2;
                     bullSignal.Direction = 1;
                     bullSignal.Strength = continuationSignals.strength;
+                    bullSignal.PivotIndex = continuationSignals.bullPivotIdx;
                 }
                 if (continuationSignals.bearContinuation && !bearSignal.Detected)
                 {
@@ -425,19 +437,32 @@ namespace QjySDK.Stg
                     bearSignal.Type = 2;
                     bearSignal.Direction = -1;
                     bearSignal.Strength = continuationSignals.strength;
+                    bearSignal.PivotIndex = continuationSignals.bearPivotIdx;
                 }
             }
 
-            // 记录背离状态
-            if (bullSignal.Detected && !s.BullDivergenceDetected)
+            // 止损封锁：背离 latest pivot 必须严格新于已封锁的 pivot 索引
+            if (bullSignal.Detected && bullSignal.PivotIndex <= s.BlockedBullPivotIndex)
+            {
+                bullSignal.Detected = false;
+            }
+            if (bearSignal.Detected && bearSignal.PivotIndex <= s.BlockedBearPivotIndex)
+            {
+                bearSignal.Detected = false;
+            }
+
+            // 记录背离状态：仅在 pivot 索引发生变化（出现新极值组合）时刷新
+            if (bullSignal.Detected && bullSignal.PivotIndex != s.LastBullPivotIndex)
             {
                 s.BullDivergenceDetected = true;
+                s.LastBullPivotIndex = bullSignal.PivotIndex;
                 s.DivergenceBar = tu.QuoteList.Count - 1;
                 s.DivergenceType = bullSignal.Type;
             }
-            if (bearSignal.Detected && !s.BearDivergenceDetected)
+            if (bearSignal.Detected && bearSignal.PivotIndex != s.LastBearPivotIndex)
             {
                 s.BearDivergenceDetected = true;
+                s.LastBearPivotIndex = bearSignal.PivotIndex;
                 s.DivergenceBar = tu.QuoteList.Count - 1;
                 s.DivergenceType = bearSignal.Type;
             }
@@ -555,17 +580,38 @@ namespace QjySDK.Stg
                         Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
                     }
 
-                    // 清除背离状态
-                    if (s.Position == 1) s.BullDivergenceDetected = false;
-                    if (s.Position == -1) s.BearDivergenceDetected = false;
+                    // 清除背离状态 + 止损封锁本次入场所基于的 pivot 索引
+                    if (s.Position == 1)
+                    {
+                        s.BullDivergenceDetected = false;
+                        if (stopLossHit && s.EntryBullPivotIndex >= 0)
+                            s.BlockedBullPivotIndex = Math.Max(s.BlockedBullPivotIndex, s.EntryBullPivotIndex);
+                    }
+                    if (s.Position == -1)
+                    {
+                        s.BearDivergenceDetected = false;
+                        if (stopLossHit && s.EntryBearPivotIndex >= 0)
+                            s.BlockedBearPivotIndex = Math.Max(s.BlockedBearPivotIndex, s.EntryBearPivotIndex);
+                    }
 
                     // 如果是反向信号且非止损，开反向仓位
                     if (reverseSignal && !stopLossHit)
                     {
-                        OpenPosition(s, tu, q, shortSignal ? -1 : 1, num, atrValue,
+                        int newDir = shortSignal ? -1 : 1;
+                        OpenPosition(s, tu, q, newDir, num, atrValue,
                             useAtrStop, atrStopMultiplier, atrProfitMultiplier,
                             stopLossPercent, takeProfitPercent, period, sendMode,
-                            shortSignal ? s.DivergenceType : s.DivergenceType);
+                            s.DivergenceType);
+                        if (newDir == 1)
+                        {
+                            s.EntryBullPivotIndex = s.LastBullPivotIndex;
+                            s.BullDivergenceDetected = false;
+                        }
+                        else
+                        {
+                            s.EntryBearPivotIndex = s.LastBearPivotIndex;
+                            s.BearDivergenceDetected = false;
+                        }
                     }
                     else
                     {
@@ -582,6 +628,7 @@ namespace QjySDK.Stg
                     OpenPosition(s, tu, q, 1, num, atrValue,
                         useAtrStop, atrStopMultiplier, atrProfitMultiplier,
                         stopLossPercent, takeProfitPercent, period, sendMode, s.DivergenceType);
+                    s.EntryBullPivotIndex = s.LastBullPivotIndex; // 记录入场所基于的 pivot 索引
                     s.BullDivergenceDetected = false;
                 }
                 else if (shortSignal)
@@ -589,6 +636,7 @@ namespace QjySDK.Stg
                     OpenPosition(s, tu, q, -1, num, atrValue,
                         useAtrStop, atrStopMultiplier, atrProfitMultiplier,
                         stopLossPercent, takeProfitPercent, period, sendMode, s.DivergenceType);
+                    s.EntryBearPivotIndex = s.LastBearPivotIndex;
                     s.BearDivergenceDetected = false;
                 }
             }
@@ -644,9 +692,9 @@ namespace QjySDK.Stg
         }
 
         /// <summary>
-        /// 检测反转背离（经典RSI背离）
+        /// 检测反转背离（经典RSI背离）；返回 pivot 索引作为稳定信号ID
         /// </summary>
-        private (bool bullDiv, bool bearDiv, decimal strength) DetectReversalDivergence(
+        private (bool bullDiv, bool bearDiv, decimal strength, int bullPivotIdx, int bearPivotIdx) DetectReversalDivergence(
             List<SkQuote> quotes, List<RsiResult> rsiList,
             int lookbackPeriod, int minBars, int maxBars,
             int oversoldLevel, int overboughtLevel)
@@ -654,13 +702,15 @@ namespace QjySDK.Stg
             bool bullDiv = false;
             bool bearDiv = false;
             decimal strength = 0;
+            int bullPivotIdx = -1;
+            int bearPivotIdx = -1;
 
             int count = quotes.Count;
-            if (count < maxBars + 5) return (false, false, 0);
+            if (count < maxBars + 5) return (false, false, 0, -1, -1);
 
             // 当前RSI值
             var currRsi = rsiList[count - 1];
-            if (!currRsi.Rsi.HasValue) return (false, false, 0);
+            if (!currRsi.Rsi.HasValue) return (false, false, 0, -1, -1);
             decimal currentRsi = (decimal)currRsi.Rsi.Value;
 
             // 寻找价格低点和RSI低点（用于底背离检测）
@@ -693,6 +743,7 @@ namespace QjySDK.Stg
                             if (latestRsiLow.RsiValue <= oversoldLevel + 10)
                             {
                                 bullDiv = true;
+                                bullPivotIdx = latestPriceLow.Index;
                                 // 计算背离强度
                                 decimal priceDiff = Math.Abs(latestPriceLow.PriceValue - prevPriceLow.PriceValue) / prevPriceLow.PriceValue;
                                 decimal rsiDiff = Math.Abs(latestRsiLow.RsiValue - prevRsiLow.RsiValue);
@@ -725,6 +776,7 @@ namespace QjySDK.Stg
                             if (latestRsiHigh.RsiValue >= overboughtLevel - 10)
                             {
                                 bearDiv = true;
+                                bearPivotIdx = latestPriceHigh.Index;
                                 decimal priceDiff = Math.Abs(latestPriceHigh.PriceValue - prevPriceHigh.PriceValue) / prevPriceHigh.PriceValue;
                                 decimal rsiDiff = Math.Abs(latestRsiHigh.RsiValue - prevRsiHigh.RsiValue);
                                 strength = Math.Min(1, (priceDiff * 100 + rsiDiff / 100) / 2);
@@ -734,13 +786,13 @@ namespace QjySDK.Stg
                 }
             }
 
-            return (bullDiv, bearDiv, strength);
+            return (bullDiv, bearDiv, strength, bullPivotIdx, bearPivotIdx);
         }
 
         /// <summary>
-        /// 检测趋势延续背离
+        /// 检测趋势延续背离；返回 pivot 索引作为稳定信号ID
         /// </summary>
-        private (bool bullContinuation, bool bearContinuation, decimal strength) DetectTrendContinuationDivergence(
+        private (bool bullContinuation, bool bearContinuation, decimal strength, int bullPivotIdx, int bearPivotIdx) DetectTrendContinuationDivergence(
             List<SkQuote> quotes, List<RsiResult> rsiList,
             int trendDirection, int lookbackPeriod, int minBars, int maxBars,
             double pullbackDepth)
@@ -748,9 +800,11 @@ namespace QjySDK.Stg
             bool bullContinuation = false;
             bool bearContinuation = false;
             decimal strength = 0;
+            int bullPivotIdx = -1;
+            int bearPivotIdx = -1;
 
             int count = quotes.Count;
-            if (count < maxBars + 10) return (false, false, 0);
+            if (count < maxBars + 10) return (false, false, 0, -1, -1);
 
             // 上升趋势中的回调背离（做多信号）
             if (trendDirection == 1)
@@ -784,6 +838,7 @@ namespace QjySDK.Stg
                                     latestRsiLow.RsiValue > prevRsiLow.RsiValue)
                                 {
                                     bullContinuation = true;
+                                    bullPivotIdx = latestLow.Index;
                                     strength = Math.Min(1, (decimal)pullback * 2);
                                 }
                             }
@@ -822,6 +877,7 @@ namespace QjySDK.Stg
                                     latestRsiHigh.RsiValue < prevRsiHigh.RsiValue)
                                 {
                                     bearContinuation = true;
+                                    bearPivotIdx = latestHigh.Index;
                                     strength = Math.Min(1, (decimal)bounce * 2);
                                 }
                             }
@@ -830,7 +886,7 @@ namespace QjySDK.Stg
                 }
             }
 
-            return (bullContinuation, bearContinuation, strength);
+            return (bullContinuation, bearContinuation, strength, bullPivotIdx, bearPivotIdx);
         }
 
         /// <summary>
