@@ -452,20 +452,18 @@ namespace QjySDK.Stg
                         Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
                     }
 
-                    // 出场后封锁本次入场所基于的 pivot 索引（含止盈/止损/反向信号），
-                    // 必须等到更新的 pivot 形成才可再入场，避免同一背离信号在止盈后立即再次触发开仓
-                    // （signalMode=1/3 时 longSignal 直接使用本地 bullDivergence，不受 BullDivergenceDetected 状态拦截）。
+                    // 出场后封锁“截止当前 K 线已存在的全部 pivot”，强制等待出场后形成的全新 pivot 才可再入场。
+                    // 避免同一背离/相邻次新 pivot 在止损后立即再次触发开仓（signalMode=1/3 下 longSignal 直接使用本地 bullDivergence）。
+                    int blockUpTo = tu.QuoteList.Count - 1;
                     if (s.Position == 1)
                     {
                         s.BullDivergenceDetected = false;
-                        if (s.EntryBullPivotIndex >= 0)
-                            s.BlockedBullPivotIndex = Math.Max(s.BlockedBullPivotIndex, s.EntryBullPivotIndex);
+                        s.BlockedBullPivotIndex = Math.Max(s.BlockedBullPivotIndex, blockUpTo);
                     }
                     if (s.Position == -1)
                     {
                         s.BearDivergenceDetected = false;
-                        if (s.EntryBearPivotIndex >= 0)
-                            s.BlockedBearPivotIndex = Math.Max(s.BlockedBearPivotIndex, s.EntryBearPivotIndex);
+                        s.BlockedBearPivotIndex = Math.Max(s.BlockedBearPivotIndex, blockUpTo);
                     }
 
                     // 如果是反向信号，开反向仓位

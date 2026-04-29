@@ -311,9 +311,8 @@ namespace QjySDK.Stg
 						if (_sl > 0 && s.EntryPrice > 0 && q.Close < s.EntryPrice * (1 - _sl / 100m))
 						{
 							Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
-							// 止损封锁本次入场所基于的底背离 pivot
-							if (s.EntryBullPivotIndex >= 0)
-								s.BlockedBullPivotIndex = Math.Max(s.BlockedBullPivotIndex, s.EntryBullPivotIndex);
+							// 出场后封锁“截止当前 K 线已存在的全部底背离 pivot”，强制等待出场后形成的全新 pivot 才可再入场
+							s.BlockedBullPivotIndex = Math.Max(s.BlockedBullPivotIndex, tu.QuoteList.Count - 1);
 							s.Status = 0; s.Num = 0; s.EntryPrice = 0;
 							s.EntryBullPivotIndex = -1;
 							return;
@@ -345,9 +344,8 @@ namespace QjySDK.Stg
 							{
                                 var oriNum = s.Num;
                                 Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oriNum, period, sendMode);
-                                // 出场后封锁本次入场所基于的底背离 pivot, 避免同一信号在止盈出场后立即再次触发开多
-                                if (s.EntryBullPivotIndex >= 0)
-                                    s.BlockedBullPivotIndex = Math.Max(s.BlockedBullPivotIndex, s.EntryBullPivotIndex);
+                                // 出场后封锁截止当前 K 线已存在的全部底背离 pivot，强制等待全新 pivot 才可再开多
+                                s.BlockedBullPivotIndex = Math.Max(s.BlockedBullPivotIndex, tu.QuoteList.Count - 1);
                                 s.EntryBullPivotIndex = -1; // 退出多头
                                 _ = hasBearDiv; // 原逻辑本出场后不反向开仓，保持一致
                                 s.Status = 0;
@@ -363,9 +361,8 @@ namespace QjySDK.Stg
 						if (_sl2 > 0 && s.EntryPrice > 0 && q.Close > s.EntryPrice * (1 + _sl2 / 100m))
 						{
 							Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
-							// 止损封锁本次入场所基于的顶背离 pivot
-							if (s.EntryBearPivotIndex >= 0)
-								s.BlockedBearPivotIndex = Math.Max(s.BlockedBearPivotIndex, s.EntryBearPivotIndex);
+							// 出场后封锁“截止当前 K 线已存在的全部顶背离 pivot”，强制等待出场后形成的全新 pivot 才可再入场
+							s.BlockedBearPivotIndex = Math.Max(s.BlockedBearPivotIndex, tu.QuoteList.Count - 1);
 							s.Status = 0; s.Num = 0; s.EntryPrice = 0;
 							s.EntryBearPivotIndex = -1;
 							return;
@@ -395,9 +392,8 @@ namespace QjySDK.Stg
 							{
 								var oriNum = s.Num;
 								Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oriNum, period, sendMode);
-								// 出场后封锁本次入场所基于的顶背离 pivot, 避免同一信号在止盈出场后立即再次触发开空
-								if (s.EntryBearPivotIndex >= 0)
-									s.BlockedBearPivotIndex = Math.Max(s.BlockedBearPivotIndex, s.EntryBearPivotIndex);
+								// 出场后封锁截止当前 K 线已存在的全部顶背离 pivot，强制等待全新 pivot 才可再开空
+								s.BlockedBearPivotIndex = Math.Max(s.BlockedBearPivotIndex, tu.QuoteList.Count - 1);
 								s.EntryBearPivotIndex = -1; // 退出空头
 								s.Status = 0;
 								s.Num = 0;
