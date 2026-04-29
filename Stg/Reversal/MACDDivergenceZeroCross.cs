@@ -452,17 +452,19 @@ namespace QjySDK.Stg
                         Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
                     }
 
-                    // 清除背离状态 + 止损封锁本次入场所基于的 pivot 索引
+                    // 出场后封锁本次入场所基于的 pivot 索引（含止盈/止损/反向信号），
+                    // 必须等到更新的 pivot 形成才可再入场，避免同一背离信号在止盈后立即再次触发开仓
+                    // （signalMode=1/3 时 longSignal 直接使用本地 bullDivergence，不受 BullDivergenceDetected 状态拦截）。
                     if (s.Position == 1)
                     {
                         s.BullDivergenceDetected = false;
-                        if (stopLossHit && s.EntryBullPivotIndex >= 0)
+                        if (s.EntryBullPivotIndex >= 0)
                             s.BlockedBullPivotIndex = Math.Max(s.BlockedBullPivotIndex, s.EntryBullPivotIndex);
                     }
                     if (s.Position == -1)
                     {
                         s.BearDivergenceDetected = false;
-                        if (stopLossHit && s.EntryBearPivotIndex >= 0)
+                        if (s.EntryBearPivotIndex >= 0)
                             s.BlockedBearPivotIndex = Math.Max(s.BlockedBearPivotIndex, s.EntryBearPivotIndex);
                     }
 

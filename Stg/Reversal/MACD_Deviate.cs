@@ -316,6 +316,9 @@ namespace QjySDK.Stg
 							{
 								var oriNum = s.Num;
 								Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oriNum, period, sendMode);
+								// 出场后封锁本次入场所基于的底背离 pivot, 避免同一信号在止盈出场后立即再次触发开多
+								if (s.EntryBullPivotIndex >= 0)
+									s.BlockedBullPivotIndex = Math.Max(s.BlockedBullPivotIndex, s.EntryBullPivotIndex);
 								s.EntryBullPivotIndex = -1; // 退出多头
 
 								// 反向开空：需 hi1 严格新于已封锁的顶背离 pivot
@@ -366,6 +369,9 @@ namespace QjySDK.Stg
 							{
 								var oriNum = s.Num;
 								Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oriNum, period, sendMode);
+								// 出场后封锁本次入场所基于的顶背离 pivot, 避免同一信号在止盈出场后立即再次触发开空
+								if (s.EntryBearPivotIndex >= 0)
+									s.BlockedBearPivotIndex = Math.Max(s.BlockedBearPivotIndex, s.EntryBearPivotIndex);
 								s.EntryBearPivotIndex = -1; // 退出空头
 
 								// 反向开多：需 li1 严格新于已封锁的底背离 pivot
