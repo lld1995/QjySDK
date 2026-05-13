@@ -5,35 +5,43 @@ using stgInterface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using static Model.EnumDef;
 
 namespace QjySDK.Stg
 {
     /// <summary>
-    /// 极端反转策略 (ExtremeReversal)
-    /// 
-    /// 信号识别：5维评分系统，仅保留诊断验证的正向预测条件
-    ///   C1. 连续3根K线反转 (54.9% 单条件胜率)
-    ///   C2. RSI 超卖/超买 (54.7%)
-    ///   C3. Stochastic 极端 (54.9%)
-    ///   C4. 放量反转 (52.6%)
-    ///   C5. BB突破 (54.2%)
-    /// 
+    /// TimesFM 方向预测策略 (TimesFmDirection)
+    ///
+    /// 调用本地 TimesFM Serving API 预测下一根K线方向，依赖 ETH/BTC/SOL 5min 实证回测：
+    ///   - 8 窗 / 4161 样本 / 10 个月跨度 / cat_time_only 协变量
+    ///   - 过滤规则: |predRet| >= 0.30 * ATRP
+    ///   - 实测胜率 57.03%, 95% CI [55.5%, 58.5%]
+    ///   - 最长历史连亏 8 (出现 3 次/4161 注), 9+ 从未发生
+    ///
+    /// 信号识别：
+    ///   1) 维护 contextLen 长度的滑动 closes 窗口
+    ///   2) 每根完结bar调用 /forecast_with_covariates，传入 hour_of_day + day_of_week 时间分类变量
+    ///   3) 预测下一根close, 计算 log(predClose/lastClose) 并与 atrThresholdK * ATRP 比较
+    ///   4) 通过过滤的方向作为本bar信号
+    ///
     /// 交易逻辑：
-    ///   - 每bar独立评估5维条件，达到minConfirm(默认5)时触发信号
-    ///   - 同时在主交易所做对应方向的开平仓
-    ///   - Polymarket下单使用signalBars计数器连续下单
+    ///   - 每bar独立评估：先平上一bar仓位，再按本bar信号开新仓 (1根K线持仓)
+    ///   - Polymarket下单使用signalBars计数器连续下单 (复用ExtremeReversal模式)
     /// </summary>
-    public class ExtremeReversal : StgBase
+    public class TimesFmDirection : StgBase
     {
         private class State
         {
             public int Status { get; set; }       // 0=空仓 1=多头 2=空头
             public decimal Num { get; set; }
             public decimal EntryPrice { get; set; }
-            public int SignalDir { get; set; }     // 当前信号方向: 0=无 1=看涨 2=看跌
-            public int RemainBars { get; set; }    // 剩余可下单K线数
+            public int SignalDir { get; set; }    // 当前信号方向: 0=无 1=看涨 2=看跌
+            public int RemainBars { get; set; }   // 剩余可下单K线数
         }
 
         private readonly Dictionary<string, State> _stateDic = new();
@@ -45,8 +53,15 @@ namespace QjySDK.Stg
         private string? _noTokenId;
         private string? _currentConditionId;
 
-        public ExtremeReversal() { }
-        public ExtremeReversal(string id) : base(id) { }
+        private static readonly HttpClient _http = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+        private static readonly JsonSerializerOptions _jso = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        };
+
+        public TimesFmDirection() { }
+        public TimesFmDirection(string id) : base(id) { }
 
         public override StgDesc GetStgDesc()
         {
@@ -55,28 +70,28 @@ namespace QjySDK.Stg
             sd.SubChartNum = 1;
             sd.UseGlobalCalc = 0;
 
-            // ==================== 信号参数 ====================
-            sd.ArgDescDic["shadowRatio"] = new ArgDesc { Text = "影线比例", Explain = "影线长度 > 实体 × 该值时触发影线信号(默认2.0)" };
-            sd.ArgDic["shadowRatio"] = 2.0;
+            // ==================== TimesFM 参数 ====================
+            sd.ArgDescDic["timesFmUrl"] = new ArgDesc { Text = "TimesFM地址", Explain = "TimesFM Serving API base URL" };
+            sd.ArgDic["timesFmUrl"] = "http://192.168.191.4:1234";
 
-            sd.ArgDescDic["signalBars"] = new ArgDesc { Text = "信号持续K线数", Explain = "信号出现后连续下单的K线根数" };
+            sd.ArgDescDic["contextLen"] = new ArgDesc { Text = "上下文长度", Explain = "TimesFM 输入历史K线根数 (回测最优=384)" };
+            sd.ArgDic["contextLen"] = 384;
+
+            sd.ArgDescDic["xregMode"] = new ArgDesc { Text = "xreg模式", Explain = "TimesFM 协变量混合模式", Options = "xreg + timesfm|xreg|timesfm + xreg|timesfm|xreg only", Type = "select" };
+            sd.ArgDic["xregMode"] = "xreg + timesfm";
+
+            sd.ArgDescDic["causalBatchSize"] = new ArgDesc { Text = "因果批大小", Explain = "xreg按批计算，使用当前窗口+历史窗口组成批次；1为单窗口，32对齐回测批大小" };
+            sd.ArgDic["causalBatchSize"] = 32;
+
+            // ==================== 信号过滤参数 ====================
+            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "用于计算ATRP的周期" };
+            sd.ArgDic["atrPeriod"] = 14;
+
+            sd.ArgDescDic["atrThresholdK"] = new ArgDesc { Text = "ATRP阈值倍数", Explain = "|predRet| >= k * ATRP 时才触发信号 (回测最优 0.30)" };
+            sd.ArgDic["atrThresholdK"] = 0.30;
+
+            sd.ArgDescDic["signalBars"] = new ArgDesc { Text = "信号持续K线数", Explain = "信号出现后允许Polymarket连续下单的K线根数" };
             sd.ArgDic["signalBars"] = 5;
-
-            // ==================== 确认过滤参数 ====================
-            sd.ArgDescDic["minConfirm"] = new ArgDesc { Text = "最少条件数", Explain = "5维评分：连续K线/RSI/StochK/量比/BB，需满足的最少条件数" };
-            sd.ArgDic["minConfirm"] = 5;
-
-            sd.ArgDescDic["rsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "RSI计算周期" };
-            sd.ArgDic["rsiPeriod"] = 14;
-
-            sd.ArgDescDic["rsiOversold"] = new ArgDesc { Text = "RSI超卖线", Explain = "RSI低于该值确认买入" };
-            sd.ArgDic["rsiOversold"] = 35;
-
-            sd.ArgDescDic["rsiOverbought"] = new ArgDesc { Text = "RSI超买线", Explain = "RSI高于该值确认卖出" };
-            sd.ArgDic["rsiOverbought"] = 65;
-
-            sd.ArgDescDic["volRatio"] = new ArgDesc { Text = "量比阈值", Explain = "成交量 > 20均量 × 该值时确认" };
-            sd.ArgDic["volRatio"] = 1.2;
 
             // ==================== 交易参数 ====================
             sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅多|2:仅空", Type = "select" };
@@ -101,7 +116,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["privateKey"] = new ArgDesc { Text = "钱包私钥", Explain = "Polymarket 钱包私钥，留空则从 poly_secrets.txt 读取" };
             sd.ArgDic["privateKey"] = "";
 
-            sd.ArgDescDic["funderAddress"] = new ArgDesc { Text = "Proxy钱包地址", Explain = "Polymarket网站 Profile 里的 Wallet Address，留空则从 poly_secrets.txt 读取" };
+            sd.ArgDescDic["funderAddress"] = new ArgDesc { Text = "Proxy钱包地址", Explain = "Polymarket Profile 里的 Wallet Address，留空则从 poly_secrets.txt 读取" };
             sd.ArgDic["funderAddress"] = "";
 
             sd.ArgDescDic["eventTag"] = new ArgDesc { Text = "事件标签", Explain = "默认 Ethereum；周期标签按当前K线周期自动推导（如 5M/15M/1H）" };
@@ -117,7 +132,9 @@ namespace QjySDK.Stg
             sd.ArgDic["polyNum"] = 5m;
 
             // ==================== 颜色配置 ====================
-            sd.ColorDic["sub0-Signal"] = "#FF9800";
+            sd.ColorDic["sub0-PredRet"] = "#2196F3";
+            sd.ColorDic["sub0-Threshold"] = "#FF5722";
+            sd.ColorDic["sub0-Signal"] = "#4CAF50";
 
             sd.MidValDic["sub0"] = 0;
 
@@ -148,18 +165,23 @@ namespace QjySDK.Stg
 
             if (!isFinal) return;
 
-            if (tu.QuoteList.Count < 30) return;
+            int contextLen = Convert.ToInt32(ArgDic["contextLen"]);
+            int atrPeriod = Convert.ToInt32(ArgDic["atrPeriod"]);
+            int causalBatchSize = ArgDic.ContainsKey("causalBatchSize")
+                ? Math.Max(1, Convert.ToInt32(ArgDic["causalBatchSize"]))
+                : 32;
+            // 至少需要 contextLen 根做输入 + atrPeriod 根做 ATR
+            int minBars = Math.Max(contextLen + causalBatchSize - 1, atrPeriod) + 5;
+            if (tu.QuoteList.Count < minBars) return;
+
             var quotes = tu.QuoteList;
             var q = quotes.Last();
             decimal price = q.Close;
 
-            double shadowRatio = Convert.ToDouble(ArgDic["shadowRatio"]);
+            string timesFmUrl = Convert.ToString(ArgDic["timesFmUrl"]) ?? "http://192.168.191.4:1234";
+            string xregMode = Convert.ToString(ArgDic["xregMode"]) ?? "xreg + timesfm";
+            double atrThresholdK = Convert.ToDouble(ArgDic["atrThresholdK"]);
             int signalBars = Convert.ToInt32(ArgDic["signalBars"]);
-            int minConfirm = Convert.ToInt32(ArgDic["minConfirm"]);
-            int rsiPeriod = Convert.ToInt32(ArgDic["rsiPeriod"]);
-            int rsiOversold = Convert.ToInt32(ArgDic["rsiOversold"]);
-            int rsiOverbought = Convert.ToInt32(ArgDic["rsiOverbought"]);
-            double volRatioThreshold = Convert.ToDouble(ArgDic["volRatio"]);
             int mode = Convert.ToInt32(ArgDic["mode"]);
             int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
@@ -170,67 +192,87 @@ namespace QjySDK.Stg
                 _stateDic[sk] = s;
             }
 
-            // ── 5维评分系统（仅保留诊断验证的正向预测条件） ──
-            int buyScore = 0, sellScore = 0;
-            bool curBarUp = q.Close > q.Open;
-
-            // C1: 连续3根K线反转 (54.9% 单条件胜率)
-            if (quotes.Count >= 4)
+            // ── 调用 TimesFM 预测下一根 close ──
+            int barSignal = 0;
+            double predRet = 0;
+            double threshold = 0;
+            try
             {
-                int consecUp = 0, consecDown = 0;
-                for (int ci = quotes.Count - 1; ci >= 1 && ci >= quotes.Count - 10; ci--)
+                int currentTargetIdx = quotes.Count;
+                int firstTargetIdx = currentTargetIdx - causalBatchSize + 1;
+                var batchInputs = new List<List<double>>(causalBatchSize);
+                var batchHourCat = new List<List<object>>(causalBatchSize);
+                var batchDowCat = new List<List<object>>(causalBatchSize);
+
+                for (int targetIdx = firstTargetIdx; targetIdx <= currentTargetIdx; targetIdx++)
                 {
-                    if (quotes[ci].Close > quotes[ci - 1].Close)
-                    { if (consecDown > 0) break; consecUp++; }
-                    else if (quotes[ci].Close < quotes[ci - 1].Close)
-                    { if (consecUp > 0) break; consecDown++; }
-                    else break;
+                    int startIdx = targetIdx - contextLen;
+                    var inputs = new List<double>(contextLen);
+                    var hourCat = new List<object>(contextLen + 1);
+                    var dowCat = new List<object>(contextLen + 1);
+
+                    for (int i = startIdx; i < targetIdx; i++)
+                    {
+                        inputs.Add((double)quotes[i].Close);
+                        var dt = quotes[i].Date;
+                        hourCat.Add(dt.Hour);
+                        dowCat.Add((int)dt.DayOfWeek);
+                    }
+
+                    var targetDt = targetIdx < quotes.Count
+                        ? quotes[targetIdx].Date
+                        : quotes[^1].Date.AddSeconds(GetSlotSeconds(period));
+                    hourCat.Add(targetDt.Hour);
+                    dowCat.Add((int)targetDt.DayOfWeek);
+
+                    batchInputs.Add(inputs);
+                    batchHourCat.Add(hourCat);
+                    batchDowCat.Add(dowCat);
                 }
-                if (consecDown >= 3) buyScore++;   // 连续下跌 → 看涨反转
-                if (consecUp >= 3) sellScore++;     // 连续上涨 → 看跌反转
-            }
 
-            // C2: RSI 超卖/超买 (54.7% 单条件胜率)
-            var rsiVal = quotes.GetRsi(rsiPeriod).Last().Rsi;
-            if (rsiVal.HasValue)
-            {
-                if (rsiVal.Value < rsiOversold) buyScore++;
-                if (rsiVal.Value > rsiOverbought) sellScore++;
-            }
-
-            // C3: Stochastic 极端 K < 20 / K > 80 (54.9% 单条件胜率)
-            var stoch = quotes.GetStoch(14, 3, 3).Last();
-            if (stoch.K.HasValue)
-            {
-                if (stoch.K.Value < 20) buyScore++;
-                if (stoch.K.Value > 80) sellScore++;
-            }
-
-            // C4: 放量反转 (52.6% 单条件胜率)
-            if (quotes.Count >= 20)
-            {
-                decimal avgVol = 0;
-                for (int vi = quotes.Count - 20; vi < quotes.Count; vi++) avgVol += quotes[vi].Volume;
-                avgVol /= 20;
-                if (avgVol > 0 && q.Volume > avgVol * (decimal)volRatioThreshold)
+                var req = new CovariatesForecastRequest
                 {
-                    if (!curBarUp) buyScore++;   // 放量下跌 → 看涨反转
-                    if (curBarUp) sellScore++;    // 放量上涨 → 看跌反转
+                    Inputs = batchInputs,
+                    DynamicCategoricalCovariates = new Dictionary<string, List<List<object>>>
+                    {
+                        ["hour_of_day"] = batchHourCat,
+                        ["day_of_week"] = batchDowCat,
+                    },
+                    XRegMode = xregMode,
+                    NormalizeXregTargetPerInput = true,
+                    Ridge = 0.0,
+                    MaxContext = contextLen,
+                    MaxHorizon = 8,
+                    NormalizeInputs = true,
+                };
+                var resp = PostForecast(timesFmUrl, req);
+
+                if (resp != null && resp.PointForecast != null && resp.PointForecast.Count > 0
+                    && resp.PointForecast[^1].Count > 0)
+                {
+                    double predClose = resp.PointForecast[^1][0];
+                    double lastClose = (double)price;
+                    if (predClose > 0 && lastClose > 0)
+                    {
+                        predRet = Math.Log(predClose / lastClose);
+
+                        // 计算 ATRP (decimal): atr.Atrp 是百分比表示
+                        var atrList = quotes.GetAtr(atrPeriod).ToList();
+                        var atrLast = atrList[^1];
+                        double atrp = atrLast.Atrp.HasValue ? atrLast.Atrp.Value / 100.0 : 0.0;
+                        threshold = atrThresholdK * atrp;
+
+                        if (atrp > 0 && Math.Abs(predRet) >= threshold)
+                            barSignal = predRet > 0 ? 1 : 2;
+                    }
                 }
             }
-
-            // C5: BB(10,2) 突破 (54.2% 单条件胜率)
-            var boll = quotes.GetBollingerBands(10, 2).Last();
-            if (boll.LowerBand.HasValue && boll.UpperBand.HasValue)
+            catch (Exception ex)
             {
-                if ((double)price < boll.LowerBand.Value) buyScore++;
-                if ((double)price > boll.UpperBand.Value) sellScore++;
+                // TimesFM 不可用时静默跳过本bar，不阻断主交易所
+                Console.WriteLine($"[TimesFmDirection] forecast failed: {ex.Message}");
+                barSignal = 0;
             }
-
-            // 信号判定：需达到 minConfirm 且买卖不冲突
-            int barSignal = 0; // 本bar的交易方向
-            if (buyScore >= minConfirm && sellScore < minConfirm) barSignal = 1;
-            else if (sellScore >= minConfirm && buyScore < minConfirm) barSignal = 2;
 
             // mode 过滤
             if (mode == 1 && barSignal == 2) barSignal = 0;
@@ -250,10 +292,11 @@ namespace QjySDK.Stg
             }
 
             // 绘图
-            double plotVal = barSignal != 0 ? (barSignal == 1 ? 1 : -1) : 0;
-            Plot("sub0", "Signal", PlotType.LINE, plotVal);
+            Plot("sub0", "PredRet", PlotType.LINE, predRet);
+            Plot("sub0", "Threshold", PlotType.LINE, threshold);
+            Plot("sub0", "Signal", PlotType.LINE, barSignal == 1 ? 1 : (barSignal == 2 ? -1 : 0));
 
-            // ── 每bar独立评估交易（MoEPredict风格） ──
+            // ── 每bar独立评估交易（MoEPredict风格：每bar开平一次） ──
             var num = CalculateLots(tu.MktSymbol, price);
             if (num <= 0) return;
 
@@ -295,6 +338,51 @@ namespace QjySDK.Stg
                 Trade(tu.MktSymbol, OrderType.SELL, price, num, period, sendMode);
                 s.Status = 2; s.Num = num; s.EntryPrice = price;
             }
+        }
+
+        #endregion
+
+        #region TimesFM HTTP
+
+        private static ForecastResponse? PostForecast(string baseUrl, CovariatesForecastRequest req)
+        {
+            var url = baseUrl.TrimEnd('/') + "/forecast_with_covariates";
+            var resp = _http.PostAsJsonAsync(url, req, _jso).GetAwaiter().GetResult();
+            resp.EnsureSuccessStatusCode();
+            return resp.Content.ReadFromJsonAsync<ForecastResponse>(_jso).GetAwaiter().GetResult();
+        }
+
+        private class CovariatesForecastRequest
+        {
+            [JsonPropertyName("inputs")]
+            public List<List<double>> Inputs { get; set; } = new();
+
+            [JsonPropertyName("dynamic_categorical_covariates")]
+            public Dictionary<string, List<List<object>>>? DynamicCategoricalCovariates { get; set; }
+
+            [JsonPropertyName("xreg_mode")]
+            public string XRegMode { get; set; } = "xreg + timesfm";
+
+            [JsonPropertyName("normalize_xreg_target_per_input")]
+            public bool NormalizeXregTargetPerInput { get; set; } = true;
+
+            [JsonPropertyName("ridge")]
+            public double Ridge { get; set; } = 0.0;
+
+            [JsonPropertyName("max_context")]
+            public int MaxContext { get; set; } = 384;
+
+            [JsonPropertyName("max_horizon")]
+            public int MaxHorizon { get; set; } = 1;
+
+            [JsonPropertyName("normalize_inputs")]
+            public bool NormalizeInputs { get; set; } = true;
+        }
+
+        private class ForecastResponse
+        {
+            [JsonPropertyName("point_forecast")]
+            public List<List<double>>? PointForecast { get; set; }
         }
 
         #endregion

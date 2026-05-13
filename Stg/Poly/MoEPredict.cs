@@ -122,6 +122,9 @@ namespace QjySDK.Stg
             sd.ArgDescDic["minWinRate"] = new ArgDesc { Text = "最少胜率", Explain = "自适应表中某状态胜率超过此值才交易(0-1)" };
             sd.ArgDic["minWinRate"] = 0.80;
 
+            sd.ArgDescDic["extremeThreshold"] = new ArgDesc { Text = "极端条件阈值", Explain = "7维极端条件至少满足N个才入场" };
+            sd.ArgDic["extremeThreshold"] = 4;
+
             sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDic["mode"] = 0;
 
@@ -924,6 +927,7 @@ namespace QjySDK.Stg
 
             int mode = Convert.ToInt32(ArgDic["mode"]);
             int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+            int extremeThreshold = Convert.ToInt32(ArgDic["extremeThreshold"]);
 
             // 最少需要的K线数
             int minBars = Math.Max(lookback + trainPeriod + 25, 50);
@@ -1072,9 +1076,9 @@ namespace QjySDK.Stg
             bool predictDown = false;
 
             // ===== 4+/7条件 =====
-            if (buyExt >= 4)
+            if (buyExt >= extremeThreshold)
                 predictUp = true;
-            else if (sellExt >= 4)
+            else if (sellExt >= extremeThreshold)
                 predictDown = true;
 
             // mode过滤
