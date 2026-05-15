@@ -33,14 +33,26 @@ namespace QjySDK.Tests
         [Fact]
         public void Run_2026_Monthly_5M_NonTimesFm()
         {
-            Assert.True(TDEngineDataLoader.IsAvailable(), "TDEngine 不可用，无法拉取 2026 全量 5M 数据");
-            var quotes = TDEngineDataLoader.LoadKlines(RawSymbol, Period.TIME_5M, BarLimit);
+            RunMonthly5MNonTimesFm(new[] { 2026 }, BarLimit, "poly_monthly_2026_5m");
+        }
+
+        [Fact]
+        public void Run_2025_2026_Monthly_5M_NonTimesFm()
+        {
+            // 2025-01-01 → 2026-12-31 ≈ 730 天 × 288 bars ≈ 21 万根；预留足够 limit
+            RunMonthly5MNonTimesFm(new[] { 2025, 2026 }, 230000, "poly_monthly_2025_2026_5m");
+        }
+
+        private void RunMonthly5MNonTimesFm(int[] years, int barLimit, string fileTag)
+        {
+            Assert.True(TDEngineDataLoader.IsAvailable(), "TDEngine 不可用，无法拉取 5M 数据");
+            var quotes = TDEngineDataLoader.LoadKlines(RawSymbol, Period.TIME_5M, barLimit);
             Assert.NotNull(quotes);
             Assert.True(quotes.Count > 0);
 
             var outDir = Path.Combine(KlineCache.CacheDirectory, "..");
             Directory.CreateDirectory(outDir);
-            var outPath = Path.GetFullPath(Path.Combine(outDir, $"poly_monthly_2026_5m_{DateTime.Now:yyyyMMdd_HHmmss}.csv"));
+            var outPath = Path.GetFullPath(Path.Combine(outDir, $"{fileTag}_{DateTime.Now:yyyyMMdd_HHmmss}.csv"));
             using var sw = new StreamWriter(outPath, false);
             sw.WriteLine("strategy,month,bars,start,end,trades,coverage,win_rate,binary_pnl,min_capital,annualized_return,binary_sharpe,max_loss_streak,pnl,max_drawdown,sharpe,profit_factor");
 
@@ -55,8 +67,9 @@ namespace QjySDK.Tests
             _output.WriteLine($"loaded bars={quotes.Count}, range={quotes[0].Date:yyyy-MM-dd HH:mm}->{quotes[^1].Date:yyyy-MM-dd HH:mm}");
             _output.WriteLine($"csv={outPath}");
 
+            var yearSet = new HashSet<int>(years);
             var months = quotes
-                .Where(q => q.Date.Year == 2026)
+                .Where(q => yearSet.Contains(q.Date.Year))
                 .GroupBy(q => new DateTime(q.Date.Year, q.Date.Month, 1))
                 .OrderBy(g => g.Key)
                 .ToList();

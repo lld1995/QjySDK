@@ -9,7 +9,7 @@ using static Model.EnumDef;
 
 namespace QjySDK.Stg
 {
-    public abstract class OneBarReversionBase : StgBase
+    public abstract class OneBarReversionBase : PolyStgBase
     {
         protected OneBarReversionBase() { }
         protected OneBarReversionBase(string id) : base(id) { }
@@ -40,8 +40,8 @@ namespace QjySDK.Stg
             sd.ArgDic["lots"] = 1.0m;
             sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额模式下用于换算手数" };
             sd.ArgDic["money"] = 10000m;
-            sd.ArgDescDic["polyNum"] = new ArgDesc { Text = "Poly下单数量", Explain = "Polymarket 下单数量(USDC)，该候选仅输出方向信号" };
-            sd.ArgDic["polyNum"] = 0m;
+            // Polymarket 参数（默认 polyNum=0 代表不启用 Poly 下单，只输出方向信号）
+            AddPolyArgs(sd, 0m);
             sd.ColorDic["sub0-Signal"] = "#FF9800";
             sd.MidValDic["sub0"] = 0;
         }
@@ -49,7 +49,23 @@ namespace QjySDK.Stg
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
         {
             base.OnBar(period, tu, isFinal, tq);
-            if (isFinal && ArgDic != null && tu.QuoteList != null && tu.QuoteList.Count >= MinBars)
+            if (ArgDic == null || tu.QuoteList == null || tu.QuoteList.Count == 0) return;
+
+            EnsurePolymarketInitialized(period);
+            if (_polyService != null)
+                RefreshEventIfNeeded(tq.Date, period);
+
+            // 每个 tick 尝试 Polymarket 下单（持仓期间，在 nearEndMinutes 阈值内由 TryPlacePolymarketOrder 有效触发）
+            if (!IsBacktest && !_polyOrderPlaced
+                && _stateDic.TryGetValue(tu.GetStateKey(), out var posState)
+                && posState.Status != 0)
+            {
+                var polyNum = Convert.ToDecimal(ArgDic["polyNum"]);
+                if (polyNum > 0 && TryPlacePolymarketOrder(posState.Status == 1, polyNum, tq))
+                    _polyOrderPlaced = true;
+            }
+
+            if (isFinal && tu.QuoteList.Count >= MinBars)
             {
                 var quotes = tu.QuoteList;
                 var q = quotes.Last();
@@ -260,7 +276,7 @@ namespace QjySDK.Stg
             sd.ArgDic["bollPeriod"] = 20;
             sd.ArgDescDic["bollStdDev"] = new ArgDesc { Text = "布林标准差", Explain = "布林带标准差倍数" };
             sd.ArgDic["bollStdDev"] = 1.8;
-            AddCommonArgs(sd, 2);
+            AddCommonArgs(sd, 0);
             return sd;
         }
 

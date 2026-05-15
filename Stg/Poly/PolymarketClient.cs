@@ -132,6 +132,9 @@ namespace QjySDK.Stg
             if (string.IsNullOrWhiteSpace(tokenId))
                 throw new ArgumentException("tokenId is required", nameof(tokenId));
 
+            var tokenTag = tokenId.Length > 8 ? tokenId.Substring(0, 8) + "..." : tokenId;
+            PolyLog.Order($"PlaceOrderAsync request token={tokenTag} side={side} price={price} size={size} feeBps={feeRateBps}");
+
             var response = await _restClient!.ClobApi.Trading.PlaceOrderAsync(
                 tokenId,
                 side,
@@ -140,12 +143,14 @@ namespace QjySDK.Stg
                 price: price,
                 feeRateBps: feeRateBps);
 
-            return new PlaceOrderResult
+            var result = new PlaceOrderResult
             {
                 Success = response.Success,
                 Message = response.Error?.Message,
                 OrderId = response.Data?.OrderId
             };
+            PolyLog.Order($"PlaceOrderAsync result token={tokenTag} success={result.Success} orderId={result.OrderId} msg={result.Message}");
+            return result;
         }
 
         public async Task<PlaceOrderResult> PlaceOrderWithRetryAsync(string tokenId, OrderSide side, decimal size, int maxRetries = 3, int waitMs = 5000, int feeRateBps = 1000)
@@ -165,7 +170,7 @@ namespace QjySDK.Stg
                 if (!price.HasValue || price.Value <= 0 || price.Value > 1)
                     return new PlaceOrderResult { Success = false, Message = "Invalid price from order book" };
 
-                Console.WriteLine($"[PolyOrder] Attempt {attempt}/{maxRetries}: {side} {size}@{price.Value}");
+                PolyLog.Order($"Attempt {attempt}/{maxRetries}: {side} {size}@{price.Value}");
 
                 var placeResult = await PlaceOrderAsync(tokenId, side, price.Value, size, feeRateBps);
                 if (!placeResult.Success || string.IsNullOrWhiteSpace(placeResult.OrderId))
@@ -180,22 +185,22 @@ namespace QjySDK.Stg
                 {
                     if (orderStatus.Data.Status == Polymarket.Net.Enums.OrderStatus.Matched)
                     {
-                        Console.WriteLine($"[PolyOrder] Filled: orderId={placeResult.OrderId}");
+                        PolyLog.Order($"Filled: orderId={placeResult.OrderId}");
                         return placeResult;
                     }
                 }
 
                 // 未成交，撤单
-                Console.WriteLine($"[PolyOrder] Not filled after {waitMs}ms, cancelling...");
+                PolyLog.Order($"Not filled after {waitMs}ms, cancelling orderId={placeResult.OrderId}");
                 var cancelResult = await _restClient!.ClobApi.Trading.CancelOrderAsync(placeResult.OrderId);
                 if (cancelResult.Success)
-                    Console.WriteLine($"[PolyOrder] Cancelled: orderId={placeResult.OrderId}");
+                    PolyLog.Order($"Cancelled: orderId={placeResult.OrderId}");
                 else
-                    Console.WriteLine($"[PolyOrder] Cancel failed: {cancelResult.Error?.Message}");
+                    PolyLog.Order($"Cancel failed: orderId={placeResult.OrderId} err={cancelResult.Error?.Message}");
 
                 if (attempt == maxRetries)
                 {
-                    Console.WriteLine($"[PolyOrder] Max retries reached, giving up.");
+                    PolyLog.Order("Max retries reached, giving up.");
                     return new PlaceOrderResult { Success = false, Message = "Max retries reached, order not filled" };
                 }
             }
@@ -285,15 +290,25 @@ namespace QjySDK.Stg
                 }
 
                 if (receipt == null)
+                {
+                    PolyLog.Redeem($"{sourceName} tx submitted but no receipt(timeout) txHash={txHash} cond={hexStr}");
                     return new RedeemResult { Success = false, TransactionHash = txHash, Message = $"{sourceName}: 已提交但未确认(超时)" };
+                }
 
                 if (receipt.Status.Value == 1)
+                {
+                    PolyLog.Redeem($"{sourceName} OK txHash={txHash} cond={hexStr} indexSets=[{string.Join(",", indexSets)}]");
                     return new RedeemResult { Success = true, TransactionHash = txHash };
+                }
                 else
+                {
+                    PolyLog.Redeem($"{sourceName} REVERT txHash={txHash} cond={hexStr}");
                     return new RedeemResult { Success = false, TransactionHash = txHash, Message = $"{sourceName}: 交易链上 revert" };
+                }
             }
             catch (Exception ex)
             {
+                PolyLog.Redeem($"{sourceName} EXCEPTION cond={conditionId} err={ex.Message}");
                 return new RedeemResult { Success = false, Message = $"{sourceName}: {ex.Message}" };
             }
         }
@@ -409,7 +424,7 @@ namespace QjySDK.Stg
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[PolyRedeem] Balance check error: {ex.Message}");
+                PolyLog.Redeem($"Balance check error: {ex.Message}");
             }
             return result;
         }
@@ -431,7 +446,7 @@ namespace QjySDK.Stg
                 EndDate = endDate,
                 EnqueuedAt = DateTime.UtcNow
             });
-            Console.WriteLine($"[PolyRedeem] Enqueued market {conditionId[..10]}... endDate={endDate:u}");
+            PolyLog.Redeem($"Enqueued market cond={conditionId[..10]}... tokens=[{string.Join(",", tokenIds ?? Array.Empty<string>())}] endDate={endDate:u}");
         }
 
         public void StartRedeemWorker()
@@ -444,14 +459,14 @@ namespace QjySDK.Stg
                 Name = "PolyRedeemWorker"
             };
             _redeemThread.Start();
-            Console.WriteLine("[PolyRedeem] Worker started.");
+            PolyLog.Redeem("Worker started.");
         }
 
         public void StopRedeemWorker()
         {
             _redeemCts?.Cancel();
             _redeemThread = null;
-            Console.WriteLine("[PolyRedeem] Worker stopped.");
+            PolyLog.Redeem("Worker stopped.");
         }
 
         private void RedeemWorkerLoop(CancellationToken ct)
@@ -485,36 +500,41 @@ namespace QjySDK.Stg
                     {
                         // Not settled yet, put back and wait
                         _redeemQueue.Enqueue(job);
-                        Console.WriteLine($"[PolyRedeem] {job.ConditionId[..10]}... not settled yet, waiting...");
+                        PolyLog.Redeem($"{job.ConditionId[..10]}... not settled yet, waiting...");
                         Thread.Sleep(10000);
                         continue;
                     }
 
                     // Market is settled — determine winning index sets
-                    var winningIndexSets = GetWinningIndexSets(settledMarket, job.TokenIds,
-                        CheckTokenBalances(job.TokenIds).GetAwaiter().GetResult());
+                    var balances = CheckTokenBalances(job.TokenIds).GetAwaiter().GetResult();
+                    PolyLog.Redeem($"{job.ConditionId[..10]}... settled. balances=[{string.Join(",", balances.Select(kv => $"{(kv.Key.Length > 6 ? kv.Key.Substring(0, 6) : kv.Key)}:{kv.Value}"))}] outcomePrices=[{string.Join(",", settledMarket.OutcomePrices ?? Array.Empty<decimal>())}]");
+                    var winningIndexSets = GetWinningIndexSets(settledMarket, job.TokenIds, balances);
 
                     if (winningIndexSets.Length == 0)
                     {
-                        Console.WriteLine($"[PolyRedeem] {job.ConditionId[..10]}... no winning position or no balance, skip.");
+                        PolyLog.Redeem($"{job.ConditionId[..10]}... no winning position or no balance, skip.");
                         continue;
                     }
 
                     // Try redeem: CTF first, then NegRisk fallback
+                    PolyLog.Redeem($"{job.ConditionId[..10]}... try redeem CTF indexSets=[{string.Join(",", winningIndexSets)}]");
                     var result = RedeemPositionsAsync(job.ConditionId, winningIndexSets, isNegRisk: false).GetAwaiter().GetResult();
                     if (!result.Success)
+                    {
+                        PolyLog.Redeem($"{job.ConditionId[..10]}... CTF failed, fallback NegRisk. firstErr={result.Message}");
                         result = RedeemPositionsAsync(job.ConditionId, winningIndexSets, isNegRisk: true).GetAwaiter().GetResult();
+                    }
 
                     if (result.Success)
-                        Console.WriteLine($"[PolyRedeem] OK: {job.ConditionId[..10]}... tx={result.TransactionHash}");
+                        PolyLog.Redeem($"OK: cond={job.ConditionId[..10]}... tx={result.TransactionHash}");
                     else
-                        Console.WriteLine($"[PolyRedeem] FAIL: {job.ConditionId[..10]}... err={result.Message}");
+                        PolyLog.Redeem($"FAIL: cond={job.ConditionId[..10]}... err={result.Message}");
 
                     Thread.Sleep(5000); // pace between redeems
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[PolyRedeem] Error: {ex.Message}");
+                    PolyLog.Redeem($"Worker error: {ex.Message}");
                     Thread.Sleep(10000);
                 }
             }
@@ -554,7 +574,7 @@ namespace QjySDK.Stg
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[PolyRedeem] Balance check error: {ex.Message}");
+                PolyLog.Redeem($"Balance check error: {ex.Message}");
             }
             return false;
         }

@@ -33,7 +33,7 @@ namespace QjySDK.Stg
     ///   - 每bar独立评估：先平上一bar仓位，再按本bar信号开新仓 (1根K线持仓)
     ///   - Polymarket下单使用signalBars计数器连续下单 (复用ExtremeReversal模式)
     /// </summary>
-    public class TimesFmDirection : StgBase
+    public class TimesFmDirection : PolyStgBase
     {
         private class State
         {
@@ -45,13 +45,6 @@ namespace QjySDK.Stg
         }
 
         private readonly Dictionary<string, State> _stateDic = new();
-        private PolymarketService? _polyService;
-        private bool _serviceInited;
-        private bool _polyOrderPlaced;
-        private DateTime? _eventEndDate;
-        private string? _yesTokenId;
-        private string? _noTokenId;
-        private string? _currentConditionId;
 
         private static readonly HttpClient _http = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
         private static readonly JsonSerializerOptions _jso = new JsonSerializerOptions
@@ -113,23 +106,7 @@ namespace QjySDK.Stg
             sd.ArgDic["money"] = 10000m;
 
             // ==================== Polymarket参数 ====================
-            sd.ArgDescDic["privateKey"] = new ArgDesc { Text = "钱包私钥", Explain = "Polymarket 钱包私钥，留空则从 poly_secrets.txt 读取" };
-            sd.ArgDic["privateKey"] = "";
-
-            sd.ArgDescDic["funderAddress"] = new ArgDesc { Text = "Proxy钱包地址", Explain = "Polymarket Profile 里的 Wallet Address，留空则从 poly_secrets.txt 读取" };
-            sd.ArgDic["funderAddress"] = "";
-
-            sd.ArgDescDic["eventTag"] = new ArgDesc { Text = "事件标签", Explain = "默认 Ethereum；周期标签按当前K线周期自动推导（如 5M/15M/1H）" };
-            sd.ArgDic["eventTag"] = "Ethereum";
-
-            sd.ArgDescDic["minPriceNearEnd"] = new ArgDesc { Text = "Poly最低价(分)", Explain = "Polymarket下单条件：best ask > 该值(分)且剩余时间 < nearEndMinutes" };
-            sd.ArgDic["minPriceNearEnd"] = 65;
-
-            sd.ArgDescDic["nearEndMinutes"] = new ArgDesc { Text = "Poly临近结束(分钟)", Explain = "剩余时间小于该值时允许Polymarket下单" };
-            sd.ArgDic["nearEndMinutes"] = 3;
-
-            sd.ArgDescDic["polyNum"] = new ArgDesc { Text = "Poly下单数量", Explain = "Polymarket 下单数量(USDC)" };
-            sd.ArgDic["polyNum"] = 5m;
+            AddPolyArgs(sd, 5m);
 
             // ==================== 颜色配置 ====================
             sd.ColorDic["sub0-PredRet"] = "#2196F3";
@@ -387,118 +364,6 @@ namespace QjySDK.Stg
 
         #endregion
 
-        #region Polymarket
-
-        private void EnsurePolymarketInitialized(Period period)
-        {
-            if (_serviceInited) return;
-            if (IsBacktest) return;
-
-            var privateKey = Convert.ToString(ArgDic["privateKey"]) ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(privateKey)) privateKey = PolySecrets.PrivateKey;
-            if (string.IsNullOrWhiteSpace(privateKey)) return;
-
-            var funderAddress = Convert.ToString(ArgDic["funderAddress"]) ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(funderAddress)) funderAddress = PolySecrets.FunderAddress;
-            _polyService = new PolymarketService();
-            _polyService.Init(privateKey, funderAddress).GetAwaiter().GetResult();
-
-            var eventTag = Convert.ToString(ArgDic["eventTag"]) ?? "Ethereum";
-            var evt = _polyService.GetLatestEventAsync(GetSlugPrefix(eventTag, period), GetSlotSeconds(period))
-                .GetAwaiter().GetResult();
-            ApplyEventInfo(evt);
-
-            _polyService.StartRedeemWorker();
-            _serviceInited = true;
-        }
-
-        private void RefreshEventIfNeeded(DateTime barTime, Period period)
-        {
-            var barTimeUtc = ToUtc(barTime);
-            if (_eventEndDate.HasValue && barTimeUtc < _eventEndDate.Value.AddSeconds(-1))
-                return;
-
-            if (!string.IsNullOrWhiteSpace(_currentConditionId) && _eventEndDate.HasValue)
-            {
-                var oldTokenIds = new[] { _yesTokenId, _noTokenId }.Where(t => !string.IsNullOrWhiteSpace(t)).ToArray()!;
-                _polyService!.EnqueueMarketRedeem(_currentConditionId, oldTokenIds, _eventEndDate.Value);
-            }
-
-            var eventTag = Convert.ToString(ArgDic["eventTag"]) ?? "Ethereum";
-            var evt = _polyService!.GetLatestEventAsync(GetSlugPrefix(eventTag, period), GetSlotSeconds(period))
-                .GetAwaiter().GetResult();
-            ApplyEventInfo(evt);
-        }
-
-        private void ApplyEventInfo(EventInfo? evt)
-        {
-            if (evt == null) return;
-
-            if (evt.EndDate > DateTime.MinValue)
-                _eventEndDate = ToUtc(evt.EndDate);
-
-            _currentConditionId = evt.ConditionId;
-
-            if (evt.ClobTokenIds is { Length: > 0 })
-            {
-                _yesTokenId = evt.ClobTokenIds[0];
-                _noTokenId = evt.ClobTokenIds.Length > 1 ? evt.ClobTokenIds[1] : null;
-            }
-
-            _polyOrderPlaced = false;
-        }
-
-        private bool TryPlacePolymarketOrder(bool isLongSignal, decimal size, SkQuote q)
-        {
-            if (_polyService == null || !_eventEndDate.HasValue)
-                return false;
-
-            var remainSeconds = (_eventEndDate.Value - DateTime.UtcNow).TotalSeconds;
-            int nearEndMinutes = Convert.ToInt32(ArgDic["nearEndMinutes"]);
-            if (remainSeconds >= nearEndMinutes * 60)
-                return false;
-
-            var tokenId = isLongSignal ? _yesTokenId : _noTokenId;
-            if (string.IsNullOrWhiteSpace(tokenId))
-                return false;
-
-            var bookInfo = _polyService.GetOrderBookAsync(new[] { tokenId }).GetAwaiter().GetResult();
-            if (!bookInfo.Success || !bookInfo.TokenBooks.TryGetValue(tokenId, out var book))
-                return false;
-
-            var price = book.BestAsk;
-            if (!price.HasValue || price.Value <= 0 || price.Value > 1)
-                return false;
-
-            decimal minPriceNearEnd = Convert.ToDecimal(ArgDic["minPriceNearEnd"]);
-            if (price.Value * 100m <= minPriceNearEnd)
-                return false;
-
-            if (remainSeconds > 2 * 60 && price.Value * 100m >= 75m)
-                return false;
-            if (remainSeconds > 1 * 60 && price.Value * 100m >= 85m)
-                return false;
-            if (price.Value * 100m >= 90m)
-                return false;
-
-            if (isLongSignal)
-            {
-                if (q.Close - q.Open < 0.2m)
-                    return false;
-            }
-            else
-            {
-                if (q.Close - q.Open > -0.2m)
-                    return false;
-            }
-
-            var result = _polyService.PlaceOrderAsync(tokenId, Polymarket.Net.Enums.OrderSide.Buy, price.Value, size)
-                    .GetAwaiter().GetResult();
-            return result.Success;
-        }
-
-        #endregion
-
         #region Helpers
 
         private decimal CalculateLots(string mktSymbol, decimal price)
@@ -511,58 +376,6 @@ namespace QjySDK.Stg
                 num = sym.symbol_type == (int)SymbolType.COIN ? (int)(num * 1000) / 1000.0m : (int)num;
             }
             return num;
-        }
-
-        private static string GetSlugPrefix(string eventTag, Period period)
-        {
-            var asset = eventTag.ToLowerInvariant() switch
-            {
-                "ethereum" => "eth",
-                "bitcoin" => "btc",
-                "solana" => "sol",
-                "bnb" => "bnb",
-                "xrp" => "xrp",
-                "dogecoin" or "doge" => "doge",
-                "hyperliquid" or "hype" => "hype",
-                _ => eventTag.ToLowerInvariant()
-            };
-            return $"{asset}-updown-{GetPeriodTag(period).ToLowerInvariant()}";
-        }
-
-        private static int GetSlotSeconds(Period period)
-        {
-            var match = Regex.Match(GetPeriodTag(period), @"(\d+)([MHD])", RegexOptions.IgnoreCase);
-            if (!match.Success) return 300;
-            int num = int.Parse(match.Groups[1].Value);
-            return match.Groups[2].Value.ToUpperInvariant() switch
-            {
-                "M" => num * 60,
-                "H" => num * 3600,
-                "D" => num * 86400,
-                _ => 300
-            };
-        }
-
-        private static string GetPeriodTag(Period period)
-        {
-            var text = period.ToString().ToUpperInvariant();
-            var match = Regex.Match(text, @"(\d+)([MHDW])");
-            if (match.Success) return $"{match.Groups[1].Value}{match.Groups[2].Value}";
-            if (text.Contains("MIN")) return "1M";
-            if (text.Contains("HOUR")) return "1H";
-            if (text.Contains("DAY")) return "1D";
-            if (text.Contains("WEEK")) return "1W";
-            return "5M";
-        }
-
-        private static DateTime ToUtc(DateTime dt)
-        {
-            if (dt.Kind == DateTimeKind.Utc) return dt;
-            if (dt.Kind == DateTimeKind.Local) return dt.ToUniversalTime();
-            var asUtc = DateTime.SpecifyKind(dt, DateTimeKind.Utc);
-            var asLocal = DateTime.SpecifyKind(dt, DateTimeKind.Local).ToUniversalTime();
-            var now = DateTime.UtcNow;
-            return (asUtc - now).Duration() <= (asLocal - now).Duration() ? asUtc : asLocal;
         }
 
         #endregion
