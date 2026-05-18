@@ -26,6 +26,12 @@ namespace QjySDK.Stg
         protected string? _noTokenId;
         protected string? _currentConditionId;
 
+        // 预取下一期事件：在当前事件最后一个 slot 时尝试一次，避免到点才去取数据导致
+        // 在新 slot 起始的几秒内策略拿不到 tokenIds。 _prefetchedNextEvent 在 rollover
+        // 时被消费；_lookaheadDoneForCond 防止对同一个当前事件重复预取。
+        private EventInfo? _prefetchedNextEvent;
+        private string? _lookaheadDoneForCond;
+
         /// <summary>
         /// 注册 Polymarket 相关公共参数（私钥/代理钱包/事件标签/价格阈值/下单数量）。
         /// </summary>
@@ -44,7 +50,7 @@ namespace QjySDK.Stg
             sd.ArgDic["minPriceNearEnd"] = 65;
 
             sd.ArgDescDic["nearEndMinutes"] = new ArgDesc { Text = "Poly临近结束(分钟)", Explain = "剩余时间小于该值时允许Polymarket下单" };
-            sd.ArgDic["nearEndMinutes"] = 3;
+            sd.ArgDic["nearEndMinutes"] = 5;
 
             sd.ArgDescDic["polyNum"] = new ArgDesc { Text = "Poly下单数量", Explain = "Polymarket 下单数量(USDC)，0则不下单" };
             sd.ArgDic["polyNum"] = defaultPolyNum;
@@ -82,19 +88,60 @@ namespace QjySDK.Stg
             if (ArgDic == null || _polyService == null) return;
 
             var barTimeUtc = ToUtc(barTime);
-            if (_eventEndDate.HasValue && barTimeUtc < _eventEndDate.Value.AddSeconds(-1))
-                return;
+            var slotSeconds = GetSlotSeconds(period);
+            var eventTag = Convert.ToString(ArgDic["eventTag"]) ?? "Ethereum";
+            var slugPrefix = GetSlugPrefix(eventTag, period);
 
-            // 旧市场入赎回队列
+            // 当前事件仍在进行中：尝试一次"下一期预取"——若下一期已经提前上架，
+            // 缓存它，rollover 时直接使用，避免到点才去抓数据的空窗期。
+            if (_eventEndDate.HasValue && barTimeUtc < _eventEndDate.Value.AddSeconds(-1))
+            {
+                var lookaheadStartUtc = _eventEndDate.Value.AddSeconds(-slotSeconds);
+                if (barTimeUtc >= lookaheadStartUtc
+                    && _prefetchedNextEvent == null
+                    && !string.Equals(_lookaheadDoneForCond, _currentConditionId, StringComparison.Ordinal))
+                {
+                    try
+                    {
+                        var upcoming = _polyService.GetUpcomingEventAsync(slugPrefix, slotSeconds)
+                            .GetAwaiter().GetResult();
+                        if (upcoming != null
+                            && !string.Equals(upcoming.ConditionId, _currentConditionId, StringComparison.OrdinalIgnoreCase))
+                        {
+                            _prefetchedNextEvent = upcoming;
+                            PolyLog.Event($"{GetType().Name} prefetched next event cond={upcoming.ConditionId} endDate={upcoming.EndDate:u} yes={Trim(upcoming.ClobTokenIds?.FirstOrDefault())} (current still alive until {_eventEndDate:u})");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        PolyLog.Event($"{GetType().Name} prefetch upcoming failed: {ex.Message}");
+                    }
+                    _lookaheadDoneForCond = _currentConditionId;
+                }
+                return;
+            }
+
+            // 当前事件已结束（或首次刷新）：把旧市场入赎回队列
             if (!string.IsNullOrWhiteSpace(_currentConditionId) && _eventEndDate.HasValue)
             {
                 var oldTokenIds = new[] { _yesTokenId, _noTokenId }.Where(t => !string.IsNullOrWhiteSpace(t)).ToArray()!;
                 _polyService.EnqueueMarketRedeem(_currentConditionId, oldTokenIds, _eventEndDate.Value);
             }
 
-            var eventTag = Convert.ToString(ArgDic["eventTag"]) ?? "Ethereum";
-            var evt = _polyService.GetLatestEventAsync(GetSlugPrefix(eventTag, period), GetSlotSeconds(period))
-                .GetAwaiter().GetResult();
+            // 优先使用预取到的下一期，省一次 HTTP 往返
+            EventInfo? evt = null;
+            if (_prefetchedNextEvent != null
+                && !string.Equals(_prefetchedNextEvent.ConditionId, _currentConditionId, StringComparison.OrdinalIgnoreCase))
+            {
+                evt = _prefetchedNextEvent;
+                PolyLog.Event($"{GetType().Name} adopting prefetched event cond={evt.ConditionId} (skipped HTTP fetch)");
+            }
+            else
+            {
+                evt = _polyService.GetLatestEventAsync(slugPrefix, slotSeconds).GetAwaiter().GetResult();
+            }
+            _prefetchedNextEvent = null;
+            _lookaheadDoneForCond = null;
             ApplyEventInfo(evt);
             PolyLog.Event($"{GetType().Name} event refreshed barTime={barTime:u} cond={_currentConditionId} endDate={(_eventEndDate.HasValue ? _eventEndDate.Value.ToString("u") : "-")} yes={Trim(_yesTokenId)} no={Trim(_noTokenId)}");
         }

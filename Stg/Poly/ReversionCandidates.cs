@@ -277,6 +277,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["bollStdDev"] = new ArgDesc { Text = "布林标准差", Explain = "布林带标准差倍数" };
             sd.ArgDic["bollStdDev"] = 1.8;
             AddCommonArgs(sd, 0);
+            sd.ArgDic["polyNum"] = 5m;
             return sd;
         }
 

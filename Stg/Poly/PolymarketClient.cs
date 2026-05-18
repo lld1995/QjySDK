@@ -22,7 +22,7 @@ namespace QjySDK.Stg
     public class PolymarketService
     {
         private const string CTF_ADDRESS = "0x4D97DCd97eC945f40cF65F87097ACe5EA0476045";
-        private const string NEG_RISK_ADAPTER = "0xd91E80cF2E7be2e162c6513ceD346b7C0F5b9F95";
+        private const string NEG_RISK_ADAPTER = "0xd91E80cF2E7be2e162c6513ceD06f1dD0dA35296";
         private const string USDC_E_ADDRESS = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
         private const string POLYGON_RPC = "https://polygon-bor-rpc.publicnode.com";
         private const string PROXY_URL = "http://127.0.0.1:7888";
@@ -32,6 +32,10 @@ namespace QjySDK.Stg
 
         private PolymarketRestClient? _restClient;
         private string? _privateKey;
+        private string? _signerAddress;            // EOA address derived from _privateKey
+        private string? _funderAddress;            // Resolved funder used as order maker (proxy / safe / deposit wallet)
+        private byte _signatureType;               // 0 EOA / 1 POLY_PROXY / 2 SAFE / 3 POLY_1271
+        private QjySDK.Stg.Poly.V2.PolymarketV2OrderClient? _v2OrderClient;
 
         private readonly ConcurrentQueue<MarketRedeemJob> _redeemQueue = new();
         private readonly HashSet<string> _enqueuedConditionIds = new();
@@ -44,7 +48,17 @@ namespace QjySDK.Stg
                 throw new ArgumentException("privateKey is required", nameof(privateKey));
 
             _privateKey = privateKey;
-            var l1Cred = new PolymarketL1Credential(SignType.EOA, privateKey);
+            _funderAddress = funderAddress;
+            _signerAddress = new Nethereum.Signer.EthECKey(privateKey).GetPublicAddress();
+
+            // SignType is critical post-V2:
+            //   - EOA:   funds live on the raw private-key address (rare for real users)
+            //   - Email: account created via Polymarket email/Magic login → orders signed for the Email proxy wallet
+            //   - Proxy: account created via Polymarket Gnosis Safe proxy (browser wallet)
+            // When funderAddress is supplied we default to Email-style proxy signing, which matches the
+            // common "Polymarket website wallet" scenario; callers can still pass an empty funder to fall back to EOA.
+            var signType = string.IsNullOrWhiteSpace(funderAddress) ? SignType.EOA : SignType.Email;
+            var l1Cred = new PolymarketL1Credential(signType, privateKey, funderAddress ?? string.Empty);
 
             _restClient?.Dispose();
             _restClient = new PolymarketRestClient(opts =>
@@ -53,11 +67,99 @@ namespace QjySDK.Stg
                 opts.Proxy = new ApiProxy("http://127.0.0.1", 7888);
             });
 
-            // Derive L2 API credentials from L1 private key
-            var l2Creds = await _restClient.ClobApi.Account.GetOrCreateApiCredentialsAsync();
-            if (!l2Creds.Success)
-                throw new Exception("Failed to derive L2 credentials: " + l2Creds.Error?.Message);
-            _restClient.UpdateL2Credentials(l2Creds.Data);
+            // L2 API credentials handling:
+            //   1) If user provided cached POLY_API_KEY/SECRET/PASSPHRASE in poly_secrets.txt -> use them directly.
+            //      Polymarket only allows one API key per EOA; once created, /auth/api-key returns
+            //      "Could not create api key" on subsequent calls. Caching avoids redundant L1 round-trips
+            //      and works when the SDK's GetOrCreate happens to fall through.
+            //   2) Otherwise fall back to deriving via L1 EIP-712 (ClobAuthDomain).
+            if (!string.IsNullOrWhiteSpace(PolySecrets.PolyApiKey)
+                && !string.IsNullOrWhiteSpace(PolySecrets.PolyApiSecret)
+                && !string.IsNullOrWhiteSpace(PolySecrets.PolyApiPassphrase))
+            {
+                _restClient.UpdateL2Credentials(new PolymarketCreds
+                {
+                    ApiKey = PolySecrets.PolyApiKey,
+                    Secret = PolySecrets.PolyApiSecret,
+                    Passphrase = PolySecrets.PolyApiPassphrase,
+                });
+            }
+            else
+            {
+                var l2Creds = await _restClient.ClobApi.Account.GetOrCreateApiCredentialsAsync();
+                if (!l2Creds.Success)
+                    throw new Exception("Failed to derive L2 credentials: " + l2Creds.Error?.Message);
+                _restClient.UpdateL2Credentials(l2Creds.Data);
+            }
+
+            // Detect the funder wallet type on-chain. Post-V2 (2026-04-28), new Polymarket Email/Magic accounts
+            // are deployed as ERC-1967 proxy "deposit wallets" with a recognizable bytecode pattern (PUSH32 = 0x7f).
+            // These require POLY_1271 (signatureType=3) + ERC-7739 wrapped signatures, which JKorf SDK 3.0.0 does NOT support;
+            // we route those orders through PolymarketV2OrderClient with our own signer.
+            _signatureType = await DetectSignatureTypeAsync(signType, funderAddress);
+            if (_signatureType == QjySDK.Stg.Poly.V2.PolymarketV2Constants.SigTypePoly1271)
+            {
+                _v2OrderClient = new QjySDK.Stg.Poly.V2.PolymarketV2OrderClient(proxyUrl: PROXY_URL)
+                {
+                    OnDebug = msg => PolyLog.Order("V2DBG " + msg),
+                };
+                PolyLog.Order($"Init: detected POLY_1271 deposit wallet funder={funderAddress}; will route orders through custom V2 signer.");
+            }
+            else
+            {
+                PolyLog.Order($"Init: signatureType={_signatureType}; will use JKorf SDK PlaceOrderAsync.");
+            }
+        }
+
+        private async Task<byte> DetectSignatureTypeAsync(SignType jkorfSignType, string funderAddress)
+        {
+            // EOA path: no funder, no on-chain wallet
+            if (string.IsNullOrWhiteSpace(funderAddress))
+                return QjySDK.Stg.Poly.V2.PolymarketV2Constants.SigTypeEoa;
+
+            // Try to detect the wallet contract type by inspecting its bytecode.
+            // - Polymarket V2 deposit wallets: ERC-1967 proxy with `0x363d3d373d3d363d7f...` prefix (PUSH32 opcode = 0x7f at offset 9)
+            // - Polymarket POLY_PROXY (1) / GnosisSafe (2): different prefixes; we don't try to disambiguate them here since
+            //   JKorf SDK handles both via SignType.Email / SignType.Proxy uniformly.
+            try
+            {
+                var handler = new System.Net.Http.HttpClientHandler
+                {
+                    Proxy = new System.Net.WebProxy(PROXY_URL),
+                    UseProxy = true,
+                };
+                using var http = new System.Net.Http.HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+                var body = "{\"jsonrpc\":\"2.0\",\"method\":\"eth_getCode\",\"params\":[\"" + funderAddress + "\",\"latest\"],\"id\":1}";
+                var content = new System.Net.Http.StringContent(body, System.Text.Encoding.UTF8, "application/json");
+                var resp = await http.PostAsync(POLYGON_RPC, content);
+                var text = await resp.Content.ReadAsStringAsync();
+                using var doc = System.Text.Json.JsonDocument.Parse(text);
+                var code = doc.RootElement.GetProperty("result").GetString() ?? "0x";
+
+                if (code.Length <= 2)
+                {
+                    // No code at funder; treat as POLY_PROXY (JKorf still produces a valid wire payload).
+                    return QjySDK.Stg.Poly.V2.PolymarketV2Constants.SigTypePolyProxy;
+                }
+
+                // Deposit wallet pattern: ERC-1967 proxy emitted by Solady LibClone uses PUSH32 (0x7f) very early.
+                // The first 10 bytes are `0x363d3d373d3d363d7f` (calldatacopy + setup + PUSH32).
+                var lower = code.ToLowerInvariant();
+                if (lower.StartsWith("0x363d3d373d3d363d7f"))
+                {
+                    return QjySDK.Stg.Poly.V2.PolymarketV2Constants.SigTypePoly1271;
+                }
+
+                // Other contract wallets: assume legacy POLY_PROXY / Safe path (JKorf handles).
+                return jkorfSignType == SignType.Proxy
+                    ? QjySDK.Stg.Poly.V2.PolymarketV2Constants.SigTypePolyGnosisSafe
+                    : QjySDK.Stg.Poly.V2.PolymarketV2Constants.SigTypePolyProxy;
+            }
+            catch (Exception ex)
+            {
+                PolyLog.Order($"DetectSignatureType: failed to query chain code, falling back to POLY_PROXY. err={ex.Message}");
+                return QjySDK.Stg.Poly.V2.PolymarketV2Constants.SigTypePolyProxy;
+            }
         }
 
         public async Task<EventInfo?> GetEventAsync(string slug)
@@ -90,8 +192,9 @@ namespace QjySDK.Stg
                     if (market.ClobTokenIds != null)
                         tokenIds.AddRange(market.ClobTokenIds.Where(t => !string.IsNullOrWhiteSpace(t)));
 
-                    if (string.IsNullOrWhiteSpace(result.ConditionId) && !string.IsNullOrWhiteSpace(market.ConditionId))
-                        result.ConditionId = market.ConditionId;
+                    // V2 Gamma API renamed ConditionId -> MarketId on PolymarketGammaMarket.
+                    if (string.IsNullOrWhiteSpace(result.ConditionId) && !string.IsNullOrWhiteSpace(market.MarketId))
+                        result.ConditionId = market.MarketId;
 
                     if (market.OutcomePrices != null)
                     {
@@ -105,52 +208,179 @@ namespace QjySDK.Stg
             return result;
         }
 
-        public async Task<EventInfo?> GetLatestEventAsync(string slugPrefix, int slotSeconds)
+        /// <summary>
+        /// 查找当前可交易事件：优先当前 slot，其次最近的未来 slot (+1..+lookAheadSlots)，
+        /// 最后回退到刚结束的 slot (-1)。lookAheadSlots 默认为 5——因为有些 Polymarket 事件
+        /// 会比预定时间提前几个 slot 上架，宽窗口能避免在 slug-prefix-T+1 不存在时直接放弃。
+        /// </summary>
+        public async Task<EventInfo?> GetLatestEventAsync(string slugPrefix, int slotSeconds, int lookAheadSlots = 5)
         {
             EnsureInitialized();
             var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var aligned = ts - (ts % slotSeconds);
 
+            // 1) current slot
             var evt = await GetEventAsync($"{slugPrefix}-{aligned}");
             if (evt != null && evt.Active && !evt.Closed)
                 return evt;
 
-            evt = await GetEventAsync($"{slugPrefix}-{aligned - slotSeconds}");
-            if (evt != null && evt.Active && !evt.Closed)
-                return evt;
+            // 2) +1..+lookAheadSlots (early-listed future slots, nearest first)
+            for (int i = 1; i <= lookAheadSlots; i++)
+            {
+                evt = await GetEventAsync($"{slugPrefix}-{aligned + slotSeconds * i}");
+                if (evt != null && evt.Active && !evt.Closed)
+                    return evt;
+            }
 
-            evt = await GetEventAsync($"{slugPrefix}-{aligned + slotSeconds}");
+            // 3) just-ended slot fallback
+            evt = await GetEventAsync($"{slugPrefix}-{aligned - slotSeconds}");
             if (evt != null && evt.Active && !evt.Closed)
                 return evt;
 
             return null;
         }
 
-        public async Task<PlaceOrderResult> PlaceOrderAsync(string tokenId, OrderSide side, decimal price, decimal size, int feeRateBps = 1000)
+        /// <summary>
+        /// 仅向前查找最近一个 active 未关闭的未来事件 (+1..+maxLookAheadSlots)，跳过当前 slot。
+        /// 用于"当前事件还在进行中，但下一期可能已经提前上架"的预取场景。
+        /// </summary>
+        public async Task<EventInfo?> GetUpcomingEventAsync(string slugPrefix, int slotSeconds, int maxLookAheadSlots = 5)
+        {
+            EnsureInitialized();
+            var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var aligned = ts - (ts % slotSeconds);
+
+            for (int i = 1; i <= maxLookAheadSlots; i++)
+            {
+                var evt = await GetEventAsync($"{slugPrefix}-{aligned + slotSeconds * i}");
+                if (evt != null && evt.Active && !evt.Closed)
+                    return evt;
+            }
+            return null;
+        }
+
+        public async Task<PlaceOrderResult> PlaceOrderAsync(string tokenId, OrderSide side, decimal price, decimal size, int feeRateBps = 0)
         {
             EnsureInitialized();
             if (string.IsNullOrWhiteSpace(tokenId))
                 throw new ArgumentException("tokenId is required", nameof(tokenId));
 
+            // CLOB V2 (since 2026-04-28) removed FeeRateBps from the order schema.
+            _ = feeRateBps;
+
             var tokenTag = tokenId.Length > 8 ? tokenId.Substring(0, 8) + "..." : tokenId;
-            PolyLog.Order($"PlaceOrderAsync request token={tokenTag} side={side} price={price} size={size} feeBps={feeRateBps}");
+            PolyLog.Order($"PlaceOrderAsync request token={tokenTag} side={side} price={price} size={size} sigType={_signatureType}");
 
-            var response = await _restClient!.ClobApi.Trading.PlaceOrderAsync(
-                tokenId,
-                side,
-                OrderType.Limit,
-                size,
-                price: price,
-                feeRateBps: feeRateBps);
-
-            var result = new PlaceOrderResult
+            PlaceOrderResult result;
+            if (_signatureType == QjySDK.Stg.Poly.V2.PolymarketV2Constants.SigTypePoly1271)
             {
-                Success = response.Success,
-                Message = response.Error?.Message,
-                OrderId = response.Data?.OrderId
-            };
+                result = await PlaceOrderV2Poly1271Async(tokenId, side, price, size);
+            }
+            else
+            {
+                var response = await _restClient!.ClobApi.Trading.PlaceOrderAsync(
+                    tokenId, side, OrderType.Limit, size, price: price);
+                result = new PlaceOrderResult
+                {
+                    Success = response.Success,
+                    Message = response.Error?.Message,
+                    OrderId = response.Data?.OrderId,
+                };
+            }
+
             PolyLog.Order($"PlaceOrderAsync result token={tokenTag} success={result.Success} orderId={result.OrderId} msg={result.Message}");
             return result;
+        }
+
+        /// <summary>
+        /// V2 POLY_1271 (deposit wallet) path: builds and signs the order locally per clob-client-v2,
+        /// then POSTs to /order via PolymarketV2OrderClient. JKorf SDK 3.0.0 does not support signatureType=3.
+        /// </summary>
+        private bool _v2BalanceAllowanceSynced = false;
+
+        private async Task<PlaceOrderResult> PlaceOrderV2Poly1271Async(string tokenId, OrderSide side, decimal price, decimal size)
+        {
+            if (_v2OrderClient == null) throw new InvalidOperationException("V2 order client not initialized");
+            if (string.IsNullOrWhiteSpace(_privateKey)) throw new InvalidOperationException("private key missing");
+            if (string.IsNullOrWhiteSpace(_funderAddress)) throw new InvalidOperationException("funder address missing for POLY_1271");
+
+            // Step 5 of the deposit wallet onboarding guide: sync CLOB balance cache so the API key is
+            // registered as a POLY_1271 user before the first order. Idempotent; safe to retry, but we
+            // only do it once per service lifetime.
+            if (!_v2BalanceAllowanceSynced)
+            {
+                var devSignerAddrForSync = new Nethereum.Signer.EthECKey(PolySecrets.PolyDevCode).GetPublicAddress();
+                var ok = await _v2OrderClient.SyncBalanceAllowanceAsync(
+                    signerAddress: devSignerAddrForSync,
+                    apiKey: PolySecrets.PolyApiKey,
+                    apiSecretB64Url: PolySecrets.PolyApiSecret,
+                    passphrase: PolySecrets.PolyApiPassphrase);
+                PolyLog.Order($"V2 balance-allowance/update (signature_type=3): success={ok}");
+                _v2BalanceAllowanceSynced = ok;
+            }
+
+            // Look up market metadata to determine tick size and NegRisk flag.
+            var (tickSize, negRisk) = await ResolveMarketTickAndNegRiskAsync(tokenId);
+
+            var rawSide = side == OrderSide.Buy ? QjySDK.Stg.Poly.V2.OrderSide.Buy : QjySDK.Stg.Poly.V2.OrderSide.Sell;
+            var raw = QjySDK.Stg.Poly.V2.PolymarketV2OrderBuilder.Build(rawSide, price, size, tickSize);
+
+            // V2 deposit-wallet flow (Polymarket Builder/Developer pattern):
+            //   order.maker  = deposit wallet (where funds live)
+            //   order.signer = dev wallet (address derived from POLY_DEV_CODE; == API key bound address)
+            //   sigType      = 1 (POLY_PROXY) — signer is an EOA acting on behalf of `maker` (proxy/funder)
+            //   signed by    = POLY_DEV_CODE private key (plain EIP-712 ECDSA, no ERC-7739 wrap)
+            var devCode = PolySecrets.PolyDevCode;
+            if (string.IsNullOrWhiteSpace(devCode)) throw new InvalidOperationException("POLY_DEV_CODE missing (Polymarket Developer Code required for V2 orders)");
+
+            var devSignerAddr = new Nethereum.Signer.EthECKey(devCode).GetPublicAddress();
+            var signed = QjySDK.Stg.Poly.V2.PolymarketV2Signer.BuildAndSign(
+                privateKeyHex: devCode,
+                maker: _funderAddress!,
+                orderSignerAddress: devSignerAddr,
+                tokenId: tokenId,
+                raw: raw,
+                signatureType: QjySDK.Stg.Poly.V2.PolymarketV2Constants.SigTypePolyProxy,
+                negRisk: negRisk);
+
+            var resp = await _v2OrderClient.PostOrderAsync(
+                signed,
+                apiOwner: PolySecrets.PolyApiKey,
+                signerAddress: devSignerAddr,           // L2 POLY_ADDRESS = address the API key is registered under (dev wallet).
+                apiKey: PolySecrets.PolyApiKey,
+                apiSecretB64Url: PolySecrets.PolyApiSecret,
+                passphrase: PolySecrets.PolyApiPassphrase,
+                orderType: QjySDK.Stg.Poly.V2.PolymarketV2OrderType.GTC);
+
+            return new PlaceOrderResult
+            {
+                Success = resp.Success,
+                OrderId = resp.OrderId,
+                Message = resp.Success ? null : (resp.ErrorMessage ?? resp.RawBody),
+            };
+        }
+
+        /// <summary>Look up the market's tickSize and NegRisk flag via Gamma (best-effort; defaults are 0.01 + binary).</summary>
+        private async Task<(decimal tickSize, bool negRisk)> ResolveMarketTickAndNegRiskAsync(string tokenId)
+        {
+            try
+            {
+                var resp = await _restClient!.GammaApi.GetMarketsAsync(clobTokenIds: new[] { tokenId }, limit: 1);
+                if (resp.Success && resp.Data != null)
+                {
+                    foreach (var m in resp.Data)
+                    {
+                        decimal tick = m.OrderPriceMinTickQuantity > 0 ? m.OrderPriceMinTickQuantity : 0.01m;
+                        // PolymarketGammaMarket.NegativeRiskOther indicates a negRisk leg in V2 schema.
+                        return (tick, m.NegativeRiskOther);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                PolyLog.Order($"ResolveMarketTickAndNegRisk: lookup failed, defaulting tick=0.01 negRisk=false. err={ex.Message}");
+            }
+            return (0.01m, false);
         }
 
         public async Task<PlaceOrderResult> PlaceOrderWithRetryAsync(string tokenId, OrderSide side, decimal size, int maxRetries = 3, int waitMs = 5000, int feeRateBps = 1000)
@@ -489,12 +719,12 @@ namespace QjySDK.Stg
                         continue;
                     }
 
-                    // Check if market is settled via Gamma API
-                    var marketsResp = _restClient!.GammaApi.GetMarketsAsync(conditionIds: new[] { job.ConditionId })
+                    // Check if market is settled via Gamma API (V2: marketIds replaces conditionIds; MarketId replaces ConditionId)
+                    var marketsResp = _restClient!.GammaApi.GetMarketsAsync(marketIds: new[] { job.ConditionId })
                         .GetAwaiter().GetResult();
                     PolymarketGammaMarket? settledMarket = null;
                     if (marketsResp.Success && marketsResp.Data != null)
-                        settledMarket = marketsResp.Data.FirstOrDefault(m => m.ConditionId == job.ConditionId);
+                        settledMarket = marketsResp.Data.FirstOrDefault(m => m.MarketId == job.ConditionId);
 
                     if (settledMarket == null || !settledMarket.Closed)
                     {
