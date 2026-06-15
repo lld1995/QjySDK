@@ -304,18 +304,22 @@ namespace QjySDK.Stg
             if (string.IsNullOrWhiteSpace(_privateKey)) throw new InvalidOperationException("private key missing");
             if (string.IsNullOrWhiteSpace(_funderAddress)) throw new InvalidOperationException("funder address missing for POLY_1271");
 
-            // Step 5 of the deposit wallet onboarding guide: sync CLOB balance cache so the API key is
-            // registered as a POLY_1271 user before the first order. Idempotent; safe to retry, but we
-            // only do it once per service lifetime.
+            // POLY_1271 存款钱包正解(经 ApiKeyBindingProbe + NewAcct_PlaceOrderWithFreshApiKey 验证):
+            //   L2 鉴权地址 POLY_ADDRESS = EOA(deposit wallet 的链上 owner，= API key a8f18002 唯一绑定的地址)
+            //   order.maker = order.signer = deposit wallet(funder)；由 EOA 私钥签名并 ERC-1271 wrap 到 deposit wallet
+            //   sigType = 3 (POLY_1271)。
+            // 注意：dev-code 方案(POLY_ADDRESS=dev 地址、POLY_PROXY)会被 CLOB 以 401 拒绝——那把 key 不绑 dev 地址。
+            var eoaAddr = new Nethereum.Signer.EthECKey(_privateKey).GetPublicAddress();
+
+            // 首单前同步一次 CLOB 余额缓存，让 API key 注册为该 signer 的用户。幂等，仅按服务生命周期做一次。
             if (!_v2BalanceAllowanceSynced)
             {
-                var devSignerAddrForSync = new Nethereum.Signer.EthECKey(PolySecrets.PolyDevCode).GetPublicAddress();
                 var ok = await _v2OrderClient.SyncBalanceAllowanceAsync(
-                    signerAddress: devSignerAddrForSync,
+                    signerAddress: eoaAddr,
                     apiKey: PolySecrets.PolyApiKey,
                     apiSecretB64Url: PolySecrets.PolyApiSecret,
                     passphrase: PolySecrets.PolyApiPassphrase);
-                PolyLog.Order($"V2 balance-allowance/update (signature_type=3): success={ok}");
+                PolyLog.Order($"V2 balance-allowance/update (POLY_ADDRESS=EOA {eoaAddr}): success={ok}");
                 _v2BalanceAllowanceSynced = ok;
             }
 
@@ -325,28 +329,20 @@ namespace QjySDK.Stg
             var rawSide = side == OrderSide.Buy ? QjySDK.Stg.Poly.V2.OrderSide.Buy : QjySDK.Stg.Poly.V2.OrderSide.Sell;
             var raw = QjySDK.Stg.Poly.V2.PolymarketV2OrderBuilder.Build(rawSide, price, size, tickSize);
 
-            // V2 deposit-wallet flow (Polymarket Builder/Developer pattern):
-            //   order.maker  = deposit wallet (where funds live)
-            //   order.signer = dev wallet (address derived from POLY_DEV_CODE; == API key bound address)
-            //   sigType      = 1 (POLY_PROXY) — signer is an EOA acting on behalf of `maker` (proxy/funder)
-            //   signed by    = POLY_DEV_CODE private key (plain EIP-712 ECDSA, no ERC-7739 wrap)
-            var devCode = PolySecrets.PolyDevCode;
-            if (string.IsNullOrWhiteSpace(devCode)) throw new InvalidOperationException("POLY_DEV_CODE missing (Polymarket Developer Code required for V2 orders)");
-
-            var devSignerAddr = new Nethereum.Signer.EthECKey(devCode).GetPublicAddress();
             var signed = QjySDK.Stg.Poly.V2.PolymarketV2Signer.BuildAndSign(
-                privateKeyHex: devCode,
+                privateKeyHex: _privateKey!,
                 maker: _funderAddress!,
-                orderSignerAddress: devSignerAddr,
+                orderSignerAddress: _funderAddress!,
                 tokenId: tokenId,
                 raw: raw,
-                signatureType: QjySDK.Stg.Poly.V2.PolymarketV2Constants.SigTypePolyProxy,
-                negRisk: negRisk);
+                signatureType: QjySDK.Stg.Poly.V2.PolymarketV2Constants.SigTypePoly1271,
+                negRisk: negRisk,
+                erc1271WalletForWrap: _funderAddress!);
 
             var resp = await _v2OrderClient.PostOrderAsync(
                 signed,
                 apiOwner: PolySecrets.PolyApiKey,
-                signerAddress: devSignerAddr,           // L2 POLY_ADDRESS = address the API key is registered under (dev wallet).
+                signerAddress: eoaAddr,              // L2 POLY_ADDRESS = EOA(API key 绑定地址)
                 apiKey: PolySecrets.PolyApiKey,
                 apiSecretB64Url: PolySecrets.PolyApiSecret,
                 passphrase: PolySecrets.PolyApiPassphrase,

@@ -11,3 +11,5 @@ poly_secrets.txt
 KlineCache/
 QjySDK.Tests/*.csv
 _align_out/
+*.lscache
+activity.log

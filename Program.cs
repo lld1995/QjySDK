@@ -5,7 +5,7 @@ using QjySDK.Stg;
 GlobalDef.Init();
 
 {
-    var sd = new BollRsiShortReversion("8bbcebf535f94bc4804e0fca2a59bac8");
+    var sd = new BollRsiShortReversion("6c1414bd0758433c9772dd7f2263958b");
     await sd.Run();
     
     Console.ReadLine();

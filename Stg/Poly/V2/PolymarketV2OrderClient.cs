@@ -209,6 +209,37 @@ namespace QjySDK.Stg.Poly.V2
             return resp.IsSuccessStatusCode;
         }
 
+        /// <summary>读取 CLOB 抵押金(USDC)可用余额，已换算为 USDC；失败返回 null。</summary>
+        public async Task<decimal?> GetCollateralBalanceAsync(
+            string signerAddress, string apiKey, string apiSecretB64Url, string passphrase,
+            int signatureType = 3, CancellationToken ct = default)
+        {
+            const string hmacPath = "/balance-allowance";
+            var query = $"?asset_type=COLLATERAL&signature_type={signatureType}";
+            var headers = PolymarketV2L2Auth.BuildHeaders(
+                signerAddress, apiKey, apiSecretB64Url, passphrase,
+                method: "GET", requestPath: hmacPath, body: null);
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, _host + hmacPath + query);
+            ApplyL2Headers(req, headers);
+            using var resp = await _http.SendAsync(req, ct).ConfigureAwait(false);
+            var body = await resp.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+            OnDebug?.Invoke($"GET {hmacPath + query}  POLY_ADDRESS={signerAddress}  status={(int)resp.StatusCode}  body={body}");
+            if (!resp.IsSuccessStatusCode) return null;
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(body);
+                if (doc.RootElement.TryGetProperty("balance", out var b))
+                {
+                    var s = b.ValueKind == System.Text.Json.JsonValueKind.String ? b.GetString() : b.ToString();
+                    // CLOB 返回的是 6 位小数的原始整数(如 "5000000" = $5)
+                    if (decimal.TryParse(s, out var raw)) return raw / 1_000_000m;
+                }
+            }
+            catch { }
+            return null;
+        }
+
         /// <summary>
         /// Cancel a single live order by its orderID. Per the official TS client this is a DELETE
         /// to /order with body { orderID: "..." } and L2 HMAC computed over method=DELETE, path=/order, body.
