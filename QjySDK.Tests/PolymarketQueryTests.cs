@@ -310,12 +310,12 @@ namespace QjySDK.Tests
         [Fact]
         public async Task NewAcct_PlaceOrderWithFreshApiKey()
         {
-            const string DepositWallet = "0x7e8d37ab3697b061886c2878621b0d042d47bd63";
-            const string MetaMaskPk    = "0xe61515e4f6f5fe269e0357c4488f72325d04473928c4b6184e1a44a96422e1ba";
-            // Fresh keys created via L1 auth, bound to MetaMask EOA 0xd0B9d16F9543670dcB739b37357F7562a5d734A2.
-            const string ApiKey     = "a8f18002-e2fa-e620-cf48-7576db307a01";
-            const string ApiSecret  = "jGzes4DE8y_TpY5Z8p7DQOi5uiNvVXIjfoDTmttrReA=";
-            const string Passphrase = "71f81c46e00778e6987cbf8854d0153b71e81db2c4fef5e4809751e0eb066924";
+            // Secrets are loaded from poly_secrets.txt ONLY (gitignored) — never hardcode them here.
+            var DepositWallet = QjySDK.Stg.PolySecrets.FunderAddress;
+            var MetaMaskPk    = QjySDK.Stg.PolySecrets.PrivateKey;
+            var ApiKey     = QjySDK.Stg.PolySecrets.PolyApiKey;
+            var ApiSecret  = QjySDK.Stg.PolySecrets.PolyApiSecret;
+            var Passphrase = QjySDK.Stg.PolySecrets.PolyApiPassphrase;
             var eoa = new Nethereum.Signer.EthECKey(MetaMaskPk).GetPublicAddress();
 
             using var rawClient = new PolymarketRestClient(opts =>
@@ -374,7 +374,8 @@ namespace QjySDK.Tests
         [Fact]
         public void NewAcct_VerifyMetaMaskPkDerivation()
         {
-            const string pk       = "0xe61515e4f6f5fe269e0357c4488f72325d04473928c4b6184e1a44a96422e1ba";
+            // Private key loaded from poly_secrets.txt ONLY (gitignored) — never hardcode it here.
+            var pk = QjySDK.Stg.PolySecrets.PrivateKey;
             const string expected = "0xd0B9d16F9543670dcB739b37357F7562a5d734A2";
             var derived = new Nethereum.Signer.EthECKey(pk).GetPublicAddress();
             _output.WriteLine($"derived:  {derived}");
