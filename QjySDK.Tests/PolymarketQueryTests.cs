@@ -303,6 +303,48 @@ namespace QjySDK.Tests
             }
         }
 
+        /// <summary>用 ERC-7739 包装的 L1 auth 创建「绑定到 deposit 钱包」的 API key(POLY_1271 下单要求 signer==maker==key地址)。
+        /// 成功后把打印的三行贴回 poly_secrets.txt。</summary>
+        [Fact]
+        public async Task MintDepositWalletBoundApiKey()
+        {
+            var pk = QjySDK.Stg.PolySecrets.PrivateKey;
+            var funder = QjySDK.Stg.PolySecrets.FunderAddress;
+            Assert.False(string.IsNullOrWhiteSpace(funder), "FUNDER_ADDRESS 缺失");
+            using var auth = new QjySDK.Stg.Poly.V2.PolymarketV2L1Auth(proxyUrl: "http://127.0.0.1:7888");
+            for (long nonce = 0; nonce <= 4; nonce++)
+            {
+                var r = await auth.CreateApiKeyAsync(pk, addressForAuth: funder, nonce: nonce,
+                    erc7739Wrap: true, walletForWrap: funder);
+                _output.WriteLine($"=== nonce={nonce} success={r.Success} status={r.HttpStatus} err={r.Error} ===");
+                if (r.Success)
+                {
+                    _output.WriteLine(">>> deposit-wallet-bound key (paste into poly_secrets.txt) <<<");
+                    _output.WriteLine($"POLY_API_KEY={r.ApiKey}");
+                    _output.WriteLine($"POLY_API_SECRET={r.Secret}");
+                    _output.WriteLine($"POLY_API_PASSPHRASE={r.Passphrase}");
+                    return;
+                }
+            }
+            Assert.Fail("无法创建 deposit-wallet-bound key (nonce 0-4 都失败)");
+        }
+
+        /// <summary>诊断：列出当前 API key 在 CLOB 上绑定的地址，定位 "order signer != API KEY address"。</summary>
+        [Fact]
+        public async Task ShowApiKeyBindings()
+        {
+            var eoa = new Nethereum.Signer.EthECKey(QjySDK.Stg.PolySecrets.PrivateKey).GetPublicAddress();
+            var funder = QjySDK.Stg.PolySecrets.FunderAddress;
+            using var oc = new QjySDK.Stg.Poly.V2.PolymarketV2OrderClient(proxyUrl: "http://127.0.0.1:7888");
+            _output.WriteLine($"EOA={eoa}  funder={funder}  apiKey={QjySDK.Stg.PolySecrets.PolyApiKey}");
+            foreach (var addr in new[] { eoa, funder })
+            {
+                var raw = await oc.GetApiKeysRawAsync(addr, QjySDK.Stg.PolySecrets.PolyApiKey,
+                    QjySDK.Stg.PolySecrets.PolyApiSecret, QjySDK.Stg.PolySecrets.PolyApiPassphrase);
+                _output.WriteLine($"--- /auth/api-keys with POLY_ADDRESS={addr} ---\n{raw}");
+            }
+        }
+
         /// <summary>
         /// Final attempt: use the FRESH API key we just created (bound to MetaMask EOA, owner of deposit wallet)
         /// to place a POLY_1271 order signed by MetaMask PK.

@@ -150,6 +150,14 @@ namespace QjySDK.Stg
                     return QjySDK.Stg.Poly.V2.PolymarketV2Constants.SigTypePoly1271;
                 }
 
+                // EIP-7702 delegated EOA (Pectra): code = 0xef0100 || delegateAddress (23 bytes).
+                // Polymarket 新版 deposit 钱包用 7702 委托到 ERC-1271 实现，下单仍走 POLY_1271 (sigType=3)
+                // + ERC-7739 包装签名(owner EOA 私钥签)。不识别会落到 POLY_PROXY → "maker address not allowed"。
+                if (lower.StartsWith("0xef0100"))
+                {
+                    return QjySDK.Stg.Poly.V2.PolymarketV2Constants.SigTypePoly1271;
+                }
+
                 // Other contract wallets: assume legacy POLY_PROXY / Safe path (JKorf handles).
                 return jkorfSignType == SignType.Proxy
                     ? QjySDK.Stg.Poly.V2.PolymarketV2Constants.SigTypePolyGnosisSafe
@@ -304,11 +312,13 @@ namespace QjySDK.Stg
             if (string.IsNullOrWhiteSpace(_privateKey)) throw new InvalidOperationException("private key missing");
             if (string.IsNullOrWhiteSpace(_funderAddress)) throw new InvalidOperationException("funder address missing for POLY_1271");
 
-            // POLY_1271 存款钱包正解(经 ApiKeyBindingProbe + NewAcct_PlaceOrderWithFreshApiKey 验证):
-            //   L2 鉴权地址 POLY_ADDRESS = EOA(deposit wallet 的链上 owner，= API key a8f18002 唯一绑定的地址)
-            //   order.maker = order.signer = deposit wallet(funder)；由 EOA 私钥签名并 ERC-1271 wrap 到 deposit wallet
-            //   sigType = 3 (POLY_1271)。
-            // 注意：dev-code 方案(POLY_ADDRESS=dev 地址、POLY_PROXY)会被 CLOB 以 401 拒绝——那把 key 不绑 dev 地址。
+            // ✅ 已验证可用(2026-06-19)：canonical POLY_1271 流程——
+            //   maker == signer == deposit wallet(_funderAddress)，ERC-7739 wrap(内域 "DepositWallet"/v1,
+            //   verifyingContract = deposit wallet)，由 owner EOA(_privateKey) 直接签名；L2 鉴权用 minted
+            //   POLY_API_KEY、POLY_ADDRESS=EOA。/order 返回 success + orderId。
+            //   关键前提：_funderAddress 必须是真正的 deposit-wallet 代理合约(Solady ERC-1967,
+            //   code 前缀 0x363d3d373d3d363d7f…)，即 Polymarket "API-only" 那个地址；若误填成 7702 委托 EOA
+            //   会报 "the order signer address has to be the address of the API KEY"。
             var eoaAddr = new Nethereum.Signer.EthECKey(_privateKey).GetPublicAddress();
 
             // 首单前同步一次 CLOB 余额缓存，让 API key 注册为该 signer 的用户。幂等，仅按服务生命周期做一次。
@@ -359,17 +369,29 @@ namespace QjySDK.Stg
         /// <summary>Look up the market's tickSize and NegRisk flag via Gamma (best-effort; defaults are 0.01 + binary).</summary>
         private async Task<(decimal tickSize, bool negRisk)> ResolveMarketTickAndNegRiskAsync(string tokenId)
         {
+            // NOTE: read raw Gamma JSON. The SDK model (PolymarketGammaMarket) only exposes `negRiskOther`
+            // (JSON negRiskOther) — that is NOT the negRisk flag and is false even on NegRisk markets.
+            // Signing a NegRisk order against the binary exchange domain → "invalid POLY_1271 signature:
+            // signature does not match order hash". The real flag is `negRisk` (and `negRiskMarketID`).
             try
             {
-                var resp = await _restClient!.GammaApi.GetMarketsAsync(clobTokenIds: new[] { tokenId }, limit: 1);
-                if (resp.Success && resp.Data != null)
+                var handler = new System.Net.Http.HttpClientHandler
                 {
-                    foreach (var m in resp.Data)
-                    {
-                        decimal tick = m.OrderPriceMinTickQuantity > 0 ? m.OrderPriceMinTickQuantity : 0.01m;
-                        // PolymarketGammaMarket.NegativeRiskOther indicates a negRisk leg in V2 schema.
-                        return (tick, m.NegativeRiskOther);
-                    }
+                    Proxy = new System.Net.WebProxy(PROXY_URL),
+                    UseProxy = true
+                };
+                using var http = new System.Net.Http.HttpClient(handler) { Timeout = TimeSpan.FromSeconds(12) };
+                var json = await http.GetStringAsync($"https://gamma-api.polymarket.com/markets?clob_token_ids={tokenId}");
+                var arr = Newtonsoft.Json.Linq.JArray.Parse(json);
+                if (arr.Count > 0)
+                {
+                    var m = arr[0];
+                    bool negRisk = (bool?)m["negRisk"]
+                        ?? !string.IsNullOrWhiteSpace((string?)m["negRiskMarketID"]);
+                    decimal tick = (decimal?)m["orderPriceMinTickSize"] ?? 0.01m;
+                    if (tick <= 0) tick = 0.01m;
+                    PolyLog.Order($"ResolveMarketTickAndNegRisk: token={(tokenId.Length > 8 ? tokenId.Substring(0, 8) : tokenId)}... tick={tick} negRisk={negRisk}");
+                    return (tick, negRisk);
                 }
             }
             catch (Exception ex)
@@ -432,6 +454,40 @@ namespace QjySDK.Stg
             }
 
             return new PlaceOrderResult { Success = false, Message = "Unexpected" };
+        }
+
+        /// <summary>
+        /// 查 CLOB 市场:返回是否已结算(closed)及每个 token 的当前价。
+        /// 未结算时 price 为当前中间价;已结算时 price 为 0/1(此时盘口为空,用它显示结果)。
+        /// </summary>
+        public async Task<(bool closed, Dictionary<string, decimal> prices)> GetClobMarketPricesAsync(string conditionId)
+        {
+            var prices = new Dictionary<string, decimal>();
+            if (string.IsNullOrWhiteSpace(conditionId)) return (false, prices);
+            try
+            {
+                var handler = new System.Net.Http.HttpClientHandler
+                {
+                    Proxy = new System.Net.WebProxy(PROXY_URL),
+                    UseProxy = true
+                };
+                using var http = new System.Net.Http.HttpClient(handler) { Timeout = TimeSpan.FromSeconds(12) };
+                var json = await http.GetStringAsync($"https://clob.polymarket.com/markets/{conditionId}");
+                var obj = Newtonsoft.Json.Linq.JObject.Parse(json);
+                bool closed = (bool?)obj["closed"] ?? false;
+                if (obj["tokens"] is Newtonsoft.Json.Linq.JArray tokens)
+                {
+                    foreach (var t in tokens)
+                    {
+                        var tid = (string?)t["token_id"];
+                        var price = (decimal?)t["price"];
+                        if (!string.IsNullOrWhiteSpace(tid) && price.HasValue)
+                            prices[tid!] = price.Value;
+                    }
+                }
+                return (closed, prices);
+            }
+            catch { return (false, prices); }
         }
 
         public async Task<OrderBookInfo> GetOrderBookAsync(string[] tokenIds)
@@ -615,6 +671,52 @@ namespace QjySDK.Stg
             return winningIndexSets.ToArray();
         }
 
+        // Once a condition is resolved on-chain, determine which held outcome(s) won using the
+        // Polymarket data-api. Gamma stops returning short-lived markets after they end, so its
+        // outcomePrices are unavailable here. An asset is a winning, claimable position when
+        // redeemable==true && curPrice>0 && size>0. Position i in tokenIds maps to CTF index set (1<<i).
+        private BigInteger[] GetWinningIndexSetsFromDataApi(string conditionId, string[] tokenIds)
+        {
+            var holder = !string.IsNullOrWhiteSpace(_funderAddress)
+                ? _funderAddress!
+                : new Account(_privateKey, 137).Address;
+            try
+            {
+                var handler = new System.Net.Http.HttpClientHandler
+                {
+                    Proxy = new System.Net.WebProxy(PROXY_URL),
+                    UseProxy = true
+                };
+                using var http = new System.Net.Http.HttpClient(handler) { Timeout = TimeSpan.FromSeconds(15) };
+                var url = $"https://data-api.polymarket.com/positions?user={holder}&sizeThreshold=0";
+                var json = http.GetStringAsync(url).GetAwaiter().GetResult();
+                var arr = Newtonsoft.Json.Linq.JArray.Parse(json);
+
+                var winners = new List<BigInteger>();
+                for (int i = 0; i < tokenIds.Length; i++)
+                {
+                    var tok = tokenIds[i];
+                    if (string.IsNullOrWhiteSpace(tok)) continue;
+                    var pos = arr.FirstOrDefault(p =>
+                        (string?)p["asset"] == tok
+                        && string.Equals((string?)p["conditionId"], conditionId, StringComparison.OrdinalIgnoreCase));
+                    if (pos == null) continue;
+
+                    var redeemable = (bool?)pos["redeemable"] ?? false;
+                    var curPrice = (decimal?)pos["curPrice"] ?? 0m;
+                    var size = (decimal?)pos["size"] ?? 0m;
+                    if (redeemable && curPrice > 0 && size > 0)
+                        winners.Add(new BigInteger(1 << i));
+                }
+                return winners.ToArray();
+            }
+            catch (Exception ex)
+            {
+                PolyLog.Redeem($"data-api winner check error: {ex.Message}");
+                return Array.Empty<BigInteger>();
+            }
+        }
+
         private async Task<Dictionary<string, BigInteger>> CheckTokenBalances(string[] tokenIds)
         {
             var result = new Dictionary<string, BigInteger>();
@@ -624,6 +726,9 @@ namespace QjySDK.Stg
             try
             {
                 var account = new Account(_privateKey, 137);
+                // Positions are held by the funder/deposit wallet (proxy), not the signer EOA.
+                // Querying the EOA's balanceOf returns 0 for proxy-wallet setups (sigType 1/2/3).
+                var holder = !string.IsNullOrWhiteSpace(_funderAddress) ? _funderAddress! : account.Address;
                 var handler = new System.Net.Http.HttpClientHandler
                 {
                     Proxy = new System.Net.WebProxy(PROXY_URL),
@@ -642,7 +747,7 @@ namespace QjySDK.Stg
                     try
                     {
                         var tokenIdBig = BigInteger.Parse(tokenId);
-                        var balance = await balanceOfFunc.CallAsync<BigInteger>(account.Address, tokenIdBig);
+                        var balance = await balanceOfFunc.CallAsync<BigInteger>(holder, tokenIdBig);
                         result[tokenId] = balance;
                     }
                     catch { }
@@ -715,30 +820,40 @@ namespace QjySDK.Stg
                         continue;
                     }
 
-                    // Check if market is settled via Gamma API (V2: marketIds replaces conditionIds; MarketId replaces ConditionId)
-                    var marketsResp = _restClient!.GammaApi.GetMarketsAsync(marketIds: new[] { job.ConditionId })
-                        .GetAwaiter().GetResult();
-                    PolymarketGammaMarket? settledMarket = null;
-                    if (marketsResp.Success && marketsResp.Data != null)
-                        settledMarket = marketsResp.Data.FirstOrDefault(m => m.MarketId == job.ConditionId);
-
-                    if (settledMarket == null || !settledMarket.Closed)
+                    // Settlement is authoritative ON-CHAIN (payoutDenominator != 0), NOT via Gamma.
+                    // Gamma's /markets?condition_ids= stops returning short-lived markets once they end
+                    // (verified: returns []), so the old `settledMarket == null || !Closed` gate looped
+                    // forever even though the condition was already resolved on-chain.
+                    var condHex = job.ConditionId.StartsWith("0x") ? job.ConditionId.Substring(2) : job.ConditionId;
+                    var resolveErr = PreCheckConditionResolved(condHex).GetAwaiter().GetResult();
+                    if (resolveErr != null)
                     {
-                        // Not settled yet, put back and wait
+                        // Not resolved on-chain yet (or transient RPC error) — put back and wait.
                         _redeemQueue.Enqueue(job);
-                        PolyLog.Redeem($"{job.ConditionId[..10]}... not settled yet, waiting...");
+                        PolyLog.Redeem($"{job.ConditionId[..10]}... not resolved on-chain yet ({resolveErr}), waiting...");
                         Thread.Sleep(10000);
                         continue;
                     }
 
-                    // Market is settled — determine winning index sets
+                    // Resolved on-chain — determine winning index sets via data-api (Gamma no longer serves the market).
                     var balances = CheckTokenBalances(job.TokenIds).GetAwaiter().GetResult();
-                    PolyLog.Redeem($"{job.ConditionId[..10]}... settled. balances=[{string.Join(",", balances.Select(kv => $"{(kv.Key.Length > 6 ? kv.Key.Substring(0, 6) : kv.Key)}:{kv.Value}"))}] outcomePrices=[{string.Join(",", settledMarket.OutcomePrices ?? Array.Empty<decimal>())}]");
-                    var winningIndexSets = GetWinningIndexSets(settledMarket, job.TokenIds, balances);
+                    var winningIndexSets = GetWinningIndexSetsFromDataApi(job.ConditionId, job.TokenIds);
+                    PolyLog.Redeem($"{job.ConditionId[..10]}... resolved. balances=[{string.Join(",", balances.Select(kv => $"{(kv.Key.Length > 6 ? kv.Key.Substring(0, 6) : kv.Key)}:{kv.Value}"))}] winningIndexSets=[{string.Join(",", winningIndexSets)}]");
 
                     if (winningIndexSets.Length == 0)
                     {
                         PolyLog.Redeem($"{job.ConditionId[..10]}... no winning position or no balance, skip.");
+                        continue;
+                    }
+
+                    // Proxy/deposit-wallet positions are held by the funder (proxy), not the signer EOA.
+                    // CTF.redeemPositions only redeems msg.sender's own positions, so an EOA-sent redeem
+                    // cannot claim them. Skip the on-chain submit until the wallet-exec/relayer path exists,
+                    // rather than burning gas on a tx that reverts/no-ops.
+                    if (!string.IsNullOrWhiteSpace(_funderAddress)
+                        && !string.Equals(_funderAddress, _signerAddress, StringComparison.OrdinalIgnoreCase))
+                    {
+                        PolyLog.Redeem($"{job.ConditionId[..10]}... WINNING indexSets=[{string.Join(",", winningIndexSets)}] but positions are held by funder proxy ({_funderAddress}), not signer EOA; EOA cannot redeem them. Needs wallet-exec/relayer path — skipping on-chain submit.");
                         continue;
                     }
 
