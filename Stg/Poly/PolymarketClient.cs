@@ -37,12 +37,14 @@ namespace QjySDK.Stg
         private byte _signatureType;               // 0 EOA / 1 POLY_PROXY / 2 SAFE / 3 POLY_1271
         private QjySDK.Stg.Poly.V2.PolymarketV2OrderClient? _v2OrderClient;
 
+        private string _proxyUrl = PROXY_URL;
+
         private readonly ConcurrentQueue<MarketRedeemJob> _redeemQueue = new();
         private readonly HashSet<string> _enqueuedConditionIds = new();
         private CancellationTokenSource? _redeemCts;
         private Thread? _redeemThread;
 
-        public async Task Init(string privateKey, string funderAddress = "")
+        public async Task Init(string privateKey, string funderAddress = "", string? proxyUrl = null)
         {
             if (string.IsNullOrWhiteSpace(privateKey))
                 throw new ArgumentException("privateKey is required", nameof(privateKey));
@@ -50,6 +52,8 @@ namespace QjySDK.Stg
             _privateKey = privateKey;
             _funderAddress = funderAddress;
             _signerAddress = new Nethereum.Signer.EthECKey(privateKey).GetPublicAddress();
+
+            _proxyUrl = string.IsNullOrWhiteSpace(proxyUrl) ? PROXY_URL : proxyUrl.Trim();
 
             // SignType is critical post-V2:
             //   - EOA:   funds live on the raw private-key address (rare for real users)
@@ -64,7 +68,8 @@ namespace QjySDK.Stg
             _restClient = new PolymarketRestClient(opts =>
             {
                 opts.ApiCredentials = new PolymarketCredentials(l1Cred);
-                opts.Proxy = new ApiProxy("http://127.0.0.1", 7888);
+                var proxy = new Uri(_proxyUrl);
+                opts.Proxy = new ApiProxy(proxy.Host, proxy.Port);
             });
 
             // L2 API credentials handling:
@@ -96,10 +101,10 @@ namespace QjySDK.Stg
             // are deployed as ERC-1967 proxy "deposit wallets" with a recognizable bytecode pattern (PUSH32 = 0x7f).
             // These require POLY_1271 (signatureType=3) + ERC-7739 wrapped signatures, which JKorf SDK 3.0.0 does NOT support;
             // we route those orders through PolymarketV2OrderClient with our own signer.
-            _signatureType = await DetectSignatureTypeAsync(signType, funderAddress);
+            _signatureType = await DetectSignatureTypeAsync(signType, funderAddress ?? string.Empty);
             if (_signatureType == QjySDK.Stg.Poly.V2.PolymarketV2Constants.SigTypePoly1271)
             {
-                _v2OrderClient = new QjySDK.Stg.Poly.V2.PolymarketV2OrderClient(proxyUrl: PROXY_URL)
+                _v2OrderClient = new QjySDK.Stg.Poly.V2.PolymarketV2OrderClient(proxyUrl: _proxyUrl)
                 {
                     OnDebug = msg => PolyLog.Order("V2DBG " + msg),
                 };
@@ -125,7 +130,7 @@ namespace QjySDK.Stg
             {
                 var handler = new System.Net.Http.HttpClientHandler
                 {
-                    Proxy = new System.Net.WebProxy(PROXY_URL),
+                    Proxy = new System.Net.WebProxy(_proxyUrl),
                     UseProxy = true,
                 };
                 using var http = new System.Net.Http.HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
@@ -377,7 +382,7 @@ namespace QjySDK.Stg
             {
                 var handler = new System.Net.Http.HttpClientHandler
                 {
-                    Proxy = new System.Net.WebProxy(PROXY_URL),
+                    Proxy = new System.Net.WebProxy(_proxyUrl),
                     UseProxy = true
                 };
                 using var http = new System.Net.Http.HttpClient(handler) { Timeout = TimeSpan.FromSeconds(12) };
@@ -468,7 +473,7 @@ namespace QjySDK.Stg
             {
                 var handler = new System.Net.Http.HttpClientHandler
                 {
-                    Proxy = new System.Net.WebProxy(PROXY_URL),
+                    Proxy = new System.Net.WebProxy(_proxyUrl),
                     UseProxy = true
                 };
                 using var http = new System.Net.Http.HttpClient(handler) { Timeout = TimeSpan.FromSeconds(12) };
@@ -539,7 +544,7 @@ namespace QjySDK.Stg
                 var account = new Account(_privateKey, 137);
                 var handler = new System.Net.Http.HttpClientHandler
                 {
-                    Proxy = new System.Net.WebProxy(PROXY_URL),
+                    Proxy = new System.Net.WebProxy(_proxyUrl),
                     UseProxy = true
                 };
                 var httpClient = new System.Net.Http.HttpClient(handler);
@@ -684,7 +689,7 @@ namespace QjySDK.Stg
             {
                 var handler = new System.Net.Http.HttpClientHandler
                 {
-                    Proxy = new System.Net.WebProxy(PROXY_URL),
+                    Proxy = new System.Net.WebProxy(_proxyUrl),
                     UseProxy = true
                 };
                 using var http = new System.Net.Http.HttpClient(handler) { Timeout = TimeSpan.FromSeconds(15) };
@@ -731,7 +736,7 @@ namespace QjySDK.Stg
                 var holder = !string.IsNullOrWhiteSpace(_funderAddress) ? _funderAddress! : account.Address;
                 var handler = new System.Net.Http.HttpClientHandler
                 {
-                    Proxy = new System.Net.WebProxy(PROXY_URL),
+                    Proxy = new System.Net.WebProxy(_proxyUrl),
                     UseProxy = true
                 };
                 var httpClient = new System.Net.Http.HttpClient(handler);
@@ -891,7 +896,7 @@ namespace QjySDK.Stg
                 var account = new Account(_privateKey, 137);
                 var handler = new System.Net.Http.HttpClientHandler
                 {
-                    Proxy = new System.Net.WebProxy(PROXY_URL),
+                    Proxy = new System.Net.WebProxy(_proxyUrl),
                     UseProxy = true
                 };
                 var httpClient = new System.Net.Http.HttpClient(handler);
