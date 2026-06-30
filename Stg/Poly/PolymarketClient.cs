@@ -37,7 +37,23 @@ namespace QjySDK.Stg
         private byte _signatureType;               // 0 EOA / 1 POLY_PROXY / 2 SAFE / 3 POLY_1271
         private QjySDK.Stg.Poly.V2.PolymarketV2OrderClient? _v2OrderClient;
 
-        private string _proxyUrl = PROXY_URL;
+        private string? _proxyUrl = PROXY_URL;
+        private bool HasProxy => !string.IsNullOrWhiteSpace(_proxyUrl);
+
+        private System.Net.Http.HttpClientHandler CreateHttpClientHandler()
+        {
+            var handler = new System.Net.Http.HttpClientHandler();
+            if (HasProxy)
+            {
+                handler.Proxy = new System.Net.WebProxy(_proxyUrl!);
+                handler.UseProxy = true;
+            }
+            else
+            {
+                handler.UseProxy = false;
+            }
+            return handler;
+        }
 
         private readonly ConcurrentQueue<MarketRedeemJob> _redeemQueue = new();
         private readonly HashSet<string> _enqueuedConditionIds = new();
@@ -53,7 +69,8 @@ namespace QjySDK.Stg
             _funderAddress = funderAddress;
             _signerAddress = new Nethereum.Signer.EthECKey(privateKey).GetPublicAddress();
 
-            _proxyUrl = string.IsNullOrWhiteSpace(proxyUrl) ? PROXY_URL : proxyUrl.Trim();
+            // null keeps SDK historical default; explicit empty string means direct connection.
+            _proxyUrl = proxyUrl is null ? PROXY_URL : proxyUrl.Trim();
 
             // SignType is critical post-V2:
             //   - EOA:   funds live on the raw private-key address (rare for real users)
@@ -68,8 +85,15 @@ namespace QjySDK.Stg
             _restClient = new PolymarketRestClient(opts =>
             {
                 opts.ApiCredentials = new PolymarketCredentials(l1Cred);
-                var proxy = new Uri(_proxyUrl);
-                opts.Proxy = new ApiProxy(proxy.Host, proxy.Port);
+                if (HasProxy)
+                {
+                    var proxy = new Uri(_proxyUrl!, UriKind.Absolute);
+                    var host = proxy.GetLeftPart(UriPartial.Authority);
+                    var suffix = $":{proxy.Port}";
+                    if (!proxy.IsDefaultPort && host.EndsWith(suffix, StringComparison.Ordinal))
+                        host = host[..^suffix.Length];
+                    opts.Proxy = new ApiProxy(host, proxy.Port);
+                }
             });
 
             // L2 API credentials handling:
@@ -128,12 +152,7 @@ namespace QjySDK.Stg
             //   JKorf SDK handles both via SignType.Email / SignType.Proxy uniformly.
             try
             {
-                var handler = new System.Net.Http.HttpClientHandler
-                {
-                    Proxy = new System.Net.WebProxy(_proxyUrl),
-                    UseProxy = true,
-                };
-                using var http = new System.Net.Http.HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+                using var http = new System.Net.Http.HttpClient(CreateHttpClientHandler()) { Timeout = TimeSpan.FromSeconds(10) };
                 var body = "{\"jsonrpc\":\"2.0\",\"method\":\"eth_getCode\",\"params\":[\"" + funderAddress + "\",\"latest\"],\"id\":1}";
                 var content = new System.Net.Http.StringContent(body, System.Text.Encoding.UTF8, "application/json");
                 var resp = await http.PostAsync(POLYGON_RPC, content);
@@ -380,12 +399,7 @@ namespace QjySDK.Stg
             // signature does not match order hash". The real flag is `negRisk` (and `negRiskMarketID`).
             try
             {
-                var handler = new System.Net.Http.HttpClientHandler
-                {
-                    Proxy = new System.Net.WebProxy(_proxyUrl),
-                    UseProxy = true
-                };
-                using var http = new System.Net.Http.HttpClient(handler) { Timeout = TimeSpan.FromSeconds(12) };
+                using var http = new System.Net.Http.HttpClient(CreateHttpClientHandler()) { Timeout = TimeSpan.FromSeconds(12) };
                 var json = await http.GetStringAsync($"https://gamma-api.polymarket.com/markets?clob_token_ids={tokenId}");
                 var arr = Newtonsoft.Json.Linq.JArray.Parse(json);
                 if (arr.Count > 0)
@@ -471,12 +485,7 @@ namespace QjySDK.Stg
             if (string.IsNullOrWhiteSpace(conditionId)) return (false, prices);
             try
             {
-                var handler = new System.Net.Http.HttpClientHandler
-                {
-                    Proxy = new System.Net.WebProxy(_proxyUrl),
-                    UseProxy = true
-                };
-                using var http = new System.Net.Http.HttpClient(handler) { Timeout = TimeSpan.FromSeconds(12) };
+                using var http = new System.Net.Http.HttpClient(CreateHttpClientHandler()) { Timeout = TimeSpan.FromSeconds(12) };
                 var json = await http.GetStringAsync($"https://clob.polymarket.com/markets/{conditionId}");
                 var obj = Newtonsoft.Json.Linq.JObject.Parse(json);
                 bool closed = (bool?)obj["closed"] ?? false;
@@ -542,12 +551,7 @@ namespace QjySDK.Stg
 
                 // Step 2: Send on-chain transaction
                 var account = new Account(_privateKey, 137);
-                var handler = new System.Net.Http.HttpClientHandler
-                {
-                    Proxy = new System.Net.WebProxy(_proxyUrl),
-                    UseProxy = true
-                };
-                var httpClient = new System.Net.Http.HttpClient(handler);
+                var httpClient = new System.Net.Http.HttpClient(CreateHttpClientHandler());
                 var rpcClient = new RpcClient(new Uri(POLYGON_RPC), httpClient);
                 var web3 = new Web3(account, rpcClient);
 
@@ -687,12 +691,7 @@ namespace QjySDK.Stg
                 : new Account(_privateKey, 137).Address;
             try
             {
-                var handler = new System.Net.Http.HttpClientHandler
-                {
-                    Proxy = new System.Net.WebProxy(_proxyUrl),
-                    UseProxy = true
-                };
-                using var http = new System.Net.Http.HttpClient(handler) { Timeout = TimeSpan.FromSeconds(15) };
+                using var http = new System.Net.Http.HttpClient(CreateHttpClientHandler()) { Timeout = TimeSpan.FromSeconds(15) };
                 var url = $"https://data-api.polymarket.com/positions?user={holder}&sizeThreshold=0";
                 var json = http.GetStringAsync(url).GetAwaiter().GetResult();
                 var arr = Newtonsoft.Json.Linq.JArray.Parse(json);
@@ -734,12 +733,7 @@ namespace QjySDK.Stg
                 // Positions are held by the funder/deposit wallet (proxy), not the signer EOA.
                 // Querying the EOA's balanceOf returns 0 for proxy-wallet setups (sigType 1/2/3).
                 var holder = !string.IsNullOrWhiteSpace(_funderAddress) ? _funderAddress! : account.Address;
-                var handler = new System.Net.Http.HttpClientHandler
-                {
-                    Proxy = new System.Net.WebProxy(_proxyUrl),
-                    UseProxy = true
-                };
-                var httpClient = new System.Net.Http.HttpClient(handler);
+                var httpClient = new System.Net.Http.HttpClient(CreateHttpClientHandler());
                 var rpcClient = new RpcClient(new Uri(POLYGON_RPC), httpClient);
                 var web3 = new Web3(account, rpcClient);
 
@@ -894,12 +888,7 @@ namespace QjySDK.Stg
             try
             {
                 var account = new Account(_privateKey, 137);
-                var handler = new System.Net.Http.HttpClientHandler
-                {
-                    Proxy = new System.Net.WebProxy(_proxyUrl),
-                    UseProxy = true
-                };
-                var httpClient = new System.Net.Http.HttpClient(handler);
+                var httpClient = new System.Net.Http.HttpClient(CreateHttpClientHandler());
                 var rpcClient = new RpcClient(new Uri(POLYGON_RPC), httpClient);
                 var web3 = new Web3(account, rpcClient);
 
