@@ -37,22 +37,22 @@ namespace QjySDK.Stg
         /// </summary>
         protected static void AddPolyArgs(StgDesc sd, decimal defaultPolyNum)
         {
-            sd.ArgDescDic["privateKey"] = new ArgDesc { Text = "钱包私钥", Explain = "Polymarket 钱包私钥，留空则从 poly_secrets.txt 读取" };
+            sd.ArgDescDic["privateKey"] = new ArgDesc { Text = "钱包私钥", Explain = "Polymarket 钱包私钥，留空则从 poly_secrets.txt 读取", Type = "text" };
             sd.ArgDic["privateKey"] = "";
 
-            sd.ArgDescDic["funderAddress"] = new ArgDesc { Text = "Proxy钱包地址", Explain = "Polymarket网站 Profile 里的 Wallet Address，留空则从 poly_secrets.txt 读取" };
+            sd.ArgDescDic["funderAddress"] = new ArgDesc { Text = "Proxy钱包地址", Explain = "Polymarket网站 Profile 里的 Wallet Address，留空则从 poly_secrets.txt 读取", Type = "number" };
             sd.ArgDic["funderAddress"] = "";
 
-            sd.ArgDescDic["eventTag"] = new ArgDesc { Text = "事件标签", Explain = "默认 Ethereum；周期标签按当前K线周期自动推导（如 5M/15M/1H）" };
+            sd.ArgDescDic["eventTag"] = new ArgDesc { Text = "事件标签", Explain = "默认 Ethereum；周期标签按当前K线周期自动推导（如 5M/15M/1H）", Type = "text" };
             sd.ArgDic["eventTag"] = "Ethereum";
 
-            sd.ArgDescDic["minPriceNearEnd"] = new ArgDesc { Text = "Poly最低价(分)", Explain = "Polymarket下单条件：best ask > 该值(分)且剩余时间 < nearEndMinutes" };
+            sd.ArgDescDic["minPriceNearEnd"] = new ArgDesc { Text = "Poly最低价(分)", Explain = "Polymarket下单条件：best ask > 该值(分)且剩余时间 < nearEndMinutes", Type = "number" };
             sd.ArgDic["minPriceNearEnd"] = 65;
 
-            sd.ArgDescDic["nearEndMinutes"] = new ArgDesc { Text = "Poly临近结束(分钟)", Explain = "剩余时间小于该值时允许Polymarket下单" };
+            sd.ArgDescDic["nearEndMinutes"] = new ArgDesc { Text = "Poly临近结束(分钟)", Explain = "剩余时间小于该值时允许Polymarket下单", Type = "number" };
             sd.ArgDic["nearEndMinutes"] = 5;
 
-            sd.ArgDescDic["polyNum"] = new ArgDesc { Text = "Poly下单数量", Explain = "Polymarket 下单数量(USDC)，0则不下单" };
+            sd.ArgDescDic["polyNum"] = new ArgDesc { Text = "Poly下单数量", Explain = "Polymarket 下单数量(USDC)，0则不下单", Type = "number" };
             sd.ArgDic["polyNum"] = defaultPolyNum;
         }
 

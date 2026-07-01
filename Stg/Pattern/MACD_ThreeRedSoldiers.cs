@@ -77,23 +77,23 @@ namespace QjySDK.Stg
             var sd = new StgDesc();
 
             // ========== MACD参数 ==========
-            sd.ArgDescDic["fastPeriod"] = new ArgDesc { Text = "MACD快线周期", Explain = "快速EMA的计算周期" };
+            sd.ArgDescDic["fastPeriod"] = new ArgDesc { Text = "MACD快线周期", Explain = "快速EMA的计算周期", Type = "number" };
             sd.ArgDic["fastPeriod"] = 12;
 
-            sd.ArgDescDic["slowPeriod"] = new ArgDesc { Text = "MACD慢线周期", Explain = "慢速EMA的计算周期" };
+            sd.ArgDescDic["slowPeriod"] = new ArgDesc { Text = "MACD慢线周期", Explain = "慢速EMA的计算周期", Type = "number" };
             sd.ArgDic["slowPeriod"] = 26;
 
-            sd.ArgDescDic["signalPeriod"] = new ArgDesc { Text = "MACD信号线周期", Explain = "Signal线的EMA周期" };
+            sd.ArgDescDic["signalPeriod"] = new ArgDesc { Text = "MACD信号线周期", Explain = "Signal线的EMA周期", Type = "number" };
             sd.ArgDic["signalPeriod"] = 9;
 
             // ========== 红三兵形态参数 ==========
-            sd.ArgDescDic["minBodyRatio"] = new ArgDesc { Text = "最小实体比例", Explain = "实体占整根K线的最小比例(0-1)，用于过滤影线过长的K线" };
+            sd.ArgDescDic["minBodyRatio"] = new ArgDesc { Text = "最小实体比例", Explain = "实体占整根K线的最小比例(0-1)，用于过滤影线过长的K线", Type = "number" };
             sd.ArgDic["minBodyRatio"] = 0.6;
 
-            sd.ArgDescDic["maxShadowRatio"] = new ArgDesc { Text = "最大影线比例", Explain = "单边影线占实体的最大比例，过滤影线过长的K线" };
+            sd.ArgDescDic["maxShadowRatio"] = new ArgDesc { Text = "最大影线比例", Explain = "单边影线占实体的最大比例，过滤影线过长的K线", Type = "number" };
             sd.ArgDic["maxShadowRatio"] = 0.5;
 
-            sd.ArgDescDic["minBodySize"] = new ArgDesc { Text = "最小实体大小(%)", Explain = "实体占收盘价的最小百分比，过滤过小的K线" };
+            sd.ArgDescDic["minBodySize"] = new ArgDesc { Text = "最小实体大小(%)", Explain = "实体占收盘价的最小百分比，过滤过小的K线", Type = "number" };
             sd.ArgDic["minBodySize"] = 0.1;
 
             // ========== MACD过滤参数 ==========
@@ -103,7 +103,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["useZeroAxisFilter"] = new ArgDesc { Text = "零轴过滤", Explain = "仅在零轴同侧交易", Options = "1:启用(多头需MACD接近或高于零轴)|0:禁用", Type = "bool" };
             sd.ArgDic["useZeroAxisFilter"] = 0;
 
-            sd.ArgDescDic["zeroAxisTolerance"] = new ArgDesc { Text = "零轴容差", Explain = "MACD距离零轴的容差范围" };
+            sd.ArgDescDic["zeroAxisTolerance"] = new ArgDesc { Text = "零轴容差", Explain = "MACD距离零轴的容差范围", Type = "number" };
             sd.ArgDic["zeroAxisTolerance"] = 0.0;
 
             sd.ArgDescDic["useHistogramConfirm"] = new ArgDesc { Text = "柱状图确认", Explain = "要求柱状图方向一致", Options = "1:要求柱状图方向与信号一致|0:禁用", Type = "bool" };
@@ -119,30 +119,30 @@ namespace QjySDK.Stg
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "固定手数", Explain = "每次交易的固定手数" };
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "固定手数", Explain = "每次交易的固定手数", Type = "number" };
             sd.ArgDic["lots"] = 1.0;
 
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "固定金额", Explain = "每次交易的固定金额" };
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "固定金额", Explain = "每次交易的固定金额", Type = "number" };
             sd.ArgDic["money"] = 10000.0;
 
             // ========== 止损止盈参数 ==========
             sd.ArgDescDic["useStopLoss"] = new ArgDesc { Text = "启用止损", Explain = "触及止损价自动平仓", Options = "1:启用|0:禁用", Type = "bool" };
             sd.ArgDic["useStopLoss"] = 1;
 
-            sd.ArgDescDic["stopLossPercent"] = new ArgDesc { Text = "止损百分比", Explain = "止损距离占入场价的百分比" };
+            sd.ArgDescDic["stopLossPercent"] = new ArgDesc { Text = "止损百分比", Explain = "止损距离占入场价的百分比", Type = "number" };
             sd.ArgDic["stopLossPercent"] = 5.0m;
 
             sd.ArgDescDic["useTakeProfit"] = new ArgDesc { Text = "启用止盈", Explain = "触及止盈价自动平仓", Options = "1:启用|0:禁用", Type = "bool" };
             sd.ArgDic["useTakeProfit"] = 1;
 
-            sd.ArgDescDic["takeProfitPercent"] = new ArgDesc { Text = "止盈百分比", Explain = "止盈距离占入场价的百分比" };
+            sd.ArgDescDic["takeProfitPercent"] = new ArgDesc { Text = "止盈百分比", Explain = "止盈距离占入场价的百分比", Type = "number" };
             sd.ArgDic["takeProfitPercent"] = 10.0m;
 
             sd.ArgDescDic["useMacdExit"] = new ArgDesc { Text = "MACD反向出场", Explain = "MACD反向交叉时平仓", Options = "1:MACD反向交叉时平仓|0:禁用", Type = "bool" };
             sd.ArgDic["useMacdExit"] = 1;
 
             // ========== 其他参数 ==========
-            sd.ArgDescDic["minBarCount"] = new ArgDesc { Text = "最少K线数", Explain = "策略启动所需的最少K线数量" };
+            sd.ArgDescDic["minBarCount"] = new ArgDesc { Text = "最少K线数", Explain = "策略启动所需的最少K线数量", Type = "number" };
             sd.ArgDic["minBarCount"] = 35;
 
             // ========== 图表配置 ==========

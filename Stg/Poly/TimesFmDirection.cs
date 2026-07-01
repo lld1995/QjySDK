@@ -64,45 +64,45 @@ namespace QjySDK.Stg
             sd.UseGlobalCalc = 0;
 
             // ==================== TimesFM 参数 ====================
-            sd.ArgDescDic["timesFmUrl"] = new ArgDesc { Text = "TimesFM地址", Explain = "TimesFM Serving API base URL" };
+            sd.ArgDescDic["timesFmUrl"] = new ArgDesc { Text = "TimesFM地址", Explain = "TimesFM Serving API base URL", Type = "text" };
             sd.ArgDic["timesFmUrl"] = "http://192.168.191.4:1234";
 
-            sd.ArgDescDic["contextLen"] = new ArgDesc { Text = "上下文长度", Explain = "TimesFM 输入历史K线根数 (回测最优=384)" };
+            sd.ArgDescDic["contextLen"] = new ArgDesc { Text = "上下文长度", Explain = "TimesFM 输入历史K线根数 (回测最优=384)", Type = "number" };
             sd.ArgDic["contextLen"] = 384;
 
             sd.ArgDescDic["xregMode"] = new ArgDesc { Text = "xreg模式", Explain = "TimesFM 协变量混合模式", Options = "xreg + timesfm|xreg|timesfm + xreg|timesfm|xreg only", Type = "select" };
             sd.ArgDic["xregMode"] = "xreg + timesfm";
 
-            sd.ArgDescDic["causalBatchSize"] = new ArgDesc { Text = "因果批大小", Explain = "xreg按批计算，使用当前窗口+历史窗口组成批次；1为单窗口，32对齐回测批大小" };
+            sd.ArgDescDic["causalBatchSize"] = new ArgDesc { Text = "因果批大小", Explain = "xreg按批计算，使用当前窗口+历史窗口组成批次；1为单窗口，32对齐回测批大小", Type = "number" };
             sd.ArgDic["causalBatchSize"] = 32;
 
             // ==================== 信号过滤参数 ====================
-            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "用于计算ATRP的周期" };
+            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "用于计算ATRP的周期", Type = "number" };
             sd.ArgDic["atrPeriod"] = 14;
 
-            sd.ArgDescDic["atrThresholdK"] = new ArgDesc { Text = "ATRP阈值倍数", Explain = "|predRet| >= k * ATRP 时才触发信号 (回测最优 0.30)" };
+            sd.ArgDescDic["atrThresholdK"] = new ArgDesc { Text = "ATRP阈值倍数", Explain = "|predRet| >= k * ATRP 时才触发信号 (回测最优 0.30)", Type = "number" };
             sd.ArgDic["atrThresholdK"] = 0.30;
 
-            sd.ArgDescDic["signalBars"] = new ArgDesc { Text = "信号持续K线数", Explain = "信号出现后允许Polymarket连续下单的K线根数" };
+            sd.ArgDescDic["signalBars"] = new ArgDesc { Text = "信号持续K线数", Explain = "信号出现后允许Polymarket连续下单的K线根数", Type = "number" };
             sd.ArgDic["signalBars"] = 5;
 
             // ==================== 交易参数 ====================
-            sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅多|2:仅空", Type = "select" };
+            sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDic["mode"] = 0;
 
             sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
             sd.ArgDic["sendMode"] = 0;
 
-            sd.ArgDescDic["stopLoss"] = new ArgDesc { Text = "止损%", Explain = "固定止损百分比，0为不启用" };
+            sd.ArgDescDic["stopLoss"] = new ArgDesc { Text = "止损%", Explain = "固定止损百分比，0为不启用", Options = "0:禁用|1:启用", Type = "bool" };
             sd.ArgDic["stopLoss"] = 5.0m;
 
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数模式下下单数量" };
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数模式下下单数量", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;
 
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额模式下用于换算手数" };
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额模式下用于换算手数", Type = "number" };
             sd.ArgDic["money"] = 10000m;
 
             // ==================== Polymarket参数 ====================

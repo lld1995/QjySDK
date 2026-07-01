@@ -81,7 +81,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["phaseThresholdBuy"] = new ArgDesc() { Text = "买入相位", Explain = "买入相位阈值，接近-1表示周期底部", Type = "number" };
             sd.ArgDescDic["phaseThresholdSell"] = new ArgDesc() { Text = "卖出相位", Explain = "卖出相位阈值，接近1表示周期顶部", Type = "number" };
             sd.ArgDescDic["harmonics"] = new ArgDesc() { Text = "谐波数", Explain = "用于重构信号的谐波数量", Type = "number" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向交易|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即发单|1:下个开盘发单", Type = "select" };
             sd.ArgDescDic["signalMode"] = new ArgDesc() { Text = "信号模式", Explain = "信号触发方式", Options = "0:三重共振(RSI+布林+傅里叶)|1:双重共振(RSI+布林)|2:双重共振(布林+傅里叶)", Type = "select" };
             sd.ArgDescDic["exitMode"] = new ArgDesc() { Text = "平仓模式", Explain = "平仓触发条件", Options = "0:回归中轨平仓|1:反向突破平仓", Type = "select" };

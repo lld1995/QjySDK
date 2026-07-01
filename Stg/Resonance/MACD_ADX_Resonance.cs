@@ -108,29 +108,29 @@ namespace QjySDK.Stg
             sd.UseGlobalCalc = 0;
 
             // ========== MACD参数 ==========
-            sd.ArgDescDic["MacdFastPeriod"] = new ArgDesc { Text = "MACD快线周期", Explain = "快速EMA的计算周期" };
+sd.ArgDescDic["MacdFastPeriod"] = new ArgDesc { Text = "MACD快线周期", Explain = "快速EMA的计算周期", Type = "number" };
             sd.ArgDic["MacdFastPeriod"] = 12;
 
-            sd.ArgDescDic["MacdSlowPeriod"] = new ArgDesc { Text = "MACD慢线周期", Explain = "慢速EMA的计算周期" };
+sd.ArgDescDic["MacdSlowPeriod"] = new ArgDesc { Text = "MACD慢线周期", Explain = "慢速EMA的计算周期", Type = "number" };
             sd.ArgDic["MacdSlowPeriod"] = 26;
 
-            sd.ArgDescDic["MacdSignalPeriod"] = new ArgDesc { Text = "MACD信号线周期", Explain = "Signal线的EMA周期" };
+sd.ArgDescDic["MacdSignalPeriod"] = new ArgDesc { Text = "MACD信号线周期", Explain = "Signal线的EMA周期", Type = "number" };
             sd.ArgDic["MacdSignalPeriod"] = 9;
 
             // ========== ADX/DI参数 ==========
-            sd.ArgDescDic["AdxPeriod"] = new ArgDesc { Text = "ADX周期", Explain = "ADX和DI指标的计算周期" };
+sd.ArgDescDic["AdxPeriod"] = new ArgDesc { Text = "ADX周期", Explain = "ADX和DI指标的计算周期", Type = "number" };
             sd.ArgDic["AdxPeriod"] = 14;
 
-            sd.ArgDescDic["AdxEntryThreshold"] = new ArgDesc { Text = "ADX入场阈值", Explain = "ADX大于此值时允许入场（建议20-25）" };
+sd.ArgDescDic["AdxEntryThreshold"] = new ArgDesc { Text = "ADX入场阈值", Explain = "ADX大于此值时允许入场（建议20-25）", Type = "number" };
             sd.ArgDic["AdxEntryThreshold"] = 20.0;
 
-            sd.ArgDescDic["AdxExitThreshold"] = new ArgDesc { Text = "ADX退出阈值", Explain = "ADX低于此值时考虑平仓（建议15-18）" };
+sd.ArgDescDic["AdxExitThreshold"] = new ArgDesc { Text = "ADX退出阈值", Explain = "ADX低于此值时考虑平仓（建议15-18）", Type = "number" };
             sd.ArgDic["AdxExitThreshold"] = 15.0;
 
-            sd.ArgDescDic["AdxStrongThreshold"] = new ArgDesc { Text = "ADX强势阈值", Explain = "ADX大于此值表示强趋势（建议30-40）" };
+sd.ArgDescDic["AdxStrongThreshold"] = new ArgDesc { Text = "ADX强势阈值", Explain = "ADX大于此值表示强趋势（建议30-40）", Type = "number" };
             sd.ArgDic["AdxStrongThreshold"] = 30.0;
 
-            sd.ArgDescDic["DiDiffThreshold"] = new ArgDesc { Text = "DI差值阈值", Explain = "+DI与-DI的最小差值，过滤弱信号" };
+sd.ArgDescDic["DiDiffThreshold"] = new ArgDesc { Text = "DI差值阈值", Explain = "+DI与-DI的最小差值，过滤弱信号", Type = "number" };
             sd.ArgDic["DiDiffThreshold"] = 5.0;
 
             // ========== 共振模式参数 ==========
@@ -143,34 +143,34 @@ namespace QjySDK.Stg
             sd.ArgDescDic["UseHistogramConfirm"] = new ArgDesc { Text = "柱状图确认", Explain = "要求Histogram方向一致", Options = "1:启用Histogram方向确认|0:禁用", Type = "bool" };
             sd.ArgDic["UseHistogramConfirm"] = 1;
 
-            sd.ArgDescDic["HistogramConfirmBars"] = new ArgDesc { Text = "柱状图确认K线数", Explain = "Histogram需连续多少根K线同向" };
+sd.ArgDescDic["HistogramConfirmBars"] = new ArgDesc { Text = "柱状图确认K线数", Explain = "Histogram需连续多少根K线同向", Type = "number" };
             sd.ArgDic["HistogramConfirmBars"] = 2;
 
             // ========== ATR止损止盈参数 ==========
-            sd.ArgDescDic["AtrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR指标的计算周期" };
+sd.ArgDescDic["AtrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR指标的计算周期", Type = "number" };
             sd.ArgDic["AtrPeriod"] = 14;
 
-            sd.ArgDescDic["StopLossAtrMultiplier"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离 = ATR × 此倍数" };
+sd.ArgDescDic["StopLossAtrMultiplier"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["StopLossAtrMultiplier"] = 2.0;
 
-            sd.ArgDescDic["TakeProfitAtrMultiplier"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "止盈距离 = ATR × 此倍数" };
+sd.ArgDescDic["TakeProfitAtrMultiplier"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "止盈距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["TakeProfitAtrMultiplier"] = 4.0;
 
             sd.ArgDescDic["UseTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "跟踪最高/低点调整止损", Options = "1:启用|0:禁用", Type = "bool" };
             sd.ArgDic["UseTrailingStop"] = 1;
 
-            sd.ArgDescDic["TrailingStopAtrMultiplier"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数" };
+sd.ArgDescDic["TrailingStopAtrMultiplier"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["TrailingStopAtrMultiplier"] = 1.5;
 
-            sd.ArgDescDic["TrailingActivationMultiplier"] = new ArgDesc { Text = "移动止损激活倍数", Explain = "盈利达到ATR×此倍数后激活移动止损" };
+sd.ArgDescDic["TrailingActivationMultiplier"] = new ArgDesc { Text = "移动止损激活倍数", Explain = "盈利达到ATR×此倍数后激活移动止损", Type = "number" };
             sd.ArgDic["TrailingActivationMultiplier"] = 1.0;
 
             // ========== 交易参数 ==========
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量" };
+sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量" };
+sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量", Type = "number" };
             sd.ArgDic["money"] = 10000m;
 
             sd.ArgDescDic["TradeMode"] = new ArgDesc { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
@@ -179,7 +179,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["SendMode"] = new ArgDesc { Text = "下单模式", Explain = "下单执行时机", Options = "0:立即下单|1:下根K线开盘下单", Type = "select" };
             sd.ArgDic["SendMode"] = 0;
 
-            sd.ArgDescDic["MaxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "持仓超过此数量K线强制平仓（0=不限制）" };
+sd.ArgDescDic["MaxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "持仓超过此数量K线强制平仓（0=不限制）", Type = "number" };
             sd.ArgDic["MaxHoldBars"] = 0;
 
             // ========== 图表颜色配置 ==========

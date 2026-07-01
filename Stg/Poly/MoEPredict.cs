@@ -57,64 +57,64 @@ namespace QjySDK.Stg
             sd.UseGlobalCalc = 0;
 
             // ==================== 统计模型参数 ====================
-            sd.ArgDescDic["markovOrder"] = new ArgDesc { Text = "Markov阶数", Explain = "Markov链的阶数(1或2)" };
+            sd.ArgDescDic["markovOrder"] = new ArgDesc { Text = "Markov阶数", Explain = "Markov链的阶数(1或2)", Type = "number" };
             sd.ArgDic["markovOrder"] = 2;
 
-            sd.ArgDescDic["statWeight"] = new ArgDesc { Text = "统计模型权重", Explain = "统计模型在综合得分中的权重(0-100)" };
+            sd.ArgDescDic["statWeight"] = new ArgDesc { Text = "统计模型权重", Explain = "统计模型在综合得分中的权重(0-100)", Type = "number" };
             sd.ArgDic["statWeight"] = 30.0;
 
             // ==================== LSTM参数 ====================
-            sd.ArgDescDic["lookback"] = new ArgDesc { Text = "回看周期", Explain = "LSTM输入序列长度" };
+            sd.ArgDescDic["lookback"] = new ArgDesc { Text = "回看周期", Explain = "LSTM输入序列长度", Type = "number" };
             sd.ArgDic["lookback"] = 10;
 
-            sd.ArgDescDic["hiddenSize"] = new ArgDesc { Text = "隐藏层大小", Explain = "LSTM隐藏层神经元数量" };
+            sd.ArgDescDic["hiddenSize"] = new ArgDesc { Text = "隐藏层大小", Explain = "LSTM隐藏层神经元数量", Type = "number" };
             sd.ArgDic["hiddenSize"] = 16;
 
-            sd.ArgDescDic["learningRate"] = new ArgDesc { Text = "学习率", Explain = "LSTM训练学习率" };
+            sd.ArgDescDic["learningRate"] = new ArgDesc { Text = "学习率", Explain = "LSTM训练学习率", Type = "number" };
             sd.ArgDic["learningRate"] = 0.01;
 
-            sd.ArgDescDic["epochs"] = new ArgDesc { Text = "训练轮数", Explain = "每次训练的迭代次数" };
+            sd.ArgDescDic["epochs"] = new ArgDesc { Text = "训练轮数", Explain = "每次训练的迭代次数", Type = "number" };
             sd.ArgDic["epochs"] = 10;
 
-            sd.ArgDescDic["trainPeriod"] = new ArgDesc { Text = "训练周期", Explain = "用于训练的历史K线数量" };
+            sd.ArgDescDic["trainPeriod"] = new ArgDesc { Text = "训练周期", Explain = "用于训练的历史K线数量", Type = "number" };
             sd.ArgDic["trainPeriod"] = 100;
 
-            sd.ArgDescDic["retrainInterval"] = new ArgDesc { Text = "重训间隔", Explain = "每隔多少根K线重新训练" };
+            sd.ArgDescDic["retrainInterval"] = new ArgDesc { Text = "重训间隔", Explain = "每隔多少根K线重新训练", Type = "number" };
             sd.ArgDic["retrainInterval"] = 200;
 
-            sd.ArgDescDic["lstmWeight"] = new ArgDesc { Text = "LSTM权重", Explain = "LSTM在综合得分中的权重(0-100)" };
+            sd.ArgDescDic["lstmWeight"] = new ArgDesc { Text = "LSTM权重", Explain = "LSTM在综合得分中的权重(0-100)", Type = "number" };
             sd.ArgDic["lstmWeight"] = 35.0;
 
             // ==================== 量化因子参数 ====================
-            sd.ArgDescDic["momentumWeight"] = new ArgDesc { Text = "动量因子权重", Explain = "动量因子子权重(0-100)" };
+            sd.ArgDescDic["momentumWeight"] = new ArgDesc { Text = "动量因子权重", Explain = "动量因子子权重(0-100)", Type = "number" };
             sd.ArgDic["momentumWeight"] = 25.0;
 
-            sd.ArgDescDic["trendWeight"] = new ArgDesc { Text = "趋势因子权重", Explain = "趋势因子子权重(0-100)" };
+            sd.ArgDescDic["trendWeight"] = new ArgDesc { Text = "趋势因子权重", Explain = "趋势因子子权重(0-100)", Type = "number" };
             sd.ArgDic["trendWeight"] = 25.0;
 
-            sd.ArgDescDic["volatilityWeight"] = new ArgDesc { Text = "波动率因子权重", Explain = "波动率因子子权重(0-100)" };
+            sd.ArgDescDic["volatilityWeight"] = new ArgDesc { Text = "波动率因子权重", Explain = "波动率因子子权重(0-100)", Type = "number" };
             sd.ArgDic["volatilityWeight"] = 15.0;
 
-            sd.ArgDescDic["volumeWeight"] = new ArgDesc { Text = "成交量因子权重", Explain = "成交量因子子权重(0-100)" };
+            sd.ArgDescDic["volumeWeight"] = new ArgDesc { Text = "成交量因子权重", Explain = "成交量因子子权重(0-100)", Type = "number" };
             sd.ArgDic["volumeWeight"] = 15.0;
 
-            sd.ArgDescDic["meanRevWeight"] = new ArgDesc { Text = "均值回归因子权重", Explain = "均值回归因子子权重(0-100)" };
+            sd.ArgDescDic["meanRevWeight"] = new ArgDesc { Text = "均值回归因子权重", Explain = "均值回归因子子权重(0-100)", Type = "number" };
             sd.ArgDic["meanRevWeight"] = 20.0;
 
-            sd.ArgDescDic["quantWeight"] = new ArgDesc { Text = "量化因子总权重", Explain = "量化因子在综合得分中的权重(0-100)" };
+            sd.ArgDescDic["quantWeight"] = new ArgDesc { Text = "量化因子总权重", Explain = "量化因子在综合得分中的权重(0-100)", Type = "number" };
             sd.ArgDic["quantWeight"] = 35.0;
 
             // ==================== 交易参数 ====================
-            sd.ArgDescDic["minConsistency"] = new ArgDesc { Text = "最少一致专家数", Explain = "至少N个专家同向才入场(1-3)" };
+            sd.ArgDescDic["minConsistency"] = new ArgDesc { Text = "最少一致专家数", Explain = "至少N个专家同向才入场(1-3)", Type = "number" };
             sd.ArgDic["minConsistency"] = 3;
 
-            sd.ArgDescDic["minObservations"] = new ArgDesc { Text = "最少观测数", Explain = "自适应表中某状态至少需要的观测次数" };
+            sd.ArgDescDic["minObservations"] = new ArgDesc { Text = "最少观测数", Explain = "自适应表中某状态至少需要的观测次数", Type = "number" };
             sd.ArgDic["minObservations"] = 8;
 
-            sd.ArgDescDic["minWinRate"] = new ArgDesc { Text = "最少胜率", Explain = "自适应表中某状态胜率超过此值才交易(0-1)" };
+            sd.ArgDescDic["minWinRate"] = new ArgDesc { Text = "最少胜率", Explain = "自适应表中某状态胜率超过此值才交易(0-1)", Type = "number" };
             sd.ArgDic["minWinRate"] = 0.80;
 
-            sd.ArgDescDic["extremeThreshold"] = new ArgDesc { Text = "极端条件阈值", Explain = "7维极端条件至少满足N个才入场" };
+            sd.ArgDescDic["extremeThreshold"] = new ArgDesc { Text = "极端条件阈值", Explain = "7维极端条件至少满足N个才入场", Type = "number" };
             sd.ArgDic["extremeThreshold"] = 4;
 
             sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
@@ -123,16 +123,16 @@ namespace QjySDK.Stg
             sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
             sd.ArgDic["sendMode"] = 0;
 
-            sd.ArgDescDic["stopLoss"] = new ArgDesc { Text = "止损%", Explain = "固定止损百分比，0为不启用" };
+            sd.ArgDescDic["stopLoss"] = new ArgDesc { Text = "止损%", Explain = "固定止损百分比，0为不启用", Options = "0:禁用|1:启用", Type = "bool" };
             sd.ArgDic["stopLoss"] = 5.0m;
 
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量" };
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;
 
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下的交易金额" };
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下的交易金额", Type = "number" };
             sd.ArgDic["money"] = 10000m;
 
             // ==================== Polymarket参数 ====================

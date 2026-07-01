@@ -199,7 +199,7 @@ namespace QjySDK.Stg
 			sd.ArgDescDic["zhongshuMinStrokes"] = new ArgDesc() { Text = "中枢最少笔数", Explain = "形成中枢所需的最少笔数，默认3", Type = "number" };
 			sd.ArgDescDic["useZhongShu"] = new ArgDesc() { Text = "使用中枢", Explain = "启用中枢分析辅助交易", Options = "0:关闭|1:启用", Type = "bool" };
 			sd.ArgDescDic["useDivergence"] = new ArgDesc() { Text = "使用背驰", Explain = "启用背驰检测辅助交易", Options = "0:关闭|1:启用", Type = "bool" };
-			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:标准|1:仅做多|2:仅做空", Type = "select" };
+			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
 			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
 			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
 			sd.ArgDescDic["lots"] = new ArgDesc() { Text = "固定手数", Explain = "固定手数模式下的手数", Type = "number" };

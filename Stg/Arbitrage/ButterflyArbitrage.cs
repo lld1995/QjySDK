@@ -55,7 +55,7 @@ namespace QjySDK.Stg
             sd.UseGlobalCalc = 1;
 
             // ==================== 蝶式价差参数 ====================
-            sd.ArgDescDic["lookbackPeriod"] = new ArgDesc { Text = "回溯周期", Explain = "计算蝶式价差均值和标准差的滚动窗口" };
+            sd.ArgDescDic["lookbackPeriod"] = new ArgDesc { Text = "回溯周期", Explain = "计算蝶式价差均值和标准差的滚动窗口", Type = "number" };
             sd.ArgDic["lookbackPeriod"] = 60;
 
             sd.ArgDescDic["spreadMode"] = new ArgDesc { Text = "价差模式", Explain = "价差计算方式", Options = "0:原始价格差|1:标准化(除以B价格)", Type = "select" };
@@ -65,33 +65,33 @@ namespace QjySDK.Stg
             sd.ArgDic["selectionMode"] = 0;
 
             // ==================== Z-Score阈值 ====================
-            sd.ArgDescDic["entryZScore"] = new ArgDesc { Text = "入场Z-Score", Explain = "蝶式价差Z-Score绝对值超过此值入场" };
+            sd.ArgDescDic["entryZScore"] = new ArgDesc { Text = "入场Z-Score", Explain = "蝶式价差Z-Score绝对值超过此值入场", Type = "number" };
             sd.ArgDic["entryZScore"] = 2.0;
 
-            sd.ArgDescDic["exitZScore"] = new ArgDesc { Text = "出场Z-Score", Explain = "蝶式价差Z-Score绝对值低于此值出场" };
+            sd.ArgDescDic["exitZScore"] = new ArgDesc { Text = "出场Z-Score", Explain = "蝶式价差Z-Score绝对值低于此值出场", Type = "number" };
             sd.ArgDic["exitZScore"] = 0.5;
 
-            sd.ArgDescDic["stopLossZScore"] = new ArgDesc { Text = "止损Z-Score", Explain = "蝶式价差Z-Score绝对值超过此值止损" };
+            sd.ArgDescDic["stopLossZScore"] = new ArgDesc { Text = "止损Z-Score", Explain = "蝶式价差Z-Score绝对值超过此值止损", Type = "number" };
             sd.ArgDic["stopLossZScore"] = 2.5;
 
             // ==================== 过滤参数 ====================
-            sd.ArgDescDic["minCorrelation"] = new ArgDesc { Text = "最小相关系数", Explain = "三品种两两相关系数最小值" };
+            sd.ArgDescDic["minCorrelation"] = new ArgDesc { Text = "最小相关系数", Explain = "三品种两两相关系数最小值", Type = "number" };
             sd.ArgDic["minCorrelation"] = 0.6;
 
             sd.ArgDescDic["useHalfLifeFilter"] = new ArgDesc { Text = "半衰期过滤", Explain = "半衰期不合理时不入场", Options = "1:启用|0:禁用", Type = "bool" };
             sd.ArgDic["useHalfLifeFilter"] = 1;
 
-            sd.ArgDescDic["minHalfLife"] = new ArgDesc { Text = "最小半衰期", Explain = "半衰期低于此值不入场" };
+            sd.ArgDescDic["minHalfLife"] = new ArgDesc { Text = "最小半衰期", Explain = "半衰期低于此值不入场", Type = "number" };
             sd.ArgDic["minHalfLife"] = 5;
 
-            sd.ArgDescDic["maxHalfLife"] = new ArgDesc { Text = "最大半衰期", Explain = "半衰期高于此值不入场" };
+            sd.ArgDescDic["maxHalfLife"] = new ArgDesc { Text = "最大半衰期", Explain = "半衰期高于此值不入场", Type = "number" };
             sd.ArgDic["maxHalfLife"] = 50;
 
-            sd.ArgDescDic["confirmBars"] = new ArgDesc { Text = "确认K线数", Explain = "连续N根K线偏离才入场" };
+            sd.ArgDescDic["confirmBars"] = new ArgDesc { Text = "确认K线数", Explain = "连续N根K线偏离才入场", Type = "number" };
             sd.ArgDic["confirmBars"] = 1;
 
             // ==================== 风控参数 ====================
-            sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "超过此数量强制平仓" };
+            sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "超过此数量强制平仓", Type = "number" };
             sd.ArgDic["maxHoldBars"] = 20;
 
             sd.ArgDescDic["useTimeDecay"] = new ArgDesc { Text = "时间衰减", Explain = "持仓时间衰减", Options = "1:持仓越久出场阈值越宽松|0:固定", Type = "select" };
@@ -104,10 +104,10 @@ namespace QjySDK.Stg
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下两端品种的交易数量(中间腿为2倍)" };
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下两端品种的交易数量(中间腿为2倍)", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;
 
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下每条腿的交易金额" };
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下每条腿的交易金额", Type = "number" };
             sd.ArgDic["money"] = 10000m;
 
             // ==================== 颜色配置 ====================

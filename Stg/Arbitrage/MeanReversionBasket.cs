@@ -50,46 +50,46 @@ namespace QjySDK.Stg
             sd.UseGlobalCalc = 1;
 
             // ==================== 排名参数 ====================
-            sd.ArgDescDic["rankingPeriod"] = new ArgDesc { Text = "排名周期", Explain = "计算收益率排名的K线数" };
+            sd.ArgDescDic["rankingPeriod"] = new ArgDesc { Text = "排名周期", Explain = "计算收益率排名的K线数", Type = "number" };
             sd.ArgDic["rankingPeriod"] = 10;
 
-            sd.ArgDescDic["basketSize"] = new ArgDesc { Text = "篮子大小", Explain = "每个篮子的品种数(0=自动，取总数的25%)" };
+            sd.ArgDescDic["basketSize"] = new ArgDesc { Text = "篮子大小", Explain = "每个篮子的品种数(0=自动，取总数的25%)", Type = "number" };
             sd.ArgDic["basketSize"] = 0;
 
             sd.ArgDescDic["useWeightedReturn"] = new ArgDesc { Text = "加权收益率", Explain = "收益率加权方式", Options = "1:成交量加权收益率|0:简单收益率", Type = "select" };
             sd.ArgDic["useWeightedReturn"] = 0;
 
             // ==================== 分化度阈值 ====================
-            sd.ArgDescDic["divergenceZLookback"] = new ArgDesc { Text = "分化度回溯", Explain = "计算分化度Z-Score的历史窗口" };
+            sd.ArgDescDic["divergenceZLookback"] = new ArgDesc { Text = "分化度回溯", Explain = "计算分化度Z-Score的历史窗口", Type = "number" };
             sd.ArgDic["divergenceZLookback"] = 40;
 
-            sd.ArgDescDic["entryZScore"] = new ArgDesc { Text = "入场Z-Score", Explain = "分化度Z-Score超过此值入场" };
+            sd.ArgDescDic["entryZScore"] = new ArgDesc { Text = "入场Z-Score", Explain = "分化度Z-Score超过此值入场", Type = "number" };
             sd.ArgDic["entryZScore"] = 1.5;
 
-            sd.ArgDescDic["exitZScore"] = new ArgDesc { Text = "出场Z-Score", Explain = "分化度Z-Score低于此值出场" };
+            sd.ArgDescDic["exitZScore"] = new ArgDesc { Text = "出场Z-Score", Explain = "分化度Z-Score低于此值出场", Type = "number" };
             sd.ArgDic["exitZScore"] = 0.3;
 
-            sd.ArgDescDic["stopLossZScore"] = new ArgDesc { Text = "止损Z-Score", Explain = "分化度Z-Score超过此值止损" };
+            sd.ArgDescDic["stopLossZScore"] = new ArgDesc { Text = "止损Z-Score", Explain = "分化度Z-Score超过此值止损", Type = "number" };
             sd.ArgDic["stopLossZScore"] = 2.5;
 
             // ==================== 确认与过滤 ====================
-            sd.ArgDescDic["confirmBars"] = new ArgDesc { Text = "确认K线数", Explain = "连续N根K线分化度超阈值才入场" };
+            sd.ArgDescDic["confirmBars"] = new ArgDesc { Text = "确认K线数", Explain = "连续N根K线分化度超阈值才入场", Type = "number" };
             sd.ArgDic["confirmBars"] = 1;
 
-            sd.ArgDescDic["minRankStability"] = new ArgDesc { Text = "最小排名稳定度", Explain = "近N根K线排名不变化的比例(0-1)，太不稳定不入场" };
+            sd.ArgDescDic["minRankStability"] = new ArgDesc { Text = "最小排名稳定度", Explain = "近N根K线排名不变化的比例(0-1)，太不稳定不入场", Type = "number" };
             sd.ArgDic["minRankStability"] = 0.5;
 
             // ==================== 风控参数 ====================
-            sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "超过此数量强制平仓" };
+            sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "超过此数量强制平仓", Type = "number" };
             sd.ArgDic["maxHoldBars"] = 15;
 
             sd.ArgDescDic["useTimeDecay"] = new ArgDesc { Text = "时间衰减", Explain = "持仓时间衰减", Options = "1:持仓越久出场阈值越宽松|0:固定", Type = "select" };
             sd.ArgDic["useTimeDecay"] = 1;
 
-            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR计算周期" };
+            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR计算周期", Type = "number" };
             sd.ArgDic["atrPeriod"] = 14;
 
-            sd.ArgDescDic["atrStopMultiplier"] = new ArgDesc { Text = "ATR止损倍数", Explain = "个股额外止损(0=仅用Z-Score止损)" };
+            sd.ArgDescDic["atrStopMultiplier"] = new ArgDesc { Text = "ATR止损倍数", Explain = "个股额外止损(0=仅用Z-Score止损)", Type = "number" };
             sd.ArgDic["atrStopMultiplier"] = 0.0;
 
             // ==================== 交易参数 ====================
@@ -99,10 +99,10 @@ namespace QjySDK.Stg
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量" };
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;
 
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下每个品种的金额" };
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下每个品种的金额", Type = "number" };
             sd.ArgDic["money"] = 10000m;
 
             // ==================== 颜色配置 ====================

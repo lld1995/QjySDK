@@ -99,61 +99,61 @@ namespace QjySDK.Stg
             sd.UseGlobalCalc = 0;
 
             // KDJ参数
-            sd.ArgDescDic["kdjPeriod"] = new ArgDesc { Text = "KDJ周期", Explain = "KDJ指标的计算周期（通常为9）" };
+sd.ArgDescDic["kdjPeriod"] = new ArgDesc { Text = "KDJ周期", Explain = "KDJ指标的计算周期（通常为9）", Type = "number" };
             sd.ArgDic["kdjPeriod"] = 9;
 
-            sd.ArgDescDic["kdjSignalPeriod"] = new ArgDesc { Text = "KDJ信号周期", Explain = "K和D的平滑周期（通常为3）" };
+sd.ArgDescDic["kdjSignalPeriod"] = new ArgDesc { Text = "KDJ信号周期", Explain = "K和D的平滑周期（通常为3）", Type = "number" };
             sd.ArgDic["kdjSignalPeriod"] = 3;
 
-            sd.ArgDescDic["kdjOverbought"] = new ArgDesc { Text = "KDJ超买线", Explain = "KDJ超买区域阈值" };
+sd.ArgDescDic["kdjOverbought"] = new ArgDesc { Text = "KDJ超买线", Explain = "KDJ超买区域阈值", Type = "number" };
             sd.ArgDic["kdjOverbought"] = 80.0;
 
-            sd.ArgDescDic["kdjOversold"] = new ArgDesc { Text = "KDJ超卖线", Explain = "KDJ超卖区域阈值" };
+sd.ArgDescDic["kdjOversold"] = new ArgDesc { Text = "KDJ超卖线", Explain = "KDJ超卖区域阈值", Type = "number" };
             sd.ArgDic["kdjOversold"] = 20.0;
 
             // RSI参数
-            sd.ArgDescDic["rsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "RSI指标的计算周期（通常为14）" };
+sd.ArgDescDic["rsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "RSI指标的计算周期（通常为14）", Type = "number" };
             sd.ArgDic["rsiPeriod"] = 14;
 
-            sd.ArgDescDic["rsiBullThreshold"] = new ArgDesc { Text = "RSI多头阈值", Explain = "RSI大于此值时允许做多" };
+sd.ArgDescDic["rsiBullThreshold"] = new ArgDesc { Text = "RSI多头阈值", Explain = "RSI大于此值时允许做多", Type = "number" };
             sd.ArgDic["rsiBullThreshold"] = 50.0;
 
-            sd.ArgDescDic["rsiBearThreshold"] = new ArgDesc { Text = "RSI空头阈值", Explain = "RSI小于此值时允许做空" };
+sd.ArgDescDic["rsiBearThreshold"] = new ArgDesc { Text = "RSI空头阈值", Explain = "RSI小于此值时允许做空", Type = "number" };
             sd.ArgDic["rsiBearThreshold"] = 50.0;
 
-            sd.ArgDescDic["rsiOverbought"] = new ArgDesc { Text = "RSI超买线", Explain = "RSI超买区域阈值" };
+sd.ArgDescDic["rsiOverbought"] = new ArgDesc { Text = "RSI超买线", Explain = "RSI超买区域阈值", Type = "number" };
             sd.ArgDic["rsiOverbought"] = 70.0;
 
-            sd.ArgDescDic["rsiOversold"] = new ArgDesc { Text = "RSI超卖线", Explain = "RSI超卖区域阈值" };
+sd.ArgDescDic["rsiOversold"] = new ArgDesc { Text = "RSI超卖线", Explain = "RSI超卖区域阈值", Type = "number" };
             sd.ArgDic["rsiOversold"] = 30.0;
 
             // ATR止损止盈参数
-            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR指标的计算周期" };
+sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR指标的计算周期", Type = "number" };
             sd.ArgDic["atrPeriod"] = 14;
 
-            sd.ArgDescDic["stopLossAtrMultiplier"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离 = ATR × 此倍数" };
+sd.ArgDescDic["stopLossAtrMultiplier"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["stopLossAtrMultiplier"] = 2.0;
 
-            sd.ArgDescDic["takeProfitAtrMultiplier"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "止盈距离 = ATR × 此倍数" };
+sd.ArgDescDic["takeProfitAtrMultiplier"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "止盈距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["takeProfitAtrMultiplier"] = 3.0;
 
             // 交易参数
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "固定手数", Explain = "每次交易的固定手数" };
+sd.ArgDescDic["lots"] = new ArgDesc { Text = "固定手数", Explain = "每次交易的固定手数", Type = "number" };
             sd.ArgDic["lots"] = 1.0;
 
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "固定金额", Explain = "每次交易的固定金额" };
+sd.ArgDescDic["money"] = new ArgDesc { Text = "固定金额", Explain = "每次交易的固定金额", Type = "number" };
             sd.ArgDic["money"] = 10000.0;
 
-            sd.ArgDescDic["useTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "是否启用移动止损(1=启用,0=禁用)" };
+sd.ArgDescDic["useTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "是否启用移动止损(1=启用,0=禁用)", Options = "0:禁用|1:启用", Type = "bool" };
             sd.ArgDic["useTrailingStop"] = 1;
 
-            sd.ArgDescDic["trailingStopAtrMultiplier"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数" };
+sd.ArgDescDic["trailingStopAtrMultiplier"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["trailingStopAtrMultiplier"] = 1.5;
 
-            sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "持仓超过此数量K线强制平仓（0=不限制）" };
+sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "持仓超过此数量K线强制平仓（0=不限制）", Type = "number" };
             sd.ArgDic["maxHoldBars"] = 0;
 
             // 共振模式

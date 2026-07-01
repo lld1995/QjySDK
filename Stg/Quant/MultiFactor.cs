@@ -70,79 +70,79 @@ namespace QjySDK.Stg
             sd.UseGlobalCalc = 0;
 
             // ==================== 动量因子参数 ====================
-            sd.ArgDescDic["rocPeriod"] = new ArgDesc { Text = "ROC周期", Explain = "价格变化率计算周期" };
+            sd.ArgDescDic["rocPeriod"] = new ArgDesc { Text = "ROC周期", Explain = "价格变化率计算周期", Type = "number" };
             sd.ArgDic["rocPeriod"] = 12;
 
-            sd.ArgDescDic["rsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "相对强弱指标周期" };
+            sd.ArgDescDic["rsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "相对强弱指标周期", Type = "number" };
             sd.ArgDic["rsiPeriod"] = 14;
 
-            sd.ArgDescDic["momentumWeight"] = new ArgDesc { Text = "动量因子权重", Explain = "动量因子在综合得分中的权重(0-100)" };
+            sd.ArgDescDic["momentumWeight"] = new ArgDesc { Text = "动量因子权重", Explain = "动量因子在综合得分中的权重(0-100)", Type = "number" };
             sd.ArgDic["momentumWeight"] = 25.0;
 
             // ==================== 趋势因子参数 ====================
-            sd.ArgDescDic["emaFast"] = new ArgDesc { Text = "快速EMA周期", Explain = "快速指数移动平均周期" };
+            sd.ArgDescDic["emaFast"] = new ArgDesc { Text = "快速EMA周期", Explain = "快速指数移动平均周期", Type = "number" };
             sd.ArgDic["emaFast"] = 12;
 
-            sd.ArgDescDic["emaSlow"] = new ArgDesc { Text = "慢速EMA周期", Explain = "慢速指数移动平均周期" };
+            sd.ArgDescDic["emaSlow"] = new ArgDesc { Text = "慢速EMA周期", Explain = "慢速指数移动平均周期", Type = "number" };
             sd.ArgDic["emaSlow"] = 26;
 
-            sd.ArgDescDic["adxPeriod"] = new ArgDesc { Text = "ADX周期", Explain = "趋势强度指标周期" };
+            sd.ArgDescDic["adxPeriod"] = new ArgDesc { Text = "ADX周期", Explain = "趋势强度指标周期", Type = "number" };
             sd.ArgDic["adxPeriod"] = 14;
 
-            sd.ArgDescDic["trendWeight"] = new ArgDesc { Text = "趋势因子权重", Explain = "趋势因子在综合得分中的权重(0-100)" };
+            sd.ArgDescDic["trendWeight"] = new ArgDesc { Text = "趋势因子权重", Explain = "趋势因子在综合得分中的权重(0-100)", Type = "number" };
             sd.ArgDic["trendWeight"] = 25.0;
 
             // ==================== 波动率因子参数 ====================
-            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "平均真实波幅周期" };
+            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "平均真实波幅周期", Type = "number" };
             sd.ArgDic["atrPeriod"] = 14;
 
-            sd.ArgDescDic["bollPeriod"] = new ArgDesc { Text = "布林带周期", Explain = "布林带计算周期" };
+            sd.ArgDescDic["bollPeriod"] = new ArgDesc { Text = "布林带周期", Explain = "布林带计算周期", Type = "number" };
             sd.ArgDic["bollPeriod"] = 20;
 
-            sd.ArgDescDic["bollStdDev"] = new ArgDesc { Text = "布林带标准差", Explain = "布林带标准差倍数" };
+            sd.ArgDescDic["bollStdDev"] = new ArgDesc { Text = "布林带标准差", Explain = "布林带标准差倍数", Type = "number" };
             sd.ArgDic["bollStdDev"] = 2.0;
 
-            sd.ArgDescDic["volatilityWeight"] = new ArgDesc { Text = "波动率因子权重", Explain = "波动率因子在综合得分中的权重(0-100)" };
+            sd.ArgDescDic["volatilityWeight"] = new ArgDesc { Text = "波动率因子权重", Explain = "波动率因子在综合得分中的权重(0-100)", Type = "number" };
             sd.ArgDic["volatilityWeight"] = 15.0;
 
             // ==================== 成交量因子参数 ====================
-            sd.ArgDescDic["volumeMaPeriod"] = new ArgDesc { Text = "成交量均线周期", Explain = "成交量移动平均周期" };
+            sd.ArgDescDic["volumeMaPeriod"] = new ArgDesc { Text = "成交量均线周期", Explain = "成交量移动平均周期", Type = "number" };
             sd.ArgDic["volumeMaPeriod"] = 20;
 
-            sd.ArgDescDic["volumeWeight"] = new ArgDesc { Text = "成交量因子权重", Explain = "成交量因子在综合得分中的权重(0-100)" };
+            sd.ArgDescDic["volumeWeight"] = new ArgDesc { Text = "成交量因子权重", Explain = "成交量因子在综合得分中的权重(0-100)", Type = "number" };
             sd.ArgDic["volumeWeight"] = 15.0;
 
             // ==================== 均值回归因子参数 ====================
-            sd.ArgDescDic["deviationPeriod"] = new ArgDesc { Text = "偏离度周期", Explain = "计算价格偏离度的均线周期" };
+            sd.ArgDescDic["deviationPeriod"] = new ArgDesc { Text = "偏离度周期", Explain = "计算价格偏离度的均线周期", Type = "number" };
             sd.ArgDic["deviationPeriod"] = 20;
 
-            sd.ArgDescDic["meanReversionWeight"] = new ArgDesc { Text = "均值回归因子权重", Explain = "均值回归因子在综合得分中的权重(0-100)" };
+            sd.ArgDescDic["meanReversionWeight"] = new ArgDesc { Text = "均值回归因子权重", Explain = "均值回归因子在综合得分中的权重(0-100)", Type = "number" };
             sd.ArgDic["meanReversionWeight"] = 20.0;
 
             // ==================== 信号阈值参数 ====================
-            sd.ArgDescDic["longThreshold"] = new ArgDesc { Text = "做多阈值", Explain = "综合得分超过此值触发做多(0-100)" };
+            sd.ArgDescDic["longThreshold"] = new ArgDesc { Text = "做多阈值", Explain = "综合得分超过此值触发做多(0-100)", Type = "number" };
             sd.ArgDic["longThreshold"] = 60.0;
 
-            sd.ArgDescDic["shortThreshold"] = new ArgDesc { Text = "做空阈值", Explain = "综合得分低于此值触发做空(0-100)" };
+            sd.ArgDescDic["shortThreshold"] = new ArgDesc { Text = "做空阈值", Explain = "综合得分低于此值触发做空(0-100)", Type = "number" };
             sd.ArgDic["shortThreshold"] = 40.0;
 
-            sd.ArgDescDic["exitThreshold"] = new ArgDesc { Text = "平仓阈值", Explain = "得分回归到此范围内平仓(距离中线)" };
+            sd.ArgDescDic["exitThreshold"] = new ArgDesc { Text = "平仓阈值", Explain = "得分回归到此范围内平仓(距离中线)", Type = "number" };
             sd.ArgDic["exitThreshold"] = 10.0;
 
             // ==================== 风控参数 ====================
-            sd.ArgDescDic["stopLossAtr"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离 = ATR × 此倍数" };
+            sd.ArgDescDic["stopLossAtr"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["stopLossAtr"] = 2.0;
 
-            sd.ArgDescDic["takeProfitAtr"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "止盈距离 = ATR × 此倍数" };
+            sd.ArgDescDic["takeProfitAtr"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "止盈距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["takeProfitAtr"] = 3.0;
 
             sd.ArgDescDic["useTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "跟踪最高/低点调整止损", Options = "1:启用|0:禁用", Type = "bool" };
             sd.ArgDic["useTrailingStop"] = 1;
 
-            sd.ArgDescDic["trailingStopAtr"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数" };
+            sd.ArgDescDic["trailingStopAtr"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["trailingStopAtr"] = 1.5;
 
-            sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "超过此数量强制平仓(0=不限制)" };
+            sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "超过此数量强制平仓(0=不限制)", Type = "number" };
             sd.ArgDic["maxHoldBars"] = 50;
 
             // ==================== 交易参数 ====================
@@ -155,13 +155,13 @@ namespace QjySDK.Stg
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量" };
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;
 
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下的交易金额" };
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下的交易金额", Type = "number" };
             sd.ArgDic["money"] = 10000m;
 
-            sd.ArgDescDic["factorConsistency"] = new ArgDesc { Text = "因子一致性要求", Explain = "至少N个因子同向才入场(1-5)" };
+            sd.ArgDescDic["factorConsistency"] = new ArgDesc { Text = "因子一致性要求", Explain = "至少N个因子同向才入场(1-5)", Type = "number" };
             sd.ArgDic["factorConsistency"] = 3;
 
             // ==================== 颜色配置 ====================

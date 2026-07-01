@@ -27,6 +27,8 @@ namespace QjySDK.Stg
         private bool _useTrendFilter;
         private decimal _stopLossPercent;
         private decimal _takeProfitPercent;
+        private int _mode;
+        private int _sendMode;
         public EMA_Standard()
         {
         }
@@ -42,29 +44,33 @@ namespace QjySDK.Stg
             sd.SubChartNum = 0;
             sd.UseGlobalCalc = 0;
 
-            sd.ArgDescDic["FastPeriod"] = new ArgDesc { Text = "快线周期", Explain = "快速EMA的计算周期" };
+            sd.ArgDescDic["FastPeriod"] = new ArgDesc { Text = "快线周期", Explain = "快速EMA的计算周期", Type = "number" };
             sd.ArgDic["FastPeriod"] = 12;
 
-            sd.ArgDescDic["SlowPeriod"] = new ArgDesc { Text = "慢线周期", Explain = "慢速EMA的计算周期" };
+            sd.ArgDescDic["SlowPeriod"] = new ArgDesc { Text = "慢线周期", Explain = "慢速EMA的计算周期", Type = "number" };
             sd.ArgDic["SlowPeriod"] = 26;
 
-            sd.ArgDescDic["TrendPeriod"] = new ArgDesc { Text = "趋势周期", Explain = "趋势判断EMA的计算周期（建议远大于慢线周期，避免与交叉信号瞬时位置冲突）" };
+            sd.ArgDescDic["TrendPeriod"] = new ArgDesc { Text = "趋势周期", Explain = "趋势判断EMA的计算周期（建议远大于慢线周期，避免与交叉信号瞬时位置冲突）", Type = "number" };
             sd.ArgDic["TrendPeriod"] = 100;
 
-            sd.ArgDescDic["UseTrendFilter"] = new ArgDesc { Text = "启用趋势过滤", Explain = "是否使用趋势EMA过滤信号(1=启用,0=禁用)" };
+            sd.ArgDescDic["UseTrendFilter"] = new ArgDesc { Text = "启用趋势过滤", Explain = "是否使用趋势EMA过滤信号(1=启用,0=禁用)", Options = "0:禁用|1:启用", Type = "bool" };
             sd.ArgDic["UseTrendFilter"] = 1;
 
-            sd.ArgDescDic["StopLossPercent"] = new ArgDesc { Text = "止损百分比", Explain = "止损百分比(如2表示2%)" };
+            sd.ArgDescDic["StopLossPercent"] = new ArgDesc { Text = "止损百分比", Explain = "止损百分比(如2表示2%)", Type = "number" };
             sd.ArgDic["StopLossPercent"] = 5.0;
 
-            sd.ArgDescDic["TakeProfitPercent"] = new ArgDesc { Text = "止盈百分比", Explain = "止盈百分比(如5表示5%)" };
+            sd.ArgDescDic["TakeProfitPercent"] = new ArgDesc { Text = "止盈百分比", Explain = "止盈百分比(如5表示5%)", Type = "number" };
             sd.ArgDic["TakeProfitPercent"] = 10.0;
 
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDic["mode"] = 0;
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+            sd.ArgDic["sendMode"] = 0;
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量" };
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量" };
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量", Type = "number" };
             sd.ArgDic["money"] = 10000m;
 
             sd.ColorDic["main-EMA_Fast"] = "#FF5722";
@@ -82,6 +88,8 @@ namespace QjySDK.Stg
             _useTrendFilter = Convert.ToInt32(ArgDic["UseTrendFilter"]) == 1;
             _stopLossPercent = Convert.ToDecimal(ArgDic["StopLossPercent"]);
             _takeProfitPercent = Convert.ToDecimal(ArgDic["TakeProfitPercent"]);
+            _mode = Convert.ToInt32(ArgDic["mode"]);
+            _sendMode = Convert.ToInt32(ArgDic["sendMode"]);
         }
 
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
@@ -161,11 +169,11 @@ namespace QjySDK.Stg
                 bool trendAllowLong = !_useTrendFilter || (emaTrendCurr.HasValue && emaTrendPrev.HasValue && emaTrendCurr.Value > emaTrendPrev.Value);
                 bool trendAllowShort = !_useTrendFilter || (emaTrendCurr.HasValue && emaTrendPrev.HasValue && emaTrendCurr.Value < emaTrendPrev.Value);
 
-                if (crossUp && trendAllowLong)
+                if (crossUp && trendAllowLong && _mode != 2)
                 {
                     OpenLongPosition(state, tu.MktSymbol, currentPrice, period);
                 }
-                else if (crossDown && trendAllowShort)
+                else if (crossDown && trendAllowShort && _mode != 1)
                 {
                     OpenShortPosition(state, tu.MktSymbol, currentPrice, period);
                 }
@@ -202,7 +210,7 @@ namespace QjySDK.Stg
         private void OpenLongPosition(TradeState state, string mktSymbol, decimal price, Period period)
         {
             var num = CalculateLots(mktSymbol, price);
-            Trade(mktSymbol, OrderType.BUY, price, num, period, 0);
+            Trade(mktSymbol, OrderType.BUY, price, num, period, _sendMode);
             state.HasPosition = true;
             state.IsLong = true;
             state.EntryPrice = price;
@@ -212,7 +220,7 @@ namespace QjySDK.Stg
         private void OpenShortPosition(TradeState state, string mktSymbol, decimal price, Period period)
         {
             var num = CalculateLots(mktSymbol, price);
-            Trade(mktSymbol, OrderType.SELL, price, num, period, 0);
+            Trade(mktSymbol, OrderType.SELL, price, num, period, _sendMode);
             state.HasPosition = true;
             state.IsLong = false;
             state.EntryPrice = price;
@@ -223,11 +231,11 @@ namespace QjySDK.Stg
         {
             if (state.IsLong)
             {
-                Trade(mktSymbol, OrderType.SELL_TO_COVER, price, state.PositionSize, period, 0);
+                Trade(mktSymbol, OrderType.SELL_TO_COVER, price, state.PositionSize, period, _sendMode);
             }
             else
             {
-                Trade(mktSymbol, OrderType.BUY_TO_COVER, price, state.PositionSize, period, 0);
+                Trade(mktSymbol, OrderType.BUY_TO_COVER, price, state.PositionSize, period, _sendMode);
             }
 
             state.HasPosition = false;

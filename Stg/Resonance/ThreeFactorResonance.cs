@@ -79,7 +79,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["obvMode"] = new ArgDesc() { Text = "OBV模式", Explain = "OBV信号判断方式", Options = "0:OBV与均线位置|1:OBV金叉死叉", Type = "select" };
             sd.ArgDescDic["resonanceMode"] = new ArgDesc() { Text = "共振模式", Explain = "共振确认方式", Options = "0:三因子同时满足|1:至少两因子满足", Type = "select" };
             sd.ArgDescDic["resonanceWindow"] = new ArgDesc() { Text = "共振窗口", Explain = "信号在N根K线内出现视为共振", Type = "number" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向交易|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
             sd.ArgDescDic["exitMode"] = new ArgDesc() { Text = "出场模式", Explain = "平仓触发条件", Options = "0:反向共振|1:任一因子反转|2:MA反转|3:MACD反转", Type = "select" };
             sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };

@@ -47,55 +47,55 @@ namespace QjySDK.Stg
             sd.UseGlobalCalc = 1;
 
             // ==================== 动量计算参数 ====================
-            sd.ArgDescDic["rocPeriod"] = new ArgDesc { Text = "ROC周期", Explain = "价格变化率的计算周期" };
+            sd.ArgDescDic["rocPeriod"] = new ArgDesc { Text = "ROC周期", Explain = "价格变化率的计算周期", Type = "number" };
             sd.ArgDic["rocPeriod"] = 20;
 
-            sd.ArgDescDic["rsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "RSI计算周期" };
+            sd.ArgDescDic["rsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "RSI计算周期", Type = "number" };
             sd.ArgDic["rsiPeriod"] = 14;
 
-            sd.ArgDescDic["emaFast"] = new ArgDesc { Text = "快速EMA", Explain = "快速均线周期" };
+            sd.ArgDescDic["emaFast"] = new ArgDesc { Text = "快速EMA", Explain = "快速均线周期", Type = "number" };
             sd.ArgDic["emaFast"] = 12;
 
-            sd.ArgDescDic["emaSlow"] = new ArgDesc { Text = "慢速EMA", Explain = "慢速均线周期" };
+            sd.ArgDescDic["emaSlow"] = new ArgDesc { Text = "慢速EMA", Explain = "慢速均线周期", Type = "number" };
             sd.ArgDic["emaSlow"] = 26;
 
-            sd.ArgDescDic["rocWeight"] = new ArgDesc { Text = "ROC权重", Explain = "ROC在综合得分中的权重(0-100)" };
+            sd.ArgDescDic["rocWeight"] = new ArgDesc { Text = "ROC权重", Explain = "ROC在综合得分中的权重(0-100)", Type = "number" };
             sd.ArgDic["rocWeight"] = 40;
 
-            sd.ArgDescDic["rsiWeight"] = new ArgDesc { Text = "RSI权重", Explain = "RSI在综合得分中的权重(0-100)" };
+            sd.ArgDescDic["rsiWeight"] = new ArgDesc { Text = "RSI权重", Explain = "RSI在综合得分中的权重(0-100)", Type = "number" };
             sd.ArgDic["rsiWeight"] = 30;
 
-            sd.ArgDescDic["emaWeight"] = new ArgDesc { Text = "EMA权重", Explain = "EMA趋势在综合得分中的权重(0-100)" };
+            sd.ArgDescDic["emaWeight"] = new ArgDesc { Text = "EMA权重", Explain = "EMA趋势在综合得分中的权重(0-100)", Type = "number" };
             sd.ArgDic["emaWeight"] = 30;
 
             // ==================== 排名与选股参数 ====================
-            sd.ArgDescDic["topN"] = new ArgDesc { Text = "多头品种数", Explain = "排名前N做多(0=自动，取总品种数的20%)" };
+            sd.ArgDescDic["topN"] = new ArgDesc { Text = "多头品种数", Explain = "排名前N做多(0=自动，取总品种数的20%)", Type = "number" };
             sd.ArgDic["topN"] = 0;
 
-            sd.ArgDescDic["bottomN"] = new ArgDesc { Text = "空头品种数", Explain = "排名后N做空(0=自动，取总品种数的20%)" };
+            sd.ArgDescDic["bottomN"] = new ArgDesc { Text = "空头品种数", Explain = "排名后N做空(0=自动，取总品种数的20%)", Type = "number" };
             sd.ArgDic["bottomN"] = 0;
 
-            sd.ArgDescDic["minScoreGap"] = new ArgDesc { Text = "最小分差", Explain = "多空分差低于此值不开仓(防止品种区分度不足)" };
+            sd.ArgDescDic["minScoreGap"] = new ArgDesc { Text = "最小分差", Explain = "多空分差低于此值不开仓(防止品种区分度不足)", Type = "number" };
             sd.ArgDic["minScoreGap"] = 20.0;
 
             // ==================== 再平衡参数 ====================
-            sd.ArgDescDic["rebalanceBars"] = new ArgDesc { Text = "再平衡周期", Explain = "每隔多少根K线重新排名调仓" };
+            sd.ArgDescDic["rebalanceBars"] = new ArgDesc { Text = "再平衡周期", Explain = "每隔多少根K线重新排名调仓", Type = "number" };
             sd.ArgDic["rebalanceBars"] = 5;
 
             sd.ArgDescDic["forceRebalance"] = new ArgDesc { Text = "强制再平衡", Explain = "到期强制调仓", Options = "1:到期必须调仓|0:只在排名变化时调仓", Type = "select" };
             sd.ArgDic["forceRebalance"] = 0;
 
             // ==================== 风控参数 ====================
-            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR计算周期" };
+            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR计算周期", Type = "number" };
             sd.ArgDic["atrPeriod"] = 14;
 
-            sd.ArgDescDic["atrStopMultiplier"] = new ArgDesc { Text = "止损ATR倍数", Explain = "个股止损=ATR*此倍数" };
+            sd.ArgDescDic["atrStopMultiplier"] = new ArgDesc { Text = "止损ATR倍数", Explain = "个股止损=ATR*此倍数", Type = "number" };
             sd.ArgDic["atrStopMultiplier"] = 3.0;
 
-            sd.ArgDescDic["maxMomentumScore"] = new ArgDesc { Text = "动量上限", Explain = "动量得分超过此值视为过热不追多" };
+            sd.ArgDescDic["maxMomentumScore"] = new ArgDesc { Text = "动量上限", Explain = "动量得分超过此值视为过热不追多", Type = "number" };
             sd.ArgDic["maxMomentumScore"] = 90.0;
 
-            sd.ArgDescDic["minMomentumScore"] = new ArgDesc { Text = "动量下限", Explain = "动量得分低于此值视为超跌不追空" };
+            sd.ArgDescDic["minMomentumScore"] = new ArgDesc { Text = "动量下限", Explain = "动量得分低于此值视为超跌不追空", Type = "number" };
             sd.ArgDic["minMomentumScore"] = -90.0;
 
             // ==================== 交易参数 ====================
@@ -105,10 +105,10 @@ namespace QjySDK.Stg
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量" };
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;
 
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下的每个品种金额" };
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下的每个品种金额", Type = "number" };
             sd.ArgDic["money"] = 10000m;
 
             // ==================== 颜色配置 ====================

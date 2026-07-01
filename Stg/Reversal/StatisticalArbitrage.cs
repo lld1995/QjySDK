@@ -30,71 +30,71 @@ namespace QjySDK.Stg
             sd.UseGlobalCalc = 0;
 
             // ==================== 均值回归参数 ====================
-            sd.ArgDescDic["lookbackPeriod"] = new ArgDesc { Text = "回溯周期", Explain = "计算均值和标准差的周期" };
+sd.ArgDescDic["lookbackPeriod"] = new ArgDesc { Text = "回溯周期", Explain = "计算均值和标准差的周期", Type = "number" };
             sd.ArgDic["lookbackPeriod"] = 60;
 
             sd.ArgDescDic["useAdaptivePeriod"] = new ArgDesc { Text = "自适应周期", Explain = "根据半衰期自动调整周期", Options = "1:根据半衰期自动调整周期|0:固定周期", Type = "select" };
             sd.ArgDic["useAdaptivePeriod"] = 1;
 
-            sd.ArgDescDic["minLookback"] = new ArgDesc { Text = "最小回溯周期", Explain = "自适应模式下的最小周期" };
+sd.ArgDescDic["minLookback"] = new ArgDesc { Text = "最小回溯周期", Explain = "自适应模式下的最小周期", Type = "number" };
             sd.ArgDic["minLookback"] = 20;
 
-            sd.ArgDescDic["maxLookback"] = new ArgDesc { Text = "最大回溯周期", Explain = "自适应模式下的最大周期" };
+sd.ArgDescDic["maxLookback"] = new ArgDesc { Text = "最大回溯周期", Explain = "自适应模式下的最大周期", Type = "number" };
             sd.ArgDic["maxLookback"] = 120;
 
             // ==================== Z-Score阈值参数 ====================
-            sd.ArgDescDic["entryZScore"] = new ArgDesc { Text = "入场Z-Score", Explain = "Z-Score绝对值超过此值入场" };
+sd.ArgDescDic["entryZScore"] = new ArgDesc { Text = "入场Z-Score", Explain = "Z-Score绝对值超过此值入场", Type = "number" };
             sd.ArgDic["entryZScore"] = 2.0;
 
-            sd.ArgDescDic["exitZScore"] = new ArgDesc { Text = "出场Z-Score", Explain = "Z-Score绝对值低于此值出场" };
+sd.ArgDescDic["exitZScore"] = new ArgDesc { Text = "出场Z-Score", Explain = "Z-Score绝对值低于此值出场", Type = "number" };
             sd.ArgDic["exitZScore"] = 0.5;
 
-            sd.ArgDescDic["stopLossZScore"] = new ArgDesc { Text = "止损Z-Score", Explain = "Z-Score绝对值超过此值止损" };
+sd.ArgDescDic["stopLossZScore"] = new ArgDesc { Text = "止损Z-Score", Explain = "Z-Score绝对值超过此值止损", Type = "number" };
             sd.ArgDic["stopLossZScore"] = 3.5;
 
             sd.ArgDescDic["useDynamicThreshold"] = new ArgDesc { Text = "动态阈值", Explain = "根据波动率动态调整阈值", Options = "1:根据波动率调整阈值|0:固定阈值", Type = "select" };
             sd.ArgDic["useDynamicThreshold"] = 1;
 
-            sd.ArgDescDic["targetProfitAtr"] = new ArgDesc { Text = "目标最低盈利(ATR)", Explain = "如未达此基础盈利，即使触及出场线也会死扛到彻底回归0轴(防假回归)" };
+sd.ArgDescDic["targetProfitAtr"] = new ArgDesc { Text = "目标最低盈利(ATR)", Explain = "如未达此基础盈利，即使触及出场线也会死扛到彻底回归0轴(防假回归)", Type = "number" };
             sd.ArgDic["targetProfitAtr"] = 0.8;
 
-            sd.ArgDescDic["trailingStopAtr"] = new ArgDesc { Text = "移动回撤(ATR)", Explain = "利润超过目标后，回落多少ATR止盈保护(0=禁用)" };
+	            sd.ArgDescDic["trailingStopAtr"] = new ArgDesc { Text = "移动回撤(ATR)", Explain = "利润超过目标后，回落多少ATR止盈保护(0=禁用)", Type = "number" };
             sd.ArgDic["trailingStopAtr"] = 1.0;
 
             // ==================== 半衰期参数 ====================
             sd.ArgDescDic["useHalfLifeFilter"] = new ArgDesc { Text = "半衰期过滤", Explain = "半衰期不合理时不入场", Options = "1:启用|0:禁用", Type = "bool" };
             sd.ArgDic["useHalfLifeFilter"] = 1;
 
-            sd.ArgDescDic["minHalfLife"] = new ArgDesc { Text = "最小半衰期", Explain = "半衰期低于此值不入场(回归太快)" };
+	            sd.ArgDescDic["minHalfLife"] = new ArgDesc { Text = "最小半衰期", Explain = "半衰期低于此值不入场", Type = "number" };
             sd.ArgDic["minHalfLife"] = 5;
 
-            sd.ArgDescDic["maxHalfLife"] = new ArgDesc { Text = "最大半衰期", Explain = "半衰期高于此值不入场(回归太慢)" };
+            sd.ArgDescDic["maxHalfLife"] = new ArgDesc { Text = "最大半衰期", Explain = "半衰期高于此值不入场(回归太慢)", Type = "number" };
             sd.ArgDic["maxHalfLife"] = 60;
 
             // ==================== 确认指标参数 ====================
-            sd.ArgDescDic["rsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "RSI计算周期" };
+            sd.ArgDescDic["rsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "RSI计算周期", Type = "number" };
             sd.ArgDic["rsiPeriod"] = 14;
 
-            sd.ArgDescDic["rsiOverbought"] = new ArgDesc { Text = "RSI超买线", Explain = "RSI超买阈值" };
+            sd.ArgDescDic["rsiOverbought"] = new ArgDesc { Text = "RSI超买线", Explain = "RSI超买阈值", Type = "number" };
             sd.ArgDic["rsiOverbought"] = 70.0;
 
-            sd.ArgDescDic["rsiOversold"] = new ArgDesc { Text = "RSI超卖线", Explain = "RSI超卖阈值" };
+            sd.ArgDescDic["rsiOversold"] = new ArgDesc { Text = "RSI超卖线", Explain = "RSI超卖阈值", Type = "number" };
             sd.ArgDic["rsiOversold"] = 30.0;
 
             sd.ArgDescDic["useRsiConfirm"] = new ArgDesc { Text = "RSI确认", Explain = "需要RSI位置确认", Options = "1:需要RSI确认|0:不需要", Type = "select" };
             sd.ArgDic["useRsiConfirm"] = 1;
 
-            sd.ArgDescDic["bollPeriod"] = new ArgDesc { Text = "布林带周期", Explain = "布林带计算周期" };
+            sd.ArgDescDic["bollPeriod"] = new ArgDesc { Text = "布林带周期", Explain = "布林带计算周期", Type = "number" };
             sd.ArgDic["bollPeriod"] = 20;
 
-            sd.ArgDescDic["bollStdDev"] = new ArgDesc { Text = "布林带标准差", Explain = "布林带标准差倍数" };
+            sd.ArgDescDic["bollStdDev"] = new ArgDesc { Text = "布林带标准差", Explain = "布林带标准差倍数", Type = "number" };
             sd.ArgDic["bollStdDev"] = 2.0;
 
             // ==================== 风控参数 ====================
-            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR计算周期" };
+            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR计算周期", Type = "number" };
             sd.ArgDic["atrPeriod"] = 14;
 
-            sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "超过此数量强制平仓" };
+            sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "超过此数量强制平仓", Type = "number" };
             sd.ArgDic["maxHoldBars"] = 30;
 
             sd.ArgDescDic["useTimeDecay"] = new ArgDesc { Text = "时间衰减", Explain = "持仓时间衰减", Options = "1:持仓越久出场阈值越宽松|0:固定", Type = "select" };
@@ -110,10 +110,10 @@ namespace QjySDK.Stg
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额|2:Z-Score加权", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量" };
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;
 
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下的交易金额" };
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下的交易金额", Type = "number" };
             sd.ArgDic["money"] = 10000m;
 
             // ==================== 颜色配置 ====================

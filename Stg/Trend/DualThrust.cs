@@ -83,7 +83,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["lookbackDays"] = new ArgDesc() { Text = "回溯天数", Explain = "计算Range使用的历史天数N", Type = "number" };
             sd.ArgDescDic["k1"] = new ArgDesc() { Text = "上轨系数K1", Explain = "上轨 = 开盘价 + K1 × Range", Type = "number" };
             sd.ArgDescDic["k2"] = new ArgDesc() { Text = "下轨系数K2", Explain = "下轨 = 开盘价 - K2 × Range", Type = "number" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向交易|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即发单|1:下个开盘发单", Type = "select" };
             sd.ArgDescDic["exitMode"] = new ArgDesc() { Text = "平仓模式", Explain = "平仓触发条件", Options = "0:收盘平仓|1:反向信号平仓|2:持仓过夜", Type = "select" };
             sd.ArgDescDic["useStopLoss"] = new ArgDesc() { Text = "使用止损", Explain = "触及止损价自动平仓", Options = "0:不使用|1:使用固定比例止损", Type = "bool" };

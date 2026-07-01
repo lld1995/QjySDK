@@ -70,7 +70,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["overbought"] = new ArgDesc() { Text = "超买线", Explain = "KDJ超买区域阈值", Type = "number" };
             sd.ArgDescDic["oversold"] = new ArgDesc() { Text = "超卖线", Explain = "KDJ超卖区域阈值", Type = "number" };
             sd.ArgDescDic["macdZeroFilter"] = new ArgDesc() { Text = "零轴过滤", Explain = "MACD零轴方向过滤", Options = "0:不过滤|1:零轴上方做多|2:零轴下方做空|3:两者都启用", Type = "select" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0:标准|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
             sd.ArgDescDic["exitMode"] = new ArgDesc() { Text = "出场模式", Explain = "平仓触发条件", Options = "0:共振反向出场|1:任一死叉/金叉出场|2:MACD反向出场|3:KDJ反向出场", Type = "select" };
             sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };

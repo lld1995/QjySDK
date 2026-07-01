@@ -41,7 +41,7 @@ namespace QjySDK.Stg
 			sd.ArgDescDic["observePeriod"] = new ArgDesc() { Text = "观测周期", Explain = "止盈时当前CLOSE必须大于：观测周期CLOSE*(1+-观测最小幅度)", Type = "number" };
 			sd.ArgDescDic["observeMinRate"] = new ArgDesc() { Text = "观测最小幅度", Explain = "止盈时当前CLOSE必须大于：观测周期CLOSE*(1+-观测最小幅度)", Type = "number" };
 			sd.ArgDescDic["incRate"] = new ArgDesc() { Text = "增长比率", Explain = "止盈时当前CLOSE必须大于：最近开仓价*(1+止盈次数*增长比率)", Type = "number" };
-			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0:标准|1:仅做多|2:仅做空", Type = "select" };
+			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
 			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
 			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
 

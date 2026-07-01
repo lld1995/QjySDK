@@ -48,7 +48,8 @@ namespace QjySDK.Stg
         private decimal _atrMultiplierForStop = 2.0m;
         private int _maxPyramidUnits = 4;
         private int _enablePyramiding = 0;
-
+        private int _mode = 0;
+        private int _sendMode = 0;
         private Dictionary<string, PositionInfo> _positionInfos = new Dictionary<string, PositionInfo>();
 
         public DonchianATR()
@@ -65,32 +66,36 @@ namespace QjySDK.Stg
             sd.MaxSymbolNum = 1000;
             sd.SubChartNum = 1;
 
-            sd.ArgDescDic["entryPeriod"] = new ArgDesc { Text = "入场周期", Explain = "计算入场通道的K线数量" };
+            sd.ArgDescDic["entryPeriod"] = new ArgDesc { Text = "入场周期", Explain = "计算入场通道的K线数量", Type = "number" };
             sd.ArgDic["entryPeriod"] = 20;
 
-            sd.ArgDescDic["exitPeriod"] = new ArgDesc { Text = "出场周期", Explain = "计算出场通道的K线数量" };
+            sd.ArgDescDic["exitPeriod"] = new ArgDesc { Text = "出场周期", Explain = "计算出场通道的K线数量", Type = "number" };
             sd.ArgDic["exitPeriod"] = 10;
 
-            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "计算ATR的K线数量" };
+            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "计算ATR的K线数量", Type = "number" };
             sd.ArgDic["atrPeriod"] = 14;
 
-            sd.ArgDescDic["atrMultiplierForAdd"] = new ArgDesc { Text = "加仓ATR倍数", Explain = "价格移动多少ATR后加仓" };
+            sd.ArgDescDic["atrMultiplierForAdd"] = new ArgDesc { Text = "加仓ATR倍数", Explain = "价格移动多少ATR后加仓", Type = "number" };
             sd.ArgDic["atrMultiplierForAdd"] = 0.5m;
 
-            sd.ArgDescDic["atrMultiplierForStop"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离为多少ATR" };
+            sd.ArgDescDic["atrMultiplierForStop"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离为多少ATR", Type = "number" };
             sd.ArgDic["atrMultiplierForStop"] = 2.0m;
 
-            sd.ArgDescDic["maxPyramidUnits"] = new ArgDesc { Text = "最大加仓次数", Explain = "最多允许加仓的次数（包括首次建仓）" };
+            sd.ArgDescDic["maxPyramidUnits"] = new ArgDesc { Text = "最大加仓次数", Explain = "最多允许加仓的次数（包括首次建仓）", Type = "number" };
             sd.ArgDic["maxPyramidUnits"] = 4;
 
             sd.ArgDescDic["enablePyramiding"] = new ArgDesc { Text = "启用加仓", Explain = "是否启用金字塔加仓", Options = "0:不加仓|1:金字塔加仓", Type = "bool" };
             sd.ArgDic["enablePyramiding"] = 0;
 
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDic["mode"] = 0;
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+            sd.ArgDic["sendMode"] = 0;
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量" };
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量" };
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量", Type = "number" };
             sd.ArgDic["money"] = 10000m;
 
             sd.ColorDic["main-upperBand"] = "#FF5722";
@@ -118,6 +123,8 @@ namespace QjySDK.Stg
                 _atrMultiplierForStop = Convert.ToDecimal(ArgDic["atrMultiplierForStop"]);
                 _maxPyramidUnits = Convert.ToInt32(ArgDic["maxPyramidUnits"]);
                 _enablePyramiding = Convert.ToInt32(ArgDic["enablePyramiding"]);
+                _mode = Convert.ToInt32(ArgDic["mode"]);
+                _sendMode = Convert.ToInt32(ArgDic["sendMode"]);
             }
 
             var quotes = tu.QuoteList;
@@ -165,11 +172,11 @@ namespace QjySDK.Stg
 
             if (posInfo.Direction == 0)
             {
-                if (currentClose > upperBand && prevHigh <= upperBand)
+                if (currentClose > upperBand && prevHigh <= upperBand && _mode != 2)
                 {
                     OpenPosition(tu.MktSymbol, period, currentClose, atr, 1, posInfo);
                 }
-                else if (currentClose < lowerBand && prevLow >= lowerBand)
+                else if (currentClose < lowerBand && prevLow >= lowerBand && _mode != 1)
                 {
                     OpenPosition(tu.MktSymbol, period, currentClose, atr, -1, posInfo);
                 }
@@ -218,7 +225,7 @@ namespace QjySDK.Stg
         {
             OrderType ot = direction > 0 ? OrderType.BUY : OrderType.SELL;
             var num = CalculateLots(mktSymbol, price);
-            Trade(mktSymbol, ot, price, num, period, 0);
+            Trade(mktSymbol, ot, price, num, period, _sendMode);
 
             posInfo.Direction = direction;
             posInfo.Units = 1;
@@ -241,7 +248,7 @@ namespace QjySDK.Stg
         {
             OrderType ot = posInfo.Direction > 0 ? OrderType.BUY : OrderType.SELL;
             var num = CalculateLots(mktSymbol, price);
-            Trade(mktSymbol, ot, price, num, period, 0);
+            Trade(mktSymbol, ot, price, num, period, _sendMode);
 
             posInfo.Units++;
             posInfo.LastEntryPrice = price;
@@ -262,7 +269,7 @@ namespace QjySDK.Stg
         private void CloseAllPosition(string mktSymbol, Period period, decimal price, PositionInfo posInfo)
         {
             OrderType ot = posInfo.Direction > 0 ? OrderType.SELL_TO_COVER : OrderType.BUY_TO_COVER;
-            Trade(mktSymbol, ot, price, posInfo.TotalPositionRatio, period, 0);
+            Trade(mktSymbol, ot, price, posInfo.TotalPositionRatio, period, _sendMode);
 
             posInfo.Reset();
         }

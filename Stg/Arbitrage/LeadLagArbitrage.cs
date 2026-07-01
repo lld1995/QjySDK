@@ -49,46 +49,46 @@ namespace QjySDK.Stg
             sd.UseGlobalCalc = 1;
 
             // ==================== 领先滞后计算参数 ====================
-            sd.ArgDescDic["maxLag"] = new ArgDesc { Text = "最大滞后期数", Explain = "搜索领先滞后关系的最大K线数" };
+            sd.ArgDescDic["maxLag"] = new ArgDesc { Text = "最大滞后期数", Explain = "搜索领先滞后关系的最大K线数", Type = "number" };
             sd.ArgDic["maxLag"] = 5;
 
-            sd.ArgDescDic["correlationPeriod"] = new ArgDesc { Text = "相关性周期", Explain = "计算交叉相关的滚动窗口" };
+            sd.ArgDescDic["correlationPeriod"] = new ArgDesc { Text = "相关性周期", Explain = "计算交叉相关的滚动窗口", Type = "number" };
             sd.ArgDic["correlationPeriod"] = 60;
 
-            sd.ArgDescDic["minLeadCorrelation"] = new ArgDesc { Text = "最小领先相关系数", Explain = "滞后相关系数低于此值不视为有效领先关系" };
+            sd.ArgDescDic["minLeadCorrelation"] = new ArgDesc { Text = "最小领先相关系数", Explain = "滞后相关系数低于此值不视为有效领先关系", Type = "number" };
             sd.ArgDic["minLeadCorrelation"] = 0.2;
 
-            sd.ArgDescDic["minLeadAdvantage"] = new ArgDesc { Text = "最小领先优势", Explain = "滞后相关系数需比同期相关系数高出此值" };
+            sd.ArgDescDic["minLeadAdvantage"] = new ArgDesc { Text = "最小领先优势", Explain = "滞后相关系数需比同期相关系数高出此值", Type = "number" };
             sd.ArgDic["minLeadAdvantage"] = 0.05;
 
             // ==================== 信号参数 ====================
-            sd.ArgDescDic["signalThreshold"] = new ArgDesc { Text = "信号阈值", Explain = "领先品种收益率Z-Score超过此值触发信号" };
+            sd.ArgDescDic["signalThreshold"] = new ArgDesc { Text = "信号阈值", Explain = "领先品种收益率Z-Score超过此值触发信号", Type = "number" };
             sd.ArgDic["signalThreshold"] = 1.0;
 
-            sd.ArgDescDic["returnPeriod"] = new ArgDesc { Text = "收益率周期", Explain = "计算领先品种变化率的K线间隔" };
+            sd.ArgDescDic["returnPeriod"] = new ArgDesc { Text = "收益率周期", Explain = "计算领先品种变化率的K线间隔", Type = "number" };
             sd.ArgDic["returnPeriod"] = 1;
 
-            sd.ArgDescDic["returnLookback"] = new ArgDesc { Text = "收益率回溯", Explain = "计算收益率Z-Score的历史窗口" };
+            sd.ArgDescDic["returnLookback"] = new ArgDesc { Text = "收益率回溯", Explain = "计算收益率Z-Score的历史窗口", Type = "number" };
             sd.ArgDic["returnLookback"] = 30;
 
-            sd.ArgDescDic["confirmBars"] = new ArgDesc { Text = "确认K线数", Explain = "连续N根K线信号一致才入场" };
+            sd.ArgDescDic["confirmBars"] = new ArgDesc { Text = "确认K线数", Explain = "连续N根K线信号一致才入场", Type = "number" };
             sd.ArgDic["confirmBars"] = 1;
 
             // ==================== 风控参数 ====================
-            sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "跟随信号最多持有多少根K线" };
+            sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "跟随信号最多持有多少根K线", Type = "number" };
             sd.ArgDic["maxHoldBars"] = 10;
 
-            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR计算周期" };
+            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR计算周期", Type = "number" };
             sd.ArgDic["atrPeriod"] = 14;
 
-            sd.ArgDescDic["atrStopMultiplier"] = new ArgDesc { Text = "ATR止损倍数", Explain = "止损=ATR*此倍数" };
+            sd.ArgDescDic["atrStopMultiplier"] = new ArgDesc { Text = "ATR止损倍数", Explain = "止损=ATR*此倍数", Type = "number" };
             sd.ArgDic["atrStopMultiplier"] = 2.0;
 
-            sd.ArgDescDic["atrProfitMultiplier"] = new ArgDesc { Text = "ATR止盈倍数", Explain = "止盈=ATR*此倍数(0=不止盈)" };
+            sd.ArgDescDic["atrProfitMultiplier"] = new ArgDesc { Text = "ATR止盈倍数", Explain = "止盈=ATR*此倍数(0=不止盈)", Type = "number" };
             sd.ArgDic["atrProfitMultiplier"] = 3.0;
 
             // ==================== 交易参数 ====================
-            sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:只做多|2:只做空", Type = "select" };
+            sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDic["mode"] = 0;
 
             sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
@@ -97,10 +97,10 @@ namespace QjySDK.Stg
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量" };
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;
 
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下的交易金额" };
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下的交易金额", Type = "number" };
             sd.ArgDic["money"] = 10000m;
 
             // ==================== 颜色配置 ====================

@@ -31,18 +31,22 @@ namespace QjySDK.Stg
             sd.MaxSymbolNum = 1000;
             sd.SubChartNum = 0;
 
-            sd.ArgDescDic["FastPeriod"] = new ArgDesc { Text = "快线周期", Explain = "快速均线的计算周期" };
+            sd.ArgDescDic["FastPeriod"] = new ArgDesc { Text = "快线周期", Explain = "快速均线的计算周期", Type = "number" };
             sd.ArgDic["FastPeriod"] = 5;
 
-            sd.ArgDescDic["SlowPeriod"] = new ArgDesc { Text = "慢线周期", Explain = "慢速均线的计算周期" };
+            sd.ArgDescDic["SlowPeriod"] = new ArgDesc { Text = "慢线周期", Explain = "慢速均线的计算周期", Type = "number" };
             sd.ArgDic["SlowPeriod"] = 20;
 
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDic["mode"] = 0;
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+            sd.ArgDic["sendMode"] = 0;
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
 			sd.ArgDescDic["stopLoss"] = new ArgDesc() { Text = "止损%", Explain = "固定止损百分比，0为不启用", Type = "number" };
             sd.ArgDic["lotsMode"] = 1;
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量" };
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量" };
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量", Type = "number" };
             sd.ArgDic["money"] = 10000m;
 
             sd.ColorDic["main-FastMA"] = "#FF5722";
@@ -61,6 +65,8 @@ namespace QjySDK.Stg
 
             int fastPeriod = Convert.ToInt32(ArgDic["FastPeriod"]);
             int slowPeriod = Convert.ToInt32(ArgDic["SlowPeriod"]);
+            int mode = Convert.ToInt32(ArgDic["mode"]);
+            int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
             if (quotes.Count < slowPeriod) return;
 
@@ -92,7 +98,7 @@ namespace QjySDK.Stg
             var _sl = Convert.ToDecimal(ArgDic["stopLoss"]);
             if (pos == 1 && _sl > 0 && _entryPrice[stateKey] > 0 && q.Close < _entryPrice[stateKey] * (1 - _sl / 100m))
             {
-                Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, _holdNum[stateKey], period, 0);
+                Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, _holdNum[stateKey], period, sendMode);
                 _positionState[stateKey] = 0;
                 _entryPrice[stateKey] = 0;
                 _holdNum[stateKey] = 0;
@@ -102,7 +108,7 @@ namespace QjySDK.Stg
             }
             if (pos == -1 && _sl > 0 && _entryPrice[stateKey] > 0 && q.Close > _entryPrice[stateKey] * (1 + _sl / 100m))
             {
-                Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, _holdNum[stateKey], period, 0);
+                Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, _holdNum[stateKey], period, sendMode);
                 _positionState[stateKey] = 0;
                 _entryPrice[stateKey] = 0;
                 _holdNum[stateKey] = 0;
@@ -121,20 +127,38 @@ namespace QjySDK.Stg
                 if (!prevFastAbove && currFastAbove)
                 {
                     if (pos == -1 && _holdNum[stateKey] > 0)
-                        Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, _holdNum[stateKey], period, 0);
-                    Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, 0);
-                    _positionState[stateKey] = 1;
-                    _entryPrice[stateKey] = q.Close;
-                    _holdNum[stateKey] = num;
+                        Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, _holdNum[stateKey], period, sendMode);
+                    if (mode != 2)
+                    {
+                        Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
+                        _positionState[stateKey] = 1;
+                        _entryPrice[stateKey] = q.Close;
+                        _holdNum[stateKey] = num;
+                    }
+                    else
+                    {
+                        _positionState[stateKey] = 0;
+                        _entryPrice[stateKey] = 0;
+                        _holdNum[stateKey] = 0;
+                    }
                 }
                 else if (prevFastAbove && !currFastAbove)
                 {
                     if (pos == 1 && _holdNum[stateKey] > 0)
-                        Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, _holdNum[stateKey], period, 0);
-                    Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, 0);
-                    _positionState[stateKey] = -1;
-                    _entryPrice[stateKey] = q.Close;
-                    _holdNum[stateKey] = num;
+                        Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, _holdNum[stateKey], period, sendMode);
+                    if (mode != 1)
+                    {
+                        Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
+                        _positionState[stateKey] = -1;
+                        _entryPrice[stateKey] = q.Close;
+                        _holdNum[stateKey] = num;
+                    }
+                    else
+                    {
+                        _positionState[stateKey] = 0;
+                        _entryPrice[stateKey] = 0;
+                        _holdNum[stateKey] = 0;
+                    }
                 }
             }
 

@@ -58,67 +58,67 @@ namespace QjySDK.Stg
             sd.UseGlobalCalc = 0;
 
             // ==================== ML模型参数 ====================
-            sd.ArgDescDic["lookback"] = new ArgDesc { Text = "特征窗口", Explain = "特征计算的回看周期" };
+            sd.ArgDescDic["lookback"] = new ArgDesc { Text = "特征窗口", Explain = "特征计算的回看周期", Type = "number" };
             sd.ArgDic["lookback"] = 20;
 
-            sd.ArgDescDic["numTrees"] = new ArgDesc { Text = "树数量", Explain = "GBDT模型中树的数量" };
+            sd.ArgDescDic["numTrees"] = new ArgDesc { Text = "树数量", Explain = "GBDT模型中树的数量", Type = "number" };
             sd.ArgDic["numTrees"] = 50;
 
-            sd.ArgDescDic["maxDepth"] = new ArgDesc { Text = "最大深度", Explain = "决策树的最大深度" };
+            sd.ArgDescDic["maxDepth"] = new ArgDesc { Text = "最大深度", Explain = "决策树的最大深度", Type = "number" };
             sd.ArgDic["maxDepth"] = 4;
 
-            sd.ArgDescDic["learningRate"] = new ArgDesc { Text = "学习率", Explain = "GBDT学习率" };
+            sd.ArgDescDic["learningRate"] = new ArgDesc { Text = "学习率", Explain = "GBDT学习率", Type = "number" };
             sd.ArgDic["learningRate"] = 0.1;
 
-            sd.ArgDescDic["trainPeriod"] = new ArgDesc { Text = "训练周期", Explain = "用于训练的历史K线数量" };
+            sd.ArgDescDic["trainPeriod"] = new ArgDesc { Text = "训练周期", Explain = "用于训练的历史K线数量", Type = "number" };
             sd.ArgDic["trainPeriod"] = 200;
 
-            sd.ArgDescDic["retrainInterval"] = new ArgDesc { Text = "重训间隔", Explain = "每隔多少根K线重新训练模型" };
+            sd.ArgDescDic["retrainInterval"] = new ArgDesc { Text = "重训间隔", Explain = "每隔多少根K线重新训练模型", Type = "number" };
             sd.ArgDic["retrainInterval"] = 50;
 
             // ==================== 均值回归参数 ====================
-            sd.ArgDescDic["maPeriod"] = new ArgDesc { Text = "均线周期", Explain = "均值计算周期" };
+            sd.ArgDescDic["maPeriod"] = new ArgDesc { Text = "均线周期", Explain = "均值计算周期", Type = "number" };
             sd.ArgDic["maPeriod"] = 20;
 
-            sd.ArgDescDic["deviationThreshold"] = new ArgDesc { Text = "偏离阈值", Explain = "价格偏离均值的Z-Score阈值" };
+            sd.ArgDescDic["deviationThreshold"] = new ArgDesc { Text = "偏离阈值", Explain = "价格偏离均值的Z-Score阈值", Type = "number" };
             sd.ArgDic["deviationThreshold"] = 2.0;
 
             sd.ArgDescDic["useAdaptiveThreshold"] = new ArgDesc { Text = "自适应阈值", Explain = "自适应阈值调整", Options = "1:ML动态调整阈值|0:固定阈值", Type = "select" };
             sd.ArgDic["useAdaptiveThreshold"] = 1;
 
-            sd.ArgDescDic["minProbability"] = new ArgDesc { Text = "最小回归概率", Explain = "ML预测的最小回归概率阈值" };
+            sd.ArgDescDic["minProbability"] = new ArgDesc { Text = "最小回归概率", Explain = "ML预测的最小回归概率阈值", Type = "number" };
             sd.ArgDic["minProbability"] = 0.6;
 
             // ==================== 市场状态参数 ====================
-            sd.ArgDescDic["trendPeriod"] = new ArgDesc { Text = "趋势判断周期", Explain = "ADX计算周期" };
+            sd.ArgDescDic["trendPeriod"] = new ArgDesc { Text = "趋势判断周期", Explain = "ADX计算周期", Type = "number" };
             sd.ArgDic["trendPeriod"] = 14;
 
-            sd.ArgDescDic["trendThreshold"] = new ArgDesc { Text = "趋势阈值", Explain = "ADX超过此值视为趋势市场" };
+            sd.ArgDescDic["trendThreshold"] = new ArgDesc { Text = "趋势阈值", Explain = "ADX超过此值视为趋势市场", Type = "number" };
             sd.ArgDic["trendThreshold"] = 25.0;
 
             sd.ArgDescDic["filterTrend"] = new ArgDesc { Text = "过滤趋势", Explain = "趋势市场不入场", Options = "1:趋势市场不入场|0:不过滤", Type = "select" };
             sd.ArgDic["filterTrend"] = 1;
 
             // ==================== 风控参数 ====================
-            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR计算周期" };
+            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR计算周期", Type = "number" };
             sd.ArgDic["atrPeriod"] = 14;
 
-            sd.ArgDescDic["stopLossAtr"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离 = ATR × 此倍数" };
+            sd.ArgDescDic["stopLossAtr"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["stopLossAtr"] = 2.5;
 
             sd.ArgDescDic["useMLTakeProfit"] = new ArgDesc { Text = "ML止盈", Explain = "使用ML预测止盈目标位", Options = "1:使用ML预测目标位|0:回归均值", Type = "select" };
             sd.ArgDic["useMLTakeProfit"] = 1;
 
-            sd.ArgDescDic["takeProfitAtr"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "备用止盈距离 = ATR × 此倍数" };
+            sd.ArgDescDic["takeProfitAtr"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "备用止盈距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["takeProfitAtr"] = 2.0;
 
             sd.ArgDescDic["useTrailingStop"] = new ArgDesc { Text = "移动止损", Explain = "跟踪最高/低点调整止损", Options = "1:启用|0:禁用", Type = "bool" };
             sd.ArgDic["useTrailingStop"] = 1;
 
-            sd.ArgDescDic["trailingStopAtr"] = new ArgDesc { Text = "移动止损ATR", Explain = "移动止损距离 = ATR × 此倍数" };
+            sd.ArgDescDic["trailingStopAtr"] = new ArgDesc { Text = "移动止损ATR", Explain = "移动止损距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["trailingStopAtr"] = 1.5;
 
-            sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线", Explain = "超过此数量强制平仓" };
+            sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线", Explain = "超过此数量强制平仓", Type = "number" };
             sd.ArgDic["maxHoldBars"] = 15;
 
             // ==================== 交易参数 ====================
@@ -131,10 +131,10 @@ namespace QjySDK.Stg
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额|2:凯利公式", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量" };
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;
 
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下的交易金额" };
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下的交易金额", Type = "number" };
             sd.ArgDic["money"] = 10000m;
 
             // ==================== 颜色配置 ====================

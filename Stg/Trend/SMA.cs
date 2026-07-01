@@ -52,7 +52,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["fastPeriod"] = new ArgDesc() { Text = "快线周期", Explain = "短周期SMA，用于捕捉短期趋势", Type = "number" };
             sd.ArgDescDic["slowPeriod"] = new ArgDesc() { Text = "慢线周期", Explain = "长周期SMA，用于确认趋势方向", Type = "number" };
             sd.ArgDescDic["trendPeriod"] = new ArgDesc() { Text = "趋势线周期", Explain = "超长周期SMA，用于过滤主趋势", Type = "number" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向交易|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即发单|1:下个开盘发单", Type = "select" };
             sd.ArgDescDic["useTrendFilter"] = new ArgDesc() { Text = "趋势过滤", Explain = "仅在主趋势方向交易", Options = "0:关闭|1:开启（仅在主趋势方向交易）", Type = "bool" };
             sd.ArgDescDic["usePriceConfirm"] = new ArgDesc() { Text = "价格确认", Explain = "收盘价需确认信号", Options = "0:关闭|1:开启（收盘价需确认信号）", Type = "bool" };

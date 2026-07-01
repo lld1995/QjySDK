@@ -54,7 +54,7 @@ namespace QjySDK.Stg
 			sd.ArgDic["addThreshold"] = 0.01m;     // 加仓阈值：价格上涨1%后可加仓
 			
 			// 模式控制
-			sd.ArgDic["mode"] = 0;      // 0: 仅做多抄底 1: 双向（抄底+摸顶）
+			sd.ArgDic["mode"] = 0;      // 0:双向 1:仅做多 2:仅做空
 			sd.ArgDic["sendMode"] = 0;  // 0: 立即 1: 下个开盘
 			
 			// 手数控制
@@ -74,8 +74,8 @@ namespace QjySDK.Stg
 			sd.ArgDescDic["lookbackPeriod"] = new ArgDesc() { Text = "回看周期", Explain = "寻找近期最低点的周期", Type = "number" };
 			sd.ArgDescDic["maxAddNum"] = new ArgDesc() { Text = "最大加仓次数", Explain = "允许的最大加仓次数", Type = "number" };
 			sd.ArgDescDic["addThreshold"] = new ArgDesc() { Text = "加仓阈值", Explain = "价格上涨此比例后可加仓", Type = "number" };
-			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0: 仅做多抄底|1: 双向", Type = "select" };
-			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0: 立即|1: 下个开盘", Type = "select" };
+			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
 			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0: 固定手数|1: 固定金额", Type = "select" };
 
 			sd.ArgDescDic["lots"] = new ArgDesc() { Text = "手数", Explain = "固定手数", Type = "number" };
@@ -274,7 +274,7 @@ namespace QjySDK.Stg
 					var isBreakout = q.Close > q1.High;
 					var isUnderEma = useEmaFilter == 0 || q.Close < (decimal)ema.Ema;
 
-					if (isOversoldRecovery && isBullishCandle && isBreakout && isUnderEma)
+					if (isOversoldRecovery && isBullishCandle && isBreakout && isUnderEma && mode != 2)
 					{
 						s.Status = 1;
 						s.Num = num;
@@ -282,8 +282,8 @@ namespace QjySDK.Stg
 						s.WasOversold = false;
 						Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
 					}
-					// 双向模式：摸顶
-					else if (mode == 1)
+					// 做空：双向或仅做空模式
+					else if (mode != 1)
 					{
 						var isOverboughtRecovery = s.WasOverbought && rsi.Rsi < rsi1.Rsi && rsi1.Rsi > rsiOverbought;
 						var isBearishCandle = q.Close < q.Open;

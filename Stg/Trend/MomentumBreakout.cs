@@ -58,71 +58,71 @@ namespace QjySDK.Stg
             sd.UseGlobalCalc = 0;
 
             // ==================== 突破参数 ====================
-            sd.ArgDescDic["breakoutPeriod"] = new ArgDesc { Text = "突破周期", Explain = "N日高低点突破周期" };
+            sd.ArgDescDic["breakoutPeriod"] = new ArgDesc { Text = "突破周期", Explain = "N日高低点突破周期", Type = "number" };
             sd.ArgDic["breakoutPeriod"] = 20;
 
-            sd.ArgDescDic["breakoutConfirmBars"] = new ArgDesc { Text = "突破确认K线数", Explain = "价格需在突破位上方维持的K线数" };
+            sd.ArgDescDic["breakoutConfirmBars"] = new ArgDesc { Text = "突破确认K线数", Explain = "价格需在突破位上方维持的K线数", Type = "number" };
             sd.ArgDic["breakoutConfirmBars"] = 1;
 
             // ==================== 动量参数 ====================
-            sd.ArgDescDic["macdFast"] = new ArgDesc { Text = "MACD快线周期", Explain = "MACD快速EMA周期" };
+            sd.ArgDescDic["macdFast"] = new ArgDesc { Text = "MACD快线周期", Explain = "MACD快速EMA周期", Type = "number" };
             sd.ArgDic["macdFast"] = 12;
 
-            sd.ArgDescDic["macdSlow"] = new ArgDesc { Text = "MACD慢线周期", Explain = "MACD慢速EMA周期" };
+            sd.ArgDescDic["macdSlow"] = new ArgDesc { Text = "MACD慢线周期", Explain = "MACD慢速EMA周期", Type = "number" };
             sd.ArgDic["macdSlow"] = 26;
 
-            sd.ArgDescDic["macdSignal"] = new ArgDesc { Text = "MACD信号线周期", Explain = "MACD信号线EMA周期" };
+            sd.ArgDescDic["macdSignal"] = new ArgDesc { Text = "MACD信号线周期", Explain = "MACD信号线EMA周期", Type = "number" };
             sd.ArgDic["macdSignal"] = 9;
 
-            sd.ArgDescDic["rocPeriod"] = new ArgDesc { Text = "ROC周期", Explain = "价格变化率周期" };
+            sd.ArgDescDic["rocPeriod"] = new ArgDesc { Text = "ROC周期", Explain = "价格变化率周期", Type = "number" };
             sd.ArgDic["rocPeriod"] = 10;
 
-            sd.ArgDescDic["rsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "相对强弱指标周期" };
+            sd.ArgDescDic["rsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "相对强弱指标周期", Type = "number" };
             sd.ArgDic["rsiPeriod"] = 14;
 
-            sd.ArgDescDic["rsiOverbought"] = new ArgDesc { Text = "RSI超买线", Explain = "RSI超买阈值" };
+            sd.ArgDescDic["rsiOverbought"] = new ArgDesc { Text = "RSI超买线", Explain = "RSI超买阈值", Type = "number" };
             sd.ArgDic["rsiOverbought"] = 70.0;
 
-            sd.ArgDescDic["rsiOversold"] = new ArgDesc { Text = "RSI超卖线", Explain = "RSI超卖阈值" };
+            sd.ArgDescDic["rsiOversold"] = new ArgDesc { Text = "RSI超卖线", Explain = "RSI超卖阈值", Type = "number" };
             sd.ArgDic["rsiOversold"] = 30.0;
 
             // ==================== 趋势过滤参数 ====================
-            sd.ArgDescDic["adxPeriod"] = new ArgDesc { Text = "ADX周期", Explain = "趋势强度指标周期" };
+            sd.ArgDescDic["adxPeriod"] = new ArgDesc { Text = "ADX周期", Explain = "趋势强度指标周期", Type = "number" };
             sd.ArgDic["adxPeriod"] = 14;
 
-            sd.ArgDescDic["adxThreshold"] = new ArgDesc { Text = "ADX阈值", Explain = "ADX大于此值才入场" };
+            sd.ArgDescDic["adxThreshold"] = new ArgDesc { Text = "ADX阈值", Explain = "ADX大于此值才入场", Type = "number" };
             sd.ArgDic["adxThreshold"] = 20.0;
 
             sd.ArgDescDic["useTrendFilter"] = new ArgDesc { Text = "启用趋势过滤", Explain = "仅在主趋势方向交易", Options = "1:启用|0:禁用", Type = "bool" };
             sd.ArgDic["useTrendFilter"] = 1;
 
             // ==================== 成交量参数 ====================
-            sd.ArgDescDic["volumeMaPeriod"] = new ArgDesc { Text = "成交量均线周期", Explain = "成交量移动平均周期" };
+            sd.ArgDescDic["volumeMaPeriod"] = new ArgDesc { Text = "成交量均线周期", Explain = "成交量移动平均周期", Type = "number" };
             sd.ArgDic["volumeMaPeriod"] = 20;
 
-            sd.ArgDescDic["volumeMultiplier"] = new ArgDesc { Text = "成交量倍数", Explain = "突破时成交量需大于均量的倍数" };
+            sd.ArgDescDic["volumeMultiplier"] = new ArgDesc { Text = "成交量倍数", Explain = "突破时成交量需大于均量的倍数", Type = "number" };
             sd.ArgDic["volumeMultiplier"] = 1.5;
 
             sd.ArgDescDic["useVolumeFilter"] = new ArgDesc { Text = "启用成交量过滤", Explain = "过滤低成交量信号", Options = "1:启用|0:禁用", Type = "bool" };
             sd.ArgDic["useVolumeFilter"] = 1;
 
             // ==================== 风控参数 ====================
-            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "平均真实波幅周期" };
+            sd.ArgDescDic["atrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "平均真实波幅周期", Type = "number" };
             sd.ArgDic["atrPeriod"] = 14;
 
-            sd.ArgDescDic["stopLossAtr"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离 = ATR × 此倍数" };
+            sd.ArgDescDic["stopLossAtr"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["stopLossAtr"] = 2.0;
 
-            sd.ArgDescDic["takeProfitAtr"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "止盈距离 = ATR × 此倍数" };
+            sd.ArgDescDic["takeProfitAtr"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "止盈距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["takeProfitAtr"] = 4.0;
 
             sd.ArgDescDic["useTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "跟踪最高/低点调整止损", Options = "1:启用|0:禁用", Type = "bool" };
             sd.ArgDic["useTrailingStop"] = 1;
 
-            sd.ArgDescDic["trailingStopAtr"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数" };
+            sd.ArgDescDic["trailingStopAtr"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["trailingStopAtr"] = 2.0;
 
-            sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "超过此数量强制平仓(0=不限制)" };
+            sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "超过此数量强制平仓(0=不限制)", Type = "number" };
             sd.ArgDic["maxHoldBars"] = 100;
 
             sd.ArgDescDic["useMomentumExit"] = new ArgDesc { Text = "启用动量出场", Explain = "动量减弱时平仓", Options = "1:动量衰减时出场|0:禁用", Type = "bool" };
@@ -138,13 +138,13 @@ namespace QjySDK.Stg
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额|2:波动率调整", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量" };
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "交易手数", Explain = "固定手数模式下的交易数量", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;
 
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下的交易金额" };
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "交易金额", Explain = "固定金额模式下的交易金额", Type = "number" };
             sd.ArgDic["money"] = 10000m;
 
-            sd.ArgDescDic["targetVolatility"] = new ArgDesc { Text = "目标波动率", Explain = "波动率调整模式下的目标年化波动率(%)" };
+            sd.ArgDescDic["targetVolatility"] = new ArgDesc { Text = "目标波动率", Explain = "波动率调整模式下的目标年化波动率(%)", Type = "number" };
             sd.ArgDic["targetVolatility"] = 15.0;
 
             // ==================== 颜色配置 ====================

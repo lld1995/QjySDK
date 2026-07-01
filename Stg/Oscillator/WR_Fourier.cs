@@ -61,7 +61,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["fftPeriod"] = new ArgDesc() { Text = "FFT窗口", Explain = "傅里叶变换分析窗口大小，需为2的幂次(32,64,128等)", Type = "number" };
             sd.ArgDescDic["harmonics"] = new ArgDesc() { Text = "谐波数量", Explain = "保留的主要谐波数量，用于滤波和预测", Type = "number" };
             sd.ArgDescDic["predictBars"] = new ArgDesc() { Text = "预测K线数", Explain = "使用傅里叶预测未来的K线数量", Type = "number" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向交易|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即发单|1:下个开盘发单", Type = "select" };
             sd.ArgDescDic["signalMode"] = new ArgDesc() { Text = "信号模式", Explain = "信号触发方式", Options = "0:WR+FFT组合|1:仅WR信号|2:仅FFT信号", Type = "select" };
             sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };

@@ -30,7 +30,7 @@ namespace QjySDK.Stg
             sd.ArgDic["lots"] = 1.0m;
             sd.ArgDic["money"] = 10000m;
             sd.ArgDescDic["zigzagDepth"] = new ArgDesc() { Text = "ZigZag深度", Explain = "波峰波谷识别的回溯周期", Type = "number" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0:标准|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
 
             sd.ArgDescDic["lossRate"] = new ArgDesc() { Text = "止损比例", Explain = "止损触发的价格百分比", Type = "number" };
 

@@ -56,6 +56,8 @@ namespace QjySDK.Stg
         private decimal _takeProfitAtrMultiplier;
         private bool _useTrailingStop;
         private decimal _trailingStopAtrMultiplier;
+        private int _mode;
+        private int _sendMode;
 
         private Dictionary<string, TradeState> _stateDict = new Dictionary<string, TradeState>();
 
@@ -74,41 +76,45 @@ namespace QjySDK.Stg
             sd.SubChartNum = 1;
             sd.UseGlobalCalc = 0;
 
-            sd.ArgDescDic["FastEmaPeriod"] = new ArgDesc { Text = "快速EMA周期", Explain = "快速EMA的计算周期，用于入场时机判断" };
+            sd.ArgDescDic["FastEmaPeriod"] = new ArgDesc { Text = "快速EMA周期", Explain = "快速EMA的计算周期，用于入场时机判断", Type = "number" };
             sd.ArgDic["FastEmaPeriod"] = 20;
 
-            sd.ArgDescDic["SlowEmaPeriod"] = new ArgDesc { Text = "慢速EMA周期", Explain = "慢速EMA的计算周期，用于趋势方向确认" };
+            sd.ArgDescDic["SlowEmaPeriod"] = new ArgDesc { Text = "慢速EMA周期", Explain = "慢速EMA的计算周期，用于趋势方向确认", Type = "number" };
             sd.ArgDic["SlowEmaPeriod"] = 50;
 
-            sd.ArgDescDic["AdxPeriod"] = new ArgDesc { Text = "ADX周期", Explain = "ADX指标的计算周期" };
+            sd.ArgDescDic["AdxPeriod"] = new ArgDesc { Text = "ADX周期", Explain = "ADX指标的计算周期", Type = "number" };
             sd.ArgDic["AdxPeriod"] = 14;
 
-            sd.ArgDescDic["AdxThreshold"] = new ArgDesc { Text = "ADX阈值", Explain = "ADX大于此值表示强趋势（建议20-30）" };
+            sd.ArgDescDic["AdxThreshold"] = new ArgDesc { Text = "ADX阈值", Explain = "ADX大于此值表示强趋势（建议20-30）", Type = "number" };
             sd.ArgDic["AdxThreshold"] = 25.0;
 
-            sd.ArgDescDic["EmaTouchPercent"] = new ArgDesc { Text = "EMA触及百分比", Explain = "价格距离EMA的百分比阈值，用于判断回调到位" };
+            sd.ArgDescDic["EmaTouchPercent"] = new ArgDesc { Text = "EMA触及百分比", Explain = "价格距离EMA的百分比阈值，用于判断回调到位", Type = "number" };
             sd.ArgDic["EmaTouchPercent"] = 0.5;
 
-            sd.ArgDescDic["AtrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR指标的计算周期" };
+            sd.ArgDescDic["AtrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR指标的计算周期", Type = "number" };
             sd.ArgDic["AtrPeriod"] = 14;
 
-            sd.ArgDescDic["StopLossAtrMultiplier"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离 = ATR × 此倍数" };
+            sd.ArgDescDic["StopLossAtrMultiplier"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["StopLossAtrMultiplier"] = 2.0;
 
-            sd.ArgDescDic["TakeProfitAtrMultiplier"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "止盈距离 = ATR × 此倍数" };
+            sd.ArgDescDic["TakeProfitAtrMultiplier"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "止盈距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["TakeProfitAtrMultiplier"] = 4.0;
 
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDic["mode"] = 0;
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+            sd.ArgDic["sendMode"] = 0;
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量" };
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量" };
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量", Type = "number" };
             sd.ArgDic["money"] = 10000m;
 
-            sd.ArgDescDic["UseTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "是否启用移动止损(1=启用,0=禁用)" };
+            sd.ArgDescDic["UseTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "是否启用移动止损(1=启用,0=禁用)", Options = "0:禁用|1:启用", Type = "bool" };
             sd.ArgDic["UseTrailingStop"] = 1;
 
-            sd.ArgDescDic["TrailingStopAtrMultiplier"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数" };
+            sd.ArgDescDic["TrailingStopAtrMultiplier"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["TrailingStopAtrMultiplier"] = 1.5;
 
             sd.ColorDic["main-EMA_Fast"] = "#FF5722";
@@ -136,6 +142,8 @@ namespace QjySDK.Stg
             _takeProfitAtrMultiplier = Convert.ToDecimal(ArgDic["TakeProfitAtrMultiplier"]);
             _useTrailingStop = Convert.ToInt32(ArgDic["UseTrailingStop"]) == 1;
             _trailingStopAtrMultiplier = Convert.ToDecimal(ArgDic["TrailingStopAtrMultiplier"]);
+            _mode = Convert.ToInt32(ArgDic["mode"]);
+            _sendMode = Convert.ToInt32(ArgDic["sendMode"]);
         }
 
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
@@ -239,14 +247,14 @@ namespace QjySDK.Stg
             bool priceAboveSlowEma = currentPrice > slowEma;
             bool priceBelowSlowEma = currentPrice < slowEma;
 
-            if (bullishTrend && priceAboveSlowEma && (priceTouchedEma || priceNearEma))
+            if (bullishTrend && priceAboveSlowEma && (priceTouchedEma || priceNearEma) && _mode != 2)
             {
                 if (currentPrice > fastEma)
                 {
                     OpenLongPosition(state, mktSymbol, currentPrice, atr, period);
                 }
             }
-            else if (bearishTrend && priceBelowSlowEma && (priceTouchedEma || priceNearEma))
+            else if (bearishTrend && priceBelowSlowEma && (priceTouchedEma || priceNearEma) && _mode != 1)
             {
                 if (currentPrice < fastEma)
                 {
@@ -322,7 +330,7 @@ namespace QjySDK.Stg
         private void OpenLongPosition(TradeState state, string mktSymbol, decimal price, decimal atr, Period period)
         {
             var num = CalculateLots(mktSymbol, price);
-            Trade(mktSymbol, OrderType.BUY, price, num, period, 0);
+            Trade(mktSymbol, OrderType.BUY, price, num, period, _sendMode);
 
             state.HasPosition = true;
             state.IsLong = true;
@@ -338,7 +346,7 @@ namespace QjySDK.Stg
         private void OpenShortPosition(TradeState state, string mktSymbol, decimal price, decimal atr, Period period)
         {
             var num = CalculateLots(mktSymbol, price);
-            Trade(mktSymbol, OrderType.SELL, price, num, period, 0);
+            Trade(mktSymbol, OrderType.SELL, price, num, period, _sendMode);
 
             state.HasPosition = true;
             state.IsLong = false;
@@ -354,7 +362,7 @@ namespace QjySDK.Stg
         private void ClosePosition(TradeState state, string mktSymbol, decimal price, Period period)
         {
             OrderType ot = state.IsLong ? OrderType.SELL_TO_COVER : OrderType.BUY_TO_COVER;
-            Trade(mktSymbol, ot, price, state.PositionSize, period, 0);
+            Trade(mktSymbol, ot, price, state.PositionSize, period, _sendMode);
 
             state.Reset();
         }

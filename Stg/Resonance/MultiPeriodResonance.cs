@@ -126,7 +126,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["useAtrFilter"] = new ArgDesc() { Text = "ATR过滤", Explain = "过滤低波动行情", Options = "0:不过滤|1:过滤低波动行情", Type = "bool" };
 
             sd.ArgDescDic["tradePeriod"] = new ArgDesc() { Text = "交易周期", Explain = "执行交易的K线周期(秒): 60=1分钟 300=5分钟 900=15分钟 3600=1小时", Type = "number" };
-            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向交易|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即发单|1:下根K线开盘发单", Type = "select" };
             sd.ArgDescDic["positionMode"] = new ArgDesc() { Text = "仓位模式", Explain = "仓位管理方式", Options = "0:固定仓位|1:动态仓位(按共振强度调整)", Type = "select" };
             sd.ArgDescDic["maxPositionScale"] = new ArgDesc() { Text = "最大仓位倍数", Explain = "动态仓位模式下的最大仓位倍数", Type = "number" };

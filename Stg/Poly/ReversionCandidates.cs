@@ -28,17 +28,17 @@ namespace QjySDK.Stg
             sd.MaxSymbolNum = 1000;
             sd.SubChartNum = 1;
             sd.UseGlobalCalc = 0;
-            sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅多|2:仅空", Type = "select" };
+            sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDic["mode"] = defaultMode;
             sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
             sd.ArgDic["sendMode"] = 0;
-            sd.ArgDescDic["stopLoss"] = new ArgDesc { Text = "止损%", Explain = "固定止损百分比，0为不启用" };
+            sd.ArgDescDic["stopLoss"] = new ArgDesc { Text = "止损%", Explain = "固定止损百分比，0为不启用", Options = "0:禁用|1:启用", Type = "bool" };
             sd.ArgDic["stopLoss"] = 5.0m;
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数模式下下单数量" };
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数模式下下单数量", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额模式下用于换算手数" };
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额模式下用于换算手数", Type = "number" };
             sd.ArgDic["money"] = 10000m;
             // Polymarket 参数（默认 polyNum=0 代表不启用 Poly 下单，只输出方向信号）
             AddPolyArgs(sd, 0m);
@@ -212,13 +212,13 @@ namespace QjySDK.Stg
         public override StgDesc GetStgDesc()
         {
             var sd = new StgDesc();
-            sd.ArgDescDic["rsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "快速RSI周期" };
+            sd.ArgDescDic["rsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "快速RSI周期", Type = "number" };
             sd.ArgDic["rsiPeriod"] = 3;
-            sd.ArgDescDic["rsiOversold"] = new ArgDesc { Text = "RSI超卖线", Explain = "RSI低于该值看涨" };
+            sd.ArgDescDic["rsiOversold"] = new ArgDesc { Text = "RSI超卖线", Explain = "RSI低于该值看涨", Type = "number" };
             sd.ArgDic["rsiOversold"] = 10;
-            sd.ArgDescDic["rsiOverbought"] = new ArgDesc { Text = "RSI超买线", Explain = "RSI高于该值看跌" };
+            sd.ArgDescDic["rsiOverbought"] = new ArgDesc { Text = "RSI超买线", Explain = "RSI高于该值看跌", Type = "number" };
             sd.ArgDic["rsiOverbought"] = 90;
-            sd.ArgDescDic["emaPeriod"] = new ArgDesc { Text = "EMA过滤周期", Explain = "趋势/逆趋势过滤EMA周期" };
+            sd.ArgDescDic["emaPeriod"] = new ArgDesc { Text = "EMA过滤周期", Explain = "趋势/逆趋势过滤EMA周期", Type = "number" };
             sd.ArgDic["emaPeriod"] = 200;
             sd.ArgDescDic["emaFilter"] = new ArgDesc { Text = "EMA过滤", Explain = "0不过滤，1顺势，2逆势", Options = "0:不过滤|1:顺势|2:逆势", Type = "select" };
             sd.ArgDic["emaFilter"] = 2;
@@ -266,15 +266,15 @@ namespace QjySDK.Stg
         public override StgDesc GetStgDesc()
         {
             var sd = new StgDesc();
-            sd.ArgDescDic["rsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "RSI计算周期" };
+            sd.ArgDescDic["rsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "RSI计算周期", Type = "number" };
             sd.ArgDic["rsiPeriod"] = 14;
-            sd.ArgDescDic["rsiOversold"] = new ArgDesc { Text = "RSI超卖线", Explain = "RSI低于该值看涨" };
+            sd.ArgDescDic["rsiOversold"] = new ArgDesc { Text = "RSI超卖线", Explain = "RSI低于该值看涨", Type = "number" };
             sd.ArgDic["rsiOversold"] = 35;
-            sd.ArgDescDic["rsiOverbought"] = new ArgDesc { Text = "RSI超买线", Explain = "RSI高于该值看跌" };
+            sd.ArgDescDic["rsiOverbought"] = new ArgDesc { Text = "RSI超买线", Explain = "RSI高于该值看跌", Type = "number" };
             sd.ArgDic["rsiOverbought"] = 65;
-            sd.ArgDescDic["bollPeriod"] = new ArgDesc { Text = "布林周期", Explain = "布林带周期" };
+            sd.ArgDescDic["bollPeriod"] = new ArgDesc { Text = "布林周期", Explain = "布林带周期", Type = "number" };
             sd.ArgDic["bollPeriod"] = 20;
-            sd.ArgDescDic["bollStdDev"] = new ArgDesc { Text = "布林标准差", Explain = "布林带标准差倍数" };
+            sd.ArgDescDic["bollStdDev"] = new ArgDesc { Text = "布林标准差", Explain = "布林带标准差倍数", Type = "number" };
             sd.ArgDic["bollStdDev"] = 1.8;
             AddCommonArgs(sd, 0);
             sd.ArgDic["polyNum"] = 5m;

@@ -49,45 +49,45 @@ namespace QjySDK.Stg
             sd.UseGlobalCalc = 0;
 
             // ==================== 信号参数 ====================
-            sd.ArgDescDic["shadowRatio"] = new ArgDesc { Text = "影线比例", Explain = "影线长度 > 实体 × 该值时触发影线信号(默认2.0)" };
+            sd.ArgDescDic["shadowRatio"] = new ArgDesc { Text = "影线比例", Explain = "影线长度 > 实体 × 该值时触发影线信号(默认2.0)", Type = "number" };
             sd.ArgDic["shadowRatio"] = 2.0;
 
-            sd.ArgDescDic["signalBars"] = new ArgDesc { Text = "信号持续K线数", Explain = "信号出现后连续下单的K线根数" };
+            sd.ArgDescDic["signalBars"] = new ArgDesc { Text = "信号持续K线数", Explain = "信号出现后连续下单的K线根数", Type = "number" };
             sd.ArgDic["signalBars"] = 5;
 
             // ==================== 确认过滤参数 ====================
-            sd.ArgDescDic["minConfirm"] = new ArgDesc { Text = "最少条件数", Explain = "5维评分：连续K线/RSI/StochK/量比/BB，需满足的最少条件数" };
+            sd.ArgDescDic["minConfirm"] = new ArgDesc { Text = "最少条件数", Explain = "5维评分：连续K线/RSI/StochK/量比/BB，需满足的最少条件数", Type = "number" };
             sd.ArgDic["minConfirm"] = 5;
 
-            sd.ArgDescDic["rsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "RSI计算周期" };
+            sd.ArgDescDic["rsiPeriod"] = new ArgDesc { Text = "RSI周期", Explain = "RSI计算周期", Type = "number" };
             sd.ArgDic["rsiPeriod"] = 14;
 
-            sd.ArgDescDic["rsiOversold"] = new ArgDesc { Text = "RSI超卖线", Explain = "RSI低于该值确认买入" };
+            sd.ArgDescDic["rsiOversold"] = new ArgDesc { Text = "RSI超卖线", Explain = "RSI低于该值确认买入", Type = "number" };
             sd.ArgDic["rsiOversold"] = 35;
 
-            sd.ArgDescDic["rsiOverbought"] = new ArgDesc { Text = "RSI超买线", Explain = "RSI高于该值确认卖出" };
+            sd.ArgDescDic["rsiOverbought"] = new ArgDesc { Text = "RSI超买线", Explain = "RSI高于该值确认卖出", Type = "number" };
             sd.ArgDic["rsiOverbought"] = 65;
 
-            sd.ArgDescDic["volRatio"] = new ArgDesc { Text = "量比阈值", Explain = "成交量 > 20均量 × 该值时确认" };
+            sd.ArgDescDic["volRatio"] = new ArgDesc { Text = "量比阈值", Explain = "成交量 > 20均量 × 该值时确认", Type = "number" };
             sd.ArgDic["volRatio"] = 1.2;
 
             // ==================== 交易参数 ====================
-            sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅多|2:仅空", Type = "select" };
+            sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDic["mode"] = 0;
 
             sd.ArgDescDic["sendMode"] = new ArgDesc { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
             sd.ArgDic["sendMode"] = 0;
 
-            sd.ArgDescDic["stopLoss"] = new ArgDesc { Text = "止损%", Explain = "固定止损百分比，0为不启用" };
+            sd.ArgDescDic["stopLoss"] = new ArgDesc { Text = "止损%", Explain = "固定止损百分比，0为不启用", Options = "0:禁用|1:启用", Type = "bool" };
             sd.ArgDic["stopLoss"] = 5.0m;
 
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
 
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数模式下下单数量" };
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数模式下下单数量", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;
 
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额模式下用于换算手数" };
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额模式下用于换算手数", Type = "number" };
             sd.ArgDic["money"] = 10000m;
 
             // ==================== Polymarket参数 ====================

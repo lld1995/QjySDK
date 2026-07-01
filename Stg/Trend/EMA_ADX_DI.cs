@@ -68,8 +68,8 @@ namespace QjySDK.Stg
         private int _maxHoldBars;
         private bool _useEmaSlopeFilter;
         private int _emaSlopePeriod;
-
-        // 状态管理
+        private int _mode;
+        private int _sendMode;
         private Dictionary<string, TradeState> _stateDict = new Dictionary<string, TradeState>();
 
         public EMA_ADX_DI()
@@ -88,54 +88,58 @@ namespace QjySDK.Stg
             sd.UseGlobalCalc = 0;
 
             // EMA参数
-            sd.ArgDescDic["EmaPeriod"] = new ArgDesc { Text = "EMA周期", Explain = "趋势过滤EMA的计算周期" };
+            sd.ArgDescDic["EmaPeriod"] = new ArgDesc { Text = "EMA周期", Explain = "趋势过滤EMA的计算周期", Type = "number" };
             sd.ArgDic["EmaPeriod"] = 20;
 
             // ADX/DI参数
-            sd.ArgDescDic["AdxPeriod"] = new ArgDesc { Text = "ADX周期", Explain = "ADX和DI指标的计算周期" };
+            sd.ArgDescDic["AdxPeriod"] = new ArgDesc { Text = "ADX周期", Explain = "ADX和DI指标的计算周期", Type = "number" };
             sd.ArgDic["AdxPeriod"] = 14;
 
-            sd.ArgDescDic["AdxEntryThreshold"] = new ArgDesc { Text = "ADX入场阈值", Explain = "ADX大于此值时允许入场（建议20-30）" };
+            sd.ArgDescDic["AdxEntryThreshold"] = new ArgDesc { Text = "ADX入场阈值", Explain = "ADX大于此值时允许入场（建议20-30）", Type = "number" };
             sd.ArgDic["AdxEntryThreshold"] = 20.0;
 
-            sd.ArgDescDic["AdxExitThreshold"] = new ArgDesc { Text = "ADX退出阈值", Explain = "ADX低于此值时强制平仓（建议15-20）" };
+            sd.ArgDescDic["AdxExitThreshold"] = new ArgDesc { Text = "ADX退出阈值", Explain = "ADX低于此值时强制平仓（建议15-20）", Type = "number" };
             sd.ArgDic["AdxExitThreshold"] = 15.0;
 
-            sd.ArgDescDic["DiDiffThreshold"] = new ArgDesc { Text = "DI差值阈值", Explain = "+DI与-DI的最小差值，用于过滤弱信号" };
+            sd.ArgDescDic["DiDiffThreshold"] = new ArgDesc { Text = "DI差值阈值", Explain = "+DI与-DI的最小差值，用于过滤弱信号", Type = "number" };
             sd.ArgDic["DiDiffThreshold"] = 5.0;
 
             // ATR止损止盈参数
-            sd.ArgDescDic["AtrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR指标的计算周期" };
+            sd.ArgDescDic["AtrPeriod"] = new ArgDesc { Text = "ATR周期", Explain = "ATR指标的计算周期", Type = "number" };
             sd.ArgDic["AtrPeriod"] = 14;
 
-            sd.ArgDescDic["StopLossAtrMultiplier"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离 = ATR × 此倍数" };
+            sd.ArgDescDic["StopLossAtrMultiplier"] = new ArgDesc { Text = "止损ATR倍数", Explain = "止损距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["StopLossAtrMultiplier"] = 2.0;
 
-            sd.ArgDescDic["TakeProfitAtrMultiplier"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "止盈距离 = ATR × 此倍数" };
+            sd.ArgDescDic["TakeProfitAtrMultiplier"] = new ArgDesc { Text = "止盈ATR倍数", Explain = "止盈距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["TakeProfitAtrMultiplier"] = 3.0;
 
             // 交易参数
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
             sd.ArgDic["lotsMode"] = 1;
-            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量" };
+            sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;
-            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量" };
+            sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量", Type = "number" };
             sd.ArgDic["money"] = 10000m;
 
-            sd.ArgDescDic["UseTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "是否启用移动止损(1=启用,0=禁用)" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDic["mode"] = 0;
+            sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
+            sd.ArgDic["sendMode"] = 0;
+            sd.ArgDescDic["UseTrailingStop"] = new ArgDesc { Text = "启用移动止损", Explain = "是否启用移动止损(1=启用,0=禁用)", Options = "0:禁用|1:启用", Type = "bool" };
             sd.ArgDic["UseTrailingStop"] = 1;
 
-            sd.ArgDescDic["TrailingStopAtrMultiplier"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数" };
+            sd.ArgDescDic["TrailingStopAtrMultiplier"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["TrailingStopAtrMultiplier"] = 1.5;
 
-            sd.ArgDescDic["MaxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "持仓超过此数量K线强制平仓（0=不限制）" };
+            sd.ArgDescDic["MaxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "持仓超过此数量K线强制平仓（0=不限制）", Type = "number" };
             sd.ArgDic["MaxHoldBars"] = 0;
 
             // EMA斜率过滤
-            sd.ArgDescDic["UseEmaSlopeFilter"] = new ArgDesc { Text = "启用EMA斜率过滤", Explain = "是否使用EMA斜率确认趋势(1=启用,0=禁用)" };
+            sd.ArgDescDic["UseEmaSlopeFilter"] = new ArgDesc { Text = "启用EMA斜率过滤", Explain = "是否使用EMA斜率确认趋势(1=启用,0=禁用)", Options = "0:禁用|1:启用", Type = "bool" };
             sd.ArgDic["UseEmaSlopeFilter"] = 1;
 
-            sd.ArgDescDic["EmaSlopePeriod"] = new ArgDesc { Text = "EMA斜率周期", Explain = "计算EMA斜率的回看周期" };
+            sd.ArgDescDic["EmaSlopePeriod"] = new ArgDesc { Text = "EMA斜率周期", Explain = "计算EMA斜率的回看周期", Type = "number" };
             sd.ArgDic["EmaSlopePeriod"] = 3;
 
             // 颜色配置
@@ -168,6 +172,8 @@ namespace QjySDK.Stg
             _maxHoldBars = Convert.ToInt32(ArgDic["MaxHoldBars"]);
             _useEmaSlopeFilter = Convert.ToInt32(ArgDic["UseEmaSlopeFilter"]) == 1;
             _emaSlopePeriod = Convert.ToInt32(ArgDic["EmaSlopePeriod"]);
+            _mode = Convert.ToInt32(ArgDic["mode"]);
+            _sendMode = Convert.ToInt32(ArgDic["sendMode"]);
         }
 
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
@@ -280,7 +286,7 @@ namespace QjySDK.Stg
             if (Math.Abs(diDiff) < (double)_diDiffThreshold) return;
 
             // 做多条件（DI金叉为事件，不再叠加 currentPrice > ema 的瞬时位置过滤，避免与SMA同构的信号丢失）
-            if (diGoldenCross)
+            if (diGoldenCross && _mode != 2)
             {
                 // EMA斜率过滤：斜率必须向上
                 if (_useEmaSlopeFilter && emaSlope <= 0) return;
@@ -288,7 +294,7 @@ namespace QjySDK.Stg
                 OpenLongPosition(state, mktSymbol, currentPrice, atr, period);
             }
             // 做空条件
-            else if (diDeathCross)
+            else if (diDeathCross && _mode != 1)
             {
                 // EMA斜率过滤：斜率必须向下
                 if (_useEmaSlopeFilter && emaSlope >= 0) return;
@@ -420,7 +426,7 @@ namespace QjySDK.Stg
         private void OpenLongPosition(TradeState state, string mktSymbol, decimal price, decimal atr, Period period)
         {
             var num = CalculateLots(mktSymbol, price);
-            Trade(mktSymbol, OrderType.BUY, price, num, period, 0);
+            Trade(mktSymbol, OrderType.BUY, price, num, period, _sendMode);
 
             state.HasPosition = true;
             state.IsLong = true;
@@ -437,7 +443,7 @@ namespace QjySDK.Stg
         private void OpenShortPosition(TradeState state, string mktSymbol, decimal price, decimal atr, Period period)
         {
             var num = CalculateLots(mktSymbol, price);
-            Trade(mktSymbol, OrderType.SELL, price, num, period, 0);
+            Trade(mktSymbol, OrderType.SELL, price, num, period, _sendMode);
 
             state.HasPosition = true;
             state.IsLong = false;
@@ -454,7 +460,7 @@ namespace QjySDK.Stg
         private void ClosePosition(TradeState state, string mktSymbol, decimal price, Period period, string reason)
         {
             OrderType ot = state.IsLong ? OrderType.SELL_TO_COVER : OrderType.BUY_TO_COVER;
-            Trade(mktSymbol, ot, price, state.PositionSize, period, 0);
+            Trade(mktSymbol, ot, price, state.PositionSize, period, _sendMode);
 
             state.Reset();
         }
