@@ -121,7 +121,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线", Explain = "超过此数量强制平仓", Type = "number" };
             sd.ArgDic["maxHoldBars"] = 15;
 
-            sd.ArgDescDic["stopCooldownBars"] = new ArgDesc { Text = "止损冷却期", Explain = "止损后等待N根K线才允许重新开仓,0为不冷却", Type = "number" };
+            sd.ArgDescDic["stopCooldownBars"] = new ArgDesc { Text = "止损重入保护", Explain = "止损后至少等待N根K线，且复合入场信号必须失效后才允许同向重新开仓,0为不冷却", Type = "number" };
             sd.ArgDic["stopCooldownBars"] = 5;
 
             // ==================== 交易参数 ====================

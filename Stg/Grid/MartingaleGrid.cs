@@ -101,6 +101,8 @@ namespace QjySDK.Stg
 			public decimal FirstEntryPrice { get; set; }
 			public decimal NextGridPrice { get; set; }
 			public int CooldownRemaining { get; set; }
+			public int BlockedDir { get; set; } // 止损后封锁方向:0无 1多 2空
+			public decimal StopReferencePrice { get; set; } // 止损轮首次入场价，回到该价才允许重启
 		}
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -170,12 +172,26 @@ namespace QjySDK.Stg
 			int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 			int cooldownBars = Convert.ToInt32(ArgDic["cooldownBars"]);
 
+			// 止损后不能仅靠时间重启：同方向必须先回到上一轮首次入场价，证明止损后的单边不利状态已失效
+			if (s.BlockedDir == 1 && q.Close >= s.StopReferencePrice)
+			{
+				s.BlockedDir = 0;
+				s.StopReferencePrice = 0;
+			}
+			else if (s.BlockedDir == 2 && q.Close <= s.StopReferencePrice)
+			{
+				s.BlockedDir = 0;
+				s.StopReferencePrice = 0;
+			}
+
 			// 冷却期
 			if (s.CooldownRemaining > 0)
 			{
 				s.CooldownRemaining--;
 				return;
 			}
+			if ((direction == 0 && s.BlockedDir == 1) || (direction == 1 && s.BlockedDir == 2))
+				return;
 
 			decimal baseLots = CalcBaseLots(tu, q.Close);
 
@@ -230,7 +246,10 @@ namespace QjySDK.Stg
 					if (q.Close <= s.FirstEntryPrice * (1 - slPct))
 					{
 						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.TotalLots, period, sendMode);
+						decimal stopRef = s.FirstEntryPrice;
 						CloseAll(s);
+						s.BlockedDir = 1;
+						s.StopReferencePrice = stopRef;
 						s.CooldownRemaining = cooldownBars;
 						return;
 					}
@@ -268,7 +287,10 @@ namespace QjySDK.Stg
 					if (q.Close >= s.FirstEntryPrice * (1 + slPct))
 					{
 						Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.TotalLots, period, sendMode);
+						decimal stopRef = s.FirstEntryPrice;
 						CloseAll(s);
+						s.BlockedDir = 2;
+						s.StopReferencePrice = stopRef;
 						s.CooldownRemaining = cooldownBars;
 						return;
 					}

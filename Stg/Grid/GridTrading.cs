@@ -61,7 +61,7 @@ namespace QjySDK.Stg
 			sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "动态网格使用的ATR周期", Type = "number" };
 			sd.ArgDescDic["useStopLoss"] = new ArgDesc() { Text = "启用止损", Explain = "触及止损价自动平仓", Options = "0:关闭|1:启用", Type = "bool" };
 			sd.ArgDescDic["stopLossPercent"] = new ArgDesc() { Text = "止损百分比", Explain = "价格偏离基准超过此百分比时全部止损", Type = "number" };
-			sd.ArgDescDic["stopCooldownBars"] = new ArgDesc() { Text = "止损冷却期", Explain = "止损后等待多少根K线重建网格（0表示止损后永不重入）", Type = "number" };
+			sd.ArgDescDic["stopCooldownBars"] = new ArgDesc() { Text = "止损重入保护", Explain = "止损后至少等待N根K线，且价格必须回到旧止损带内才允许重建网格（0表示止损后永不重入）", Type = "number" };
 			sd.ArgDescDic["autoRecenter"] = new ArgDesc() { Text = "自动重置网格", Explain = "定期以当前价格为中心重建", Options = "0:关闭|1:启用，每隔N根K线以当前价格为中心重建网格", Type = "bool" };
 			sd.ArgDescDic["recenterBars"] = new ArgDesc() { Text = "重置周期", Explain = "每隔多少根K线重新以当前价格为中心重建网格", Type = "number" };
 
@@ -96,6 +96,7 @@ namespace QjySDK.Stg
 			public List<GridLevel> GridLevels { get; set; } = new List<GridLevel>();
 			public decimal LastGridPercent { get; set; }
 			public bool IsStopped { get; set; }
+			public decimal StoppedBasePrice { get; set; }
 			public int CooldownRemaining { get; set; }
 			public int BarsSinceRecenter { get; set; }
 		}
@@ -192,15 +193,22 @@ namespace QjySDK.Stg
 				}
 			}
 
-			// 止损冷却期处理
+			// 止损冷却期处理：不能仅靠时间重启，必须先回到旧基准价的止损带内
 			int stopCooldownBars = Convert.ToInt32(ArgDic["stopCooldownBars"]);
 			if (s.IsStopped)
 			{
 				if (stopCooldownBars <= 0) return; // 0表示永不重入
+				if (s.StoppedBasePrice <= 0) s.StoppedBasePrice = s.BasePrice;
+				if (s.StoppedBasePrice > 0)
+				{
+					decimal resetDeviation = Math.Abs(q.Close - s.StoppedBasePrice) / s.StoppedBasePrice * 100m;
+					if (resetDeviation >= stopLossPercent) return;
+				}
 				s.CooldownRemaining--;
 				if (s.CooldownRemaining > 0) return;
-				// 冷却结束，以当前价重建网格
+				// 信号已回到旧止损带内且冷却结束，才以当前价重建网格
 				s.IsStopped = false;
+				s.StoppedBasePrice = 0;
 				InitializeGrid(s, q.Close, gridPercent, gridCount);
 				s.BarsSinceRecenter = 0;
 			}
@@ -238,6 +246,7 @@ namespace QjySDK.Stg
 						Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, Math.Abs(s.TotalPosition), period, sendMode);
 					s.TotalPosition = 0;
 					s.IsStopped = true;
+					s.StoppedBasePrice = s.BasePrice;
 					s.CooldownRemaining = Convert.ToInt32(ArgDic["stopCooldownBars"]);
 					foreach (var gl in s.GridLevels) gl.IsBought = false;
 					return;

@@ -71,7 +71,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "计算ATR的周期", Type = "number" };
             sd.ArgDescDic["atrMultiplier"] = new ArgDesc() { Text = "止损倍数", Explain = "ATR止损倍数", Type = "number" };
             sd.ArgDescDic["takeProfitMultiplier"] = new ArgDesc() { Text = "止盈倍数", Explain = "ATR止盈倍数", Type = "number" };
-            sd.ArgDescDic["stopCooldownBars"] = new ArgDesc() { Text = "止损冷却期", Explain = "止损后等待N根K线才允许重新开仓,0为不冷却", Type = "number" };
+            sd.ArgDescDic["stopCooldownBars"] = new ArgDesc() { Text = "止损重入保护", Explain = "止损后至少等待N根K线，且预测方向必须回中性/反向后才允许同向重新开仓,0为不冷却", Type = "number" };
             sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
             sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
@@ -748,11 +748,11 @@ namespace QjySDK.Stg
                 else
                 {
                     // 信号重置再武装：被封锁方向的入场信号不再成立时解除封锁
-                    if (s.BlockedDir == 1 && prediction <= threshold)
+if (s.BlockedDir == 1 && prediction <= 0)
                     {
                         s.BlockedDir = 0;
                     }
-                    else if (s.BlockedDir == 2 && prediction >= -threshold)
+else if (s.BlockedDir == 2 && prediction >= 0)
                     {
                         s.BlockedDir = 0;
                     }
