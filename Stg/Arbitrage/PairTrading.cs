@@ -161,6 +161,8 @@ namespace QjySDK.Stg
             public double EntryZScore { get; set; }
             public int HoldBars { get; set; }
             public string PairedSymbol { get; set; } // 配对的另一个品种
+            public bool IsCoolingDown { get; set; }  // 是否处于止损冷却期(防止止损后同向立即重开)
+            public int CoolDownDir { get; set; }     // 冷却方向: 1=做多本品种(低估)方向止损 2=做空本品种(高估)方向止损
         }
 
         // 全局配对数据：key = "SymbolA|SymbolB" (字母序排列保证唯一)
@@ -406,6 +408,7 @@ namespace QjySDK.Stg
                 }
 
                 bool exitSignal = false;
+                bool stopLossHit = false;
 
                 // Z-Score回归 → 平仓
                 if (state.Status == 1 && isSymbolA)
@@ -430,7 +433,11 @@ namespace QjySDK.Stg
                 // Z-Score继续偏离 → 止损
                 if (!exitSignal)
                 {
-                    if (Math.Abs(pairZ) > stopLossZScore) exitSignal = true;
+                    if (Math.Abs(pairZ) > stopLossZScore)
+                    {
+                        exitSignal = true;
+                        stopLossHit = true;
+                    }
                 }
 
                 // 超时平仓
@@ -446,11 +453,34 @@ namespace QjySDK.Stg
                     {
                         Trade(mktSymbol, OrderType.BUY_TO_COVER, currentPrice, state.NumA, period, sendMode);
                     }
+                    int prevStatus = state.Status;
                     state.Status = 0;
                     state.NumA = 0;
                     state.NumB = 0;
                     state.PairedSymbol = null;
                     state.HoldBars = 0;
+
+                    if (stopLossHit)
+                    {
+                        // 止损后开启同向冷却并立即返回,确保同一根K线不会再进入开仓块同向重开
+                        state.IsCoolingDown = true;
+                        state.CoolDownDir = prevStatus;
+                        return;
+                    }
+                }
+            }
+
+            // ==================== 冷却解除 ====================
+            // 止损冷却:本品种视角Z回到入场阈值以内(中性区)或反向穿越0才解除,杜绝止损后原地同向重开
+            if (state.Status == 0 && state.IsCoolingDown)
+            {
+                double coolZ = isSymbolA ? pairZ : -pairZ;
+                if (Math.Abs(coolZ) <= entryZScore ||
+                    (state.CoolDownDir == 1 && coolZ >= 0) ||
+                    (state.CoolDownDir == 2 && coolZ <= 0))
+                {
+                    state.IsCoolingDown = false;
+                    state.CoolDownDir = 0;
                 }
             }
 
@@ -464,7 +494,8 @@ namespace QjySDK.Stg
 
                 double localZ = isSymbolA ? pairZ : -pairZ;
 
-                if (localZ > entryZScore)
+                // 冷却期内屏蔽同向信号(反方向信号不受影响)
+                if (localZ > entryZScore && !(state.IsCoolingDown && state.CoolDownDir == 2))
                 {
                     // 本品种高估 → 做空
                     state.Status = 2;
@@ -474,7 +505,7 @@ namespace QjySDK.Stg
                     state.PairedSymbol = otherSymbol;
                     Trade(mktSymbol, OrderType.SELL, currentPrice, num, period, sendMode);
                 }
-                else if (localZ < -entryZScore)
+                else if (localZ < -entryZScore && !(state.IsCoolingDown && state.CoolDownDir == 1))
                 {
                     // 本品种低估 → 做多
                     state.Status = 1;

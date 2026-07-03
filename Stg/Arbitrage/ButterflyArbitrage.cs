@@ -161,6 +161,8 @@ namespace QjySDK.Stg
             public int LastSignalDir { get; set; }
             public string TripleKey { get; set; }    // 所属三元组key
             public string Role { get; set; }         // "A"=左翼 "B"=中间腿 "C"=右翼
+            public bool IsCoolingDown { get; set; }  // 是否处于止损冷却期(防止止损后同向立即重开)
+            public int CoolDownDir { get; set; }     // 冷却方向: 1=买蝶式方向止损 2=卖蝶式方向止损
         }
 
         // 全局蝶式三元组数据: key = "SymA|SymB|SymC"
@@ -462,6 +464,7 @@ namespace QjySDK.Stg
                 }
 
                 bool exitSignal = false;
+                bool stopLossHit = false;
 
                 // Z-Score回归 → 平仓
                 if (Math.Abs(bfZ) <= currentExitZ)
@@ -473,6 +476,7 @@ namespace QjySDK.Stg
                 if (!exitSignal && Math.Abs(bfZ) > stopLossZScore)
                 {
                     exitSignal = true;
+                    stopLossHit = true;
                 }
 
                 // 超时平仓
@@ -508,6 +512,7 @@ namespace QjySDK.Stg
                             Trade(mktSymbol, OrderType.SELL_TO_COVER, currentPrice, state.Num, period, sendMode);
                         }
                     }
+                    int prevStatus = state.Status;
                     state.Status = 0;
                     state.Num = 0;
                     state.HoldBars = 0;
@@ -515,6 +520,27 @@ namespace QjySDK.Stg
                     state.Role = null;
                     state.ConfirmCount = 0;
                     state.LastSignalDir = 0;
+
+                    if (stopLossHit)
+                    {
+                        // 止损后开启同向冷却并立即返回,确保同一根K线不会再进入开仓块同向重开
+                        state.IsCoolingDown = true;
+                        state.CoolDownDir = prevStatus;
+                        return;
+                    }
+                }
+            }
+
+            // ==================== 冷却解除 ====================
+            // 止损冷却:Z-Score回到入场阈值以内(中性区)或反向穿越0才解除,杜绝止损后原地同向重开
+            if (state.Status == 0 && state.IsCoolingDown)
+            {
+                if (Math.Abs(bfZ) <= entryZScore ||
+                    (state.CoolDownDir == 1 && bfZ >= 0) ||
+                    (state.CoolDownDir == 2 && bfZ <= 0))
+                {
+                    state.IsCoolingDown = false;
+                    state.CoolDownDir = 0;
                 }
             }
 
@@ -526,6 +552,9 @@ namespace QjySDK.Stg
                 int signalDir = 0;
                 if (bfZ > entryZScore) signalDir = 2;        // 卖蝶式
                 else if (bfZ < -entryZScore) signalDir = 1;  // 买蝶式
+
+                // 冷却期内屏蔽同向信号(反方向信号不受影响)
+                if (state.IsCoolingDown && signalDir == state.CoolDownDir) signalDir = 0;
 
                 // 连续确认
                 if (signalDir > 0 && signalDir == state.LastSignalDir)

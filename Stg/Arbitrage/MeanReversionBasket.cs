@@ -150,6 +150,8 @@ namespace QjySDK.Stg
             public int HoldBars { get; set; }
             public int ConfirmCount { get; set; }
             public int LastSignalDir { get; set; }
+            public bool IsCoolingDown { get; set; }  // 是否处于止损冷却期(防止止损后同向立即重开)
+            public int CoolDownDir { get; set; }     // 冷却方向: 1=做多输家篮子方向止损 2=做空赢家篮子方向止损
         }
 
         // 品种排名数据
@@ -375,6 +377,7 @@ namespace QjySDK.Stg
                 }
 
                 bool exitSignal = false;
+                bool stopLossHit = false;
 
                 // 分化度Z-Score回归 → 平仓
                 if (_divergenceZScore <= currentExitZ && _divergenceZScore >= -currentExitZ)
@@ -386,6 +389,7 @@ namespace QjySDK.Stg
                 if (!exitSignal && Math.Abs(_divergenceZScore) > stopLossZScore)
                 {
                     exitSignal = true;
+                    stopLossHit = true;
                 }
 
                 // ATR止损
@@ -408,12 +412,32 @@ namespace QjySDK.Stg
                     {
                         Trade(mktSymbol, OrderType.BUY_TO_COVER, currentPrice, state.Num, period, sendMode);
                     }
+                    int prevStatus = state.Status;
                     state.Status = 0;
                     state.Num = 0;
                     state.StopLoss = 0;
                     state.HoldBars = 0;
                     state.ConfirmCount = 0;
                     state.LastSignalDir = 0;
+
+                    if (stopLossHit)
+                    {
+                        // 止损后开启同向冷却并立即返回,确保同一根K线不会再进入开仓块同向重开
+                        state.IsCoolingDown = true;
+                        state.CoolDownDir = prevStatus;
+                        return;
+                    }
+                }
+            }
+
+            // ==================== 冷却解除 ====================
+            // 止损冷却:分化度Z回到入场阈值以内(中性区,含反向穿0)才解除,杜绝止损后原地同向重开
+            if (state.Status == 0 && state.IsCoolingDown)
+            {
+                if (_divergenceZScore <= entryZScore)
+                {
+                    state.IsCoolingDown = false;
+                    state.CoolDownDir = 0;
                 }
             }
 
@@ -430,6 +454,9 @@ namespace QjySDK.Stg
                     if (rankData.IsLoser) signalDir = 1;       // 输家做多
                     else if (rankData.IsWinner) signalDir = 2;  // 赢家做空
                 }
+
+                // 冷却期内屏蔽同向信号(反方向信号不受影响)
+                if (state.IsCoolingDown && signalDir == state.CoolDownDir) signalDir = 0;
 
                 // 连续确认
                 if (signalDir > 0 && signalDir == state.LastSignalDir)

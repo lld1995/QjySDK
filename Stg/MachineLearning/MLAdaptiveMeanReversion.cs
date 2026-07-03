@@ -121,6 +121,9 @@ namespace QjySDK.Stg
             sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线", Explain = "超过此数量强制平仓", Type = "number" };
             sd.ArgDic["maxHoldBars"] = 15;
 
+            sd.ArgDescDic["stopCooldownBars"] = new ArgDesc { Text = "止损冷却期", Explain = "止损后等待N根K线才允许重新开仓,0为不冷却", Type = "number" };
+            sd.ArgDic["stopCooldownBars"] = 5;
+
             // ==================== 交易参数 ====================
             sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDic["mode"] = 0;
@@ -706,6 +709,8 @@ namespace QjySDK.Stg
             public GBDTModel? ProbModel { get; set; } // 回归概率预测模型
             public GBDTModel? MagModel { get; set; }  // 回归幅度预测模型
             public int LastTrainBar { get; set; }     // 上次训练的K线索引
+            public int CooldownRemaining { get; set; } // 止损后剩余冷却K线数
+            public int BlockedDir { get; set; }     // 止损后被封锁的方向:0无 1多 2空
 
             public void Reset()
             {
@@ -929,8 +934,25 @@ namespace QjySDK.Stg
             // ==================== 交易逻辑 ====================
             if (state.Status == 0)
             {
-                // 空仓：寻找入场信号
-                if (longSignal && atrVal > 0)
+                // 止损后冷却期：冷却未结束时递减计数并跳过本根K线的开仓判断
+                if (state.CooldownRemaining > 0)
+                {
+                    state.CooldownRemaining--;
+                }
+                else
+                {
+                    // 信号重置再武装：被封锁方向的入场信号不再成立时解除封锁
+                    if (state.BlockedDir == 1 && !longSignal)
+                    {
+                        state.BlockedDir = 0;
+                    }
+                    else if (state.BlockedDir == 2 && !shortSignal)
+                    {
+                        state.BlockedDir = 0;
+                    }
+
+                    // 空仓：寻找入场信号（被封锁方向禁止开仓）
+                    if (longSignal && atrVal > 0 && state.BlockedDir != 1)
                 {
                     state.Status = 1;
                     state.Num = num;
@@ -957,7 +979,7 @@ namespace QjySDK.Stg
 
                     Trade(tu.MktSymbol, OrderType.BUY, currentPrice, num, period, sendMode);
                 }
-                else if (shortSignal && atrVal > 0)
+                    else if (shortSignal && atrVal > 0 && state.BlockedDir != 2)
                 {
                     state.Status = 2;
                     state.Num = num;
@@ -984,16 +1006,19 @@ namespace QjySDK.Stg
 
                     Trade(tu.MktSymbol, OrderType.SELL, currentPrice, num, period, sendMode);
                 }
+                }
             }
             else if (state.Status == 1)
             {
                 // 多头持仓：检查出场条件
                 bool exitSignal = false;
+                bool stopLossHit = false;
 
-                // 止损
+                // 止损（含移动止损抬高后的止损价）
                 if (currentPrice <= state.StopLoss)
                 {
                     exitSignal = true;
+                    stopLossHit = true;
                 }
                 // 止盈：到达ML目标或回归均值
                 else if (currentPrice >= state.TakeProfit)
@@ -1010,6 +1035,12 @@ namespace QjySDK.Stg
                 {
                     Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, currentPrice, state.Num, period, sendMode);
                     state.Reset();
+                    if (stopLossHit)
+                    {
+                        // 止损后进入冷却期，并封锁多头方向直至多头信号重置
+                        state.CooldownRemaining = Convert.ToInt32(ArgDic["stopCooldownBars"]);
+                        state.BlockedDir = 1;
+                    }
                 }
                 else if (useTrailingStop == 1 && atrVal > 0)
                 {
@@ -1025,11 +1056,13 @@ namespace QjySDK.Stg
             {
                 // 空头持仓：检查出场条件
                 bool exitSignal = false;
+                bool stopLossHit = false;
 
-                // 止损
+                // 止损（含移动止损下移后的止损价）
                 if (currentPrice >= state.StopLoss)
                 {
                     exitSignal = true;
+                    stopLossHit = true;
                 }
                 // 止盈：到达ML目标或回归均值
                 else if (currentPrice <= state.TakeProfit)
@@ -1046,6 +1079,12 @@ namespace QjySDK.Stg
                 {
                     Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, currentPrice, state.Num, period, sendMode);
                     state.Reset();
+                    if (stopLossHit)
+                    {
+                        // 止损后进入冷却期，并封锁空头方向直至空头信号重置
+                        state.CooldownRemaining = Convert.ToInt32(ArgDic["stopCooldownBars"]);
+                        state.BlockedDir = 2;
+                    }
                 }
                 else if (useTrailingStop == 1 && atrVal > 0)
                 {

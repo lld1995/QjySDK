@@ -64,6 +64,9 @@ namespace QjySDK.Stg
             sd.ColorDic["sub1-Trend"] = "#FF9800";   // 趋势橙色
             sd.ColorDic["sub1-Type"] = "#9C27B0";    // 类型紫色
 
+            sd.ArgDescDic["stopCooldownBars"] = new ArgDesc() { Text = "止损冷却K线数", Explain = "止损后N根K线内禁止开仓,设0关闭", Type = "number" };
+            sd.ArgDic["stopCooldownBars"] = 5;
+
             return sd;
         }
 
@@ -103,6 +106,8 @@ namespace QjySDK.Stg
             public decimal TakeProfit { get; set; }
             public decimal HighestPrice { get; set; }
             public decimal LowestPrice { get; set; }
+            public int BlockedDir { get; set; }       // 止损后被封锁的方向:0无 1多 2空
+            public int CooldownRemaining { get; set; } // 止损后剩余冷却K线数
         }
 
         private class Pivot
@@ -780,12 +785,23 @@ namespace QjySDK.Stg
         {
             if (trade.Status == 0)
             {
+                // 止损后冷却期
+                if (trade.CooldownRemaining > 0)
+                {
+                    trade.CooldownRemaining--;
+                    return;
+                }
+
+                // 信号重置再武装：波浪结构失效时解除封锁
+                if (trade.BlockedDir > 0 && !wave.IsValid)
+                    trade.BlockedDir = 0;
+
                 if (!wave.IsValid) return;
 
                 // Impulse wave trading
                 if (wave.Type == WaveType.Impulse)
                 {
-                    if (wave.IsUpTrend && mode != 2)
+                    if (wave.IsUpTrend && mode != 2 && trade.BlockedDir != 1)
                     {
                         // Enter long on wave 3 breakout
                         if (wave.CurrentWave == 3 && wave.Wave1 > 0 && wave.Wave2 > 0 && quote.Close > wave.Wave1)
@@ -794,7 +810,7 @@ namespace QjySDK.Stg
                         else if (wave.CurrentWave == 5 && wave.Wave3 > 0 && wave.Wave4 > 0 && quote.Close > wave.Wave3)
                             OpenLong(trade, tu, quote, period, sendMode, num, wave, lossRate, profitRate);
                     }
-                    else if (!wave.IsUpTrend && mode != 1)
+                    else if (!wave.IsUpTrend && mode != 1 && trade.BlockedDir != 2)
                     {
                         if (wave.CurrentWave == 3 && wave.Wave1 > 0 && wave.Wave2 > 0 && quote.Close < wave.Wave1)
                             OpenShort(trade, tu, quote, period, sendMode, num, wave, lossRate, profitRate);
@@ -805,13 +821,13 @@ namespace QjySDK.Stg
                 // Corrective wave trading - enter after C wave completes
                 else if (wave.Type == WaveType.Corrective && wave.CurrentWave == 8)
                 {
-                    if (wave.IsUpTrend && mode != 2 && wave.WaveC > 0 && wave.WaveB > 0)
+                    if (wave.IsUpTrend && mode != 2 && trade.BlockedDir != 1 && wave.WaveC > 0 && wave.WaveB > 0)
                     {
                         // After downward correction, look for reversal
                         if (quote.Close > wave.WaveB)
                             OpenLong(trade, tu, quote, period, sendMode, num, wave, lossRate, profitRate);
                     }
-                    else if (!wave.IsUpTrend && mode != 1 && wave.WaveC > 0 && wave.WaveB > 0)
+                    else if (!wave.IsUpTrend && mode != 1 && trade.BlockedDir != 2 && wave.WaveC > 0 && wave.WaveB > 0)
                     {
                         if (quote.Close < wave.WaveB)
                             OpenShort(trade, tu, quote, period, sendMode, num, wave, lossRate, profitRate);
@@ -849,7 +865,9 @@ namespace QjySDK.Stg
                 trade.HighestPrice = quote.High;
                 if (trailingStop == 1) { decimal newStop = trade.HighestPrice * (1 - trailingPercent / 100); if (newStop > trade.StopLoss) trade.StopLoss = newStop; }
             }
-            if (quote.Close <= trade.StopLoss || quote.Close >= trade.TakeProfit)
+            if (quote.Close <= trade.StopLoss)
+            { var oriNum = trade.Num; trade.Status = 0; trade.Num = 0; Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, quote.Close, oriNum, period, sendMode); trade.BlockedDir = 1; trade.CooldownRemaining = Convert.ToInt32(ArgDic["stopCooldownBars"]); }
+            else if (quote.Close >= trade.TakeProfit)
             { var oriNum = trade.Num; trade.Status = 0; trade.Num = 0; Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, quote.Close, oriNum, period, sendMode); }
         }
 
@@ -860,7 +878,9 @@ namespace QjySDK.Stg
                 trade.LowestPrice = quote.Low;
                 if (trailingStop == 1) { decimal newStop = trade.LowestPrice * (1 + trailingPercent / 100); if (newStop < trade.StopLoss) trade.StopLoss = newStop; }
             }
-            if (quote.Close >= trade.StopLoss || quote.Close <= trade.TakeProfit)
+            if (quote.Close >= trade.StopLoss)
+            { var oriNum = trade.Num; trade.Status = 0; trade.Num = 0; Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, quote.Close, oriNum, period, sendMode); trade.BlockedDir = 2; trade.CooldownRemaining = Convert.ToInt32(ArgDic["stopCooldownBars"]); }
+            else if (quote.Close <= trade.TakeProfit)
             { var oriNum = trade.Num; trade.Status = 0; trade.Num = 0; Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, quote.Close, oriNum, period, sendMode); }
         }
 

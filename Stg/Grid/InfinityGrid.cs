@@ -37,6 +37,9 @@ namespace QjySDK.Stg
 		{
 			var sd = new StgDesc();
 
+			// 交易方向：1做多网格（逢跌买入/逢涨卖出） 2做空网格（逢涨卖空/逢跌买回）
+			sd.ArgDic["mode"] = 1;
+
 			// 网格参数
 			sd.ArgDic["gridRatio"] = 1.5m;
 			sd.ArgDic["investPerGrid"] = 1000m;
@@ -49,10 +52,12 @@ namespace QjySDK.Stg
 			// 止损
 			sd.ArgDic["useStopLoss"] = 1;
 			sd.ArgDic["stopLossPercent"] = 10.0m;
+			sd.ArgDic["resumeAfterStopLoss"] = 0;
 
 			// 发单
 			sd.ArgDic["sendMode"] = 0;
 
+			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "1:做多网格|2:做空网格", Type = "select" };
 			sd.ArgDescDic["gridRatio"] = new ArgDesc() { Text = "网格比例%", Explain = "相邻网格价格比例百分比，如1.5表示每格间距1.5%", Type = "number" };
 			sd.ArgDescDic["investPerGrid"] = new ArgDesc() { Text = "每格投入金额", Explain = "每个网格投入的金额(非手数)", Type = "number" };
 			sd.ArgDescDic["maxTotalInvest"] = new ArgDesc() { Text = "最大总投入", Explain = "持仓总投入金额上限，0为不限", Type = "number" };
@@ -60,6 +65,7 @@ namespace QjySDK.Stg
 			sd.ArgDescDic["upperPriceLimit"] = new ArgDesc() { Text = "价格上限", Explain = "高于此价格停止卖出，0为不限", Type = "number" };
 			sd.ArgDescDic["useStopLoss"] = new ArgDesc() { Text = "启用止损", Explain = "触及止损价自动平仓", Options = "0:关闭|1:启用", Type = "bool" };
 			sd.ArgDescDic["stopLossPercent"] = new ArgDesc() { Text = "止损百分比", Explain = "价格偏离基准超过此百分比时全部止损", Type = "number" };
+			sd.ArgDescDic["resumeAfterStopLoss"] = new ArgDesc() { Text = "止损后重建", Explain = "止损后价格回到止损阈值内时允许重新建立网格；默认关闭以保持止损后停机保护", Options = "0:关闭|1:启用", Type = "bool" };
 			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
 
 			sd.MaxSymbolNum = 1000;
@@ -135,6 +141,7 @@ namespace QjySDK.Stg
 			var q = tu.QuoteList[tu.QuoteList.Count - 1];
 			var q2 = tu.QuoteList[tu.QuoteList.Count - 2];
 
+			int mode = ArgDic.ContainsKey("mode") ? Convert.ToInt32(ArgDic["mode"]) : 1;
 			decimal gridRatio = Convert.ToDecimal(ArgDic["gridRatio"]);
 			decimal investPerGrid = Convert.ToDecimal(ArgDic["investPerGrid"]);
 			decimal maxTotalInvest = Convert.ToDecimal(ArgDic["maxTotalInvest"]);
@@ -142,10 +149,24 @@ namespace QjySDK.Stg
 			decimal upperLimit = Convert.ToDecimal(ArgDic["upperPriceLimit"]);
 			int useStopLoss = Convert.ToInt32(ArgDic["useStopLoss"]);
 			decimal stopLossPct = Convert.ToDecimal(ArgDic["stopLossPercent"]);
+			int resumeAfterStopLoss = ArgDic.ContainsKey("resumeAfterStopLoss") ? Convert.ToInt32(ArgDic["resumeAfterStopLoss"]) : 0;
 			int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
-			// 止损后停止交易
-			if (s.IsStopped) return;
+			// 默认保持止损后停机；显式启用后，价格回到止损阈值内才重建网格，避免刚止损即反复开仓。
+			if (s.IsStopped)
+			{
+				if (resumeAfterStopLoss != 1 || s.BasePrice <= 0)
+					return;
+
+				decimal deviation = Math.Abs(q.Close - s.BasePrice) / s.BasePrice * 100m;
+				if (useStopLoss == 1 && deviation >= stopLossPct)
+					return;
+
+				s.IsStopped = false;
+				s.Initialized = false;
+				s.CurrentGridIndex = 0;
+				s.LastPrice = 0;
+			}
 
 			if (!s.Initialized)
 			{
@@ -164,11 +185,12 @@ namespace QjySDK.Stg
 			Plot("sub0", "Position", PlotType.LINE, (double)s.TotalPosition);
 			Plot("sub0", "TotalInvest", PlotType.LINE, (double)s.TotalInvest);
 
-			// 计算浮动盈亏
+			// 计算浮动盈亏（做空方向盈亏反号）
+			decimal dirSign = mode == 2 ? -1m : 1m;
 			decimal unrealizedPnL = 0;
 			foreach (var h in s.Holdings)
 			{
-				unrealizedPnL += (q.Close - h.Price) * h.Lots;
+				unrealizedPnL += (q.Close - h.Price) * h.Lots * dirSign;
 			}
 			Plot("sub1", "PnL", PlotType.LINE, (double)(s.RealizedPnL + unrealizedPnL));
 
@@ -188,8 +210,8 @@ namespace QjySDK.Stg
 				{
 					foreach (var h in s.Holdings)
 					{
-						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, h.Lots, period, sendMode);
-						s.RealizedPnL += (q.Close - h.Price) * h.Lots;
+						Trade(tu.MktSymbol, mode == 2 ? OrderType.BUY_TO_COVER : OrderType.SELL_TO_COVER, q.Close, h.Lots, period, sendMode);
+						s.RealizedPnL += (q.Close - h.Price) * h.Lots * dirSign;
 					}
 					s.Holdings.Clear();
 					s.TotalPosition = 0;
@@ -199,50 +221,103 @@ namespace QjySDK.Stg
 				}
 			}
 
-			// 价格向下穿越网格线 → 买入
-			if (currentIdx < prevIdx)
+			if (mode != 2)
 			{
-				for (int i = prevIdx - 1; i >= currentIdx; i--)
+				// 做多网格
+				// 价格向下穿越网格线 → 买入
+				if (currentIdx < prevIdx)
 				{
-					decimal gridPrice = GetGridPrice(s.BasePrice, gridRatio, i);
-
-					// 检查价格下限
-					if (lowerLimit > 0 && q.Close < lowerLimit) break;
-
-					// 检查最大投入
-					if (maxTotalInvest > 0 && s.TotalInvest >= maxTotalInvest) break;
-
-					decimal lots = CalcLots(tu, q.Close, investPerGrid);
-					if (lots <= 0) continue;
-
-					Trade(tu.MktSymbol, OrderType.BUY, q.Close, lots, period, sendMode);
-					s.Holdings.Add(new FilledGrid
+					for (int i = prevIdx - 1; i >= currentIdx; i--)
 					{
-						Price = q.Close,
-						Lots = lots,
-						Invest = investPerGrid
-					});
-					s.TotalPosition += lots;
-					s.TotalInvest += investPerGrid;
+						decimal gridPrice = GetGridPrice(s.BasePrice, gridRatio, i);
+
+						// 检查价格下限
+						if (lowerLimit > 0 && q.Close < lowerLimit) break;
+
+						// 检查最大投入
+						if (maxTotalInvest > 0 && s.TotalInvest >= maxTotalInvest) break;
+
+						decimal lots = CalcLots(tu, q.Close, investPerGrid);
+						if (lots <= 0) continue;
+
+						Trade(tu.MktSymbol, OrderType.BUY, q.Close, lots, period, sendMode);
+						s.Holdings.Add(new FilledGrid
+						{
+							Price = q.Close,
+							Lots = lots,
+							Invest = investPerGrid
+						});
+						s.TotalPosition += lots;
+						s.TotalInvest += investPerGrid;
+					}
+				}
+				// 价格向上穿越网格线 → 卖出(FIFO)
+				else if (currentIdx > prevIdx)
+				{
+					for (int i = prevIdx + 1; i <= currentIdx; i++)
+					{
+						// 检查价格上限
+						if (upperLimit > 0 && q.Close > upperLimit) break;
+
+						// 卖出最早买入的一层
+						if (s.Holdings.Count > 0)
+						{
+							var oldest = s.Holdings[0];
+							Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oldest.Lots, period, sendMode);
+							s.RealizedPnL += (q.Close - oldest.Price) * oldest.Lots;
+							s.TotalPosition -= oldest.Lots;
+							s.TotalInvest -= oldest.Invest;
+							s.Holdings.RemoveAt(0);
+						}
+					}
 				}
 			}
-			// 价格向上穿越网格线 → 卖出(FIFO)
-			else if (currentIdx > prevIdx)
+			else
 			{
-				for (int i = prevIdx + 1; i <= currentIdx; i++)
+				// 做空网格（Holdings 此处记录空头层，TotalPosition 为负）
+				// 价格向上穿越网格线 → 卖空
+				if (currentIdx > prevIdx)
 				{
-					// 检查价格上限
-					if (upperLimit > 0 && q.Close > upperLimit) break;
-
-					// 卖出最早买入的一层
-					if (s.Holdings.Count > 0)
+					for (int i = prevIdx + 1; i <= currentIdx; i++)
 					{
-						var oldest = s.Holdings[0];
-						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oldest.Lots, period, sendMode);
-						s.RealizedPnL += (q.Close - oldest.Price) * oldest.Lots;
-						s.TotalPosition -= oldest.Lots;
-						s.TotalInvest -= oldest.Invest;
-						s.Holdings.RemoveAt(0);
+						// 检查价格上限
+						if (upperLimit > 0 && q.Close > upperLimit) break;
+
+						// 检查最大投入
+						if (maxTotalInvest > 0 && s.TotalInvest >= maxTotalInvest) break;
+
+						decimal lots = CalcLots(tu, q.Close, investPerGrid);
+						if (lots <= 0) continue;
+
+						Trade(tu.MktSymbol, OrderType.SELL, q.Close, lots, period, sendMode);
+						s.Holdings.Add(new FilledGrid
+						{
+							Price = q.Close,
+							Lots = lots,
+							Invest = investPerGrid
+						});
+						s.TotalPosition -= lots;
+						s.TotalInvest += investPerGrid;
+					}
+				}
+				// 价格向下穿越网格线 → 买回(FIFO)
+				else if (currentIdx < prevIdx)
+				{
+					for (int i = prevIdx - 1; i >= currentIdx; i--)
+					{
+						// 检查价格下限
+						if (lowerLimit > 0 && q.Close < lowerLimit) break;
+
+						// 买回最早卖空的一层
+						if (s.Holdings.Count > 0)
+						{
+							var oldest = s.Holdings[0];
+							Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oldest.Lots, period, sendMode);
+							s.RealizedPnL += (oldest.Price - q.Close) * oldest.Lots;
+							s.TotalPosition += oldest.Lots;
+							s.TotalInvest -= oldest.Invest;
+							s.Holdings.RemoveAt(0);
+						}
 					}
 				}
 			}

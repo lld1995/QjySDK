@@ -46,8 +46,8 @@ namespace QjySDK.Stg
 			sd.ArgDic["takeProfitPercent"] = 1.5m;
 			sd.ArgDic["totalStopLossPercent"] = 8.0m;
 
-			// 方向
-			sd.ArgDic["direction"] = 0;
+			// 方向（统一方向控制参数）
+			sd.ArgDic["mode"] = 1;
 			sd.ArgDic["sendMode"] = 0;
 
 			// 手数控制
@@ -63,7 +63,7 @@ namespace QjySDK.Stg
 			sd.ArgDescDic["multiplier"] = new ArgDesc() { Text = "手数倍率", Explain = "每层手数=基础手数*倍率^层数，经典马丁为2", Type = "number" };
 			sd.ArgDescDic["takeProfitPercent"] = new ArgDesc() { Text = "止盈百分比", Explain = "价格高于持仓均价此百分比时止盈", Type = "number" };
 			sd.ArgDescDic["totalStopLossPercent"] = new ArgDesc() { Text = "总体止损%", Explain = "价格偏离首次入场价超过此百分比时全部止损", Type = "number" };
-			sd.ArgDescDic["direction"] = new ArgDesc() { Text = "方向", Explain = "交易方向", Options = "0:做多(逢跌加仓)|1:做空(逢涨加仓)", Type = "select" };
+			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "1:做多(逢跌加仓)|2:做空(逢涨加仓)", Type = "select" };
 			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
 			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
 			sd.ArgDescDic["cooldownBars"] = new ArgDesc() { Text = "冷却K线数", Explain = "止损后等待N根K线再重新入场，0为不冷却", Type = "number" };
@@ -162,7 +162,11 @@ namespace QjySDK.Stg
 			double multiplier = Convert.ToDouble(ArgDic["multiplier"]);
 			decimal tpPct = Convert.ToDecimal(ArgDic["takeProfitPercent"]) / 100m;
 			decimal slPct = Convert.ToDecimal(ArgDic["totalStopLossPercent"]) / 100m;
-			int direction = Convert.ToInt32(ArgDic["direction"]);
+			// 方向：mode 1做多/2做空；兼容旧配置的 direction(0多/1空)
+			int mode = 1;
+			if (ArgDic.ContainsKey("mode")) mode = Convert.ToInt32(ArgDic["mode"]);
+			else if (ArgDic.ContainsKey("direction")) mode = Convert.ToInt32(ArgDic["direction"]) == 1 ? 2 : 1;
+			int direction = mode == 2 ? 1 : 0;
 			int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 			int cooldownBars = Convert.ToInt32(ArgDic["cooldownBars"]);
 

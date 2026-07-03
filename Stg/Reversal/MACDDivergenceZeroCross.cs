@@ -80,7 +80,7 @@ namespace QjySDK.Stg
             sd.ArgDic["trailingDistance"] = 1.0;    // 移动止损距离（ATR倍数）
 
             // 交易方向
-            sd.ArgDic["tradeDirection"] = 0;        // 0:双向 1:仅做多 2:仅做空
+            sd.ArgDic["mode"] = 0;        // 0:双向 1:仅做多 2:仅做空
 
             // 发单模式
             sd.ArgDic["sendMode"] = 0;              // 0:立即 1:下个开盘
@@ -108,7 +108,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["useTrailingStop"] = new ArgDesc() { Text = "移动止损", Explain = "跟踪最高/低点调整止损", Options = "0:不使用|1:使用移动止损", Type = "bool" };
             sd.ArgDescDic["trailingActivation"] = new ArgDesc() { Text = "移动止损激活", Explain = "盈利达到ATR*此值时激活移动止损", Type = "number" };
             sd.ArgDescDic["trailingDistance"] = new ArgDesc() { Text = "移动止损距离", Explain = "移动止损与最高/低点的距离（ATR倍数）", Type = "number" };
-            sd.ArgDescDic["tradeDirection"] = new ArgDesc() { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
             sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
 
@@ -205,7 +205,7 @@ namespace QjySDK.Stg
             int useTrailingStop = Convert.ToInt32(ArgDic["useTrailingStop"]);
             double trailingActivation = Convert.ToDouble(ArgDic["trailingActivation"]);
             double trailingDistance = Convert.ToDouble(ArgDic["trailingDistance"]);
-            int tradeDirection = Convert.ToInt32(ArgDic["tradeDirection"]);
+            int mode = ArgDic.ContainsKey("mode") ? Convert.ToInt32(ArgDic["mode"]) : (ArgDic.ContainsKey("tradeDirection") ? Convert.ToInt32(ArgDic["tradeDirection"]) : 0);
             int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
             // 最小数据要求
@@ -371,8 +371,8 @@ namespace QjySDK.Stg
             }
 
             // 应用交易方向过滤
-            if (tradeDirection == 1) shortSignal = false;  // 仅做多
-            if (tradeDirection == 2) longSignal = false;   // 仅做空
+            if (mode == 1) shortSignal = false;  // 仅做多
+            if (mode == 2) longSignal = false;   // 仅做空
 
             // ==================== 持仓管理 ====================
 

@@ -43,6 +43,7 @@ namespace QjySDK.Stg
             sd.ArgDic["sendMode"] = 0;
             sd.ArgDescDic["lotsMode"] = new ArgDesc { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
 			sd.ArgDescDic["stopLoss"] = new ArgDesc() { Text = "止损%", Explain = "固定止损百分比，0为不启用", Type = "number" };
+            sd.ArgDic["stopLoss"] = 0m;
             sd.ArgDic["lotsMode"] = 1;
             sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数数量", Type = "number" };
             sd.ArgDic["lots"] = 1.0m;

@@ -176,6 +176,9 @@ namespace QjySDK.Stg
             sd.MidValDic["sub0"] = 50;
             sd.MidValDic["sub1"] = 0;
 
+            sd.ArgDescDic["stopCooldownBars"] = new ArgDesc() { Text = "止损冷却K线数", Explain = "止损后N根K线内禁止开仓,设0关闭", Type = "number" };
+            sd.ArgDic["stopCooldownBars"] = 5;
+
             return sd;
         }
 
@@ -191,6 +194,8 @@ namespace QjySDK.Stg
             public int HoldBars { get; set; }         // 持仓K线数
             public decimal EntryAtr { get; set; }     // 入场时ATR
             public double EntryRsi { get; set; }      // 入场时RSI
+            public int BlockedDir { get; set; }       // 止损后被封锁的方向:0无 1多 2空
+            public int CooldownRemaining { get; set; } // 止损后剩余冷却K线数
 
             public void Reset()
             {
@@ -420,8 +425,21 @@ namespace QjySDK.Stg
             // ==================== 交易逻辑 ====================
             if (state.Status == 0)
             {
+                // 信号重置再武装：出现反向信号时解除封锁
+                if (state.BlockedDir == 1 && shortSignal)
+                    state.BlockedDir = 0;
+                else if (state.BlockedDir == 2 && longSignal)
+                    state.BlockedDir = 0;
+
+                // 止损后冷却期
+                if (state.CooldownRemaining > 0)
+                {
+                    state.CooldownRemaining--;
+                    return;
+                }
+
                 // 空仓：寻找入场信号
-                if (longSignal && atrVal > 0)
+                if (longSignal && atrVal > 0 && state.BlockedDir != 1)
                 {
                     state.Status = 1;
                     state.Num = num;
@@ -437,7 +455,7 @@ namespace QjySDK.Stg
                     state.HoldBars = 0;
                     Trade(tu.MktSymbol, OrderType.BUY, currentPrice, num, period, sendMode);
                 }
-                else if (shortSignal && atrVal > 0)
+                else if (shortSignal && atrVal > 0 && state.BlockedDir != 2)
                 {
                     state.Status = 2;
                     state.Num = num;
@@ -458,11 +476,13 @@ namespace QjySDK.Stg
             {
                 // 多头持仓：检查出场条件
                 bool exitSignal = false;
+                bool stopLossHit = false;
 
                 // 止损
                 if (currentPrice <= state.StopLoss)
                 {
                     exitSignal = true;
+                    stopLossHit = true;
                 }
                 // 止盈模式判断
                 else if (takeProfitMode == 0)
@@ -499,6 +519,11 @@ namespace QjySDK.Stg
                 {
                     Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, currentPrice, state.Num, period, sendMode);
                     state.Reset();
+                    if (stopLossHit)
+                    {
+                        state.BlockedDir = 1;
+                        state.CooldownRemaining = Convert.ToInt32(ArgDic["stopCooldownBars"]);
+                    }
                 }
                 else if (useTrailingStop == 1 && atrVal > 0)
                 {
@@ -514,11 +539,13 @@ namespace QjySDK.Stg
             {
                 // 空头持仓：检查出场条件
                 bool exitSignal = false;
+                bool stopLossHit = false;
 
                 // 止损
                 if (currentPrice >= state.StopLoss)
                 {
                     exitSignal = true;
+                    stopLossHit = true;
                 }
                 // 止盈模式判断
                 else if (takeProfitMode == 0)
@@ -555,6 +582,11 @@ namespace QjySDK.Stg
                 {
                     Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, currentPrice, state.Num, period, sendMode);
                     state.Reset();
+                    if (stopLossHit)
+                    {
+                        state.BlockedDir = 2;
+                        state.CooldownRemaining = Convert.ToInt32(ArgDic["stopCooldownBars"]);
+                    }
                 }
                 else if (useTrailingStop == 1 && atrVal > 0)
                 {

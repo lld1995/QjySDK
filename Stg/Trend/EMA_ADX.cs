@@ -58,6 +58,7 @@ namespace QjySDK.Stg
         private decimal _trailingStopAtrMultiplier;
         private int _mode;
         private int _sendMode;
+        private int _stopCooldownBars;   // 止损后冷却K线数
 
         private Dictionary<string, TradeState> _stateDict = new Dictionary<string, TradeState>();
 
@@ -117,6 +118,9 @@ namespace QjySDK.Stg
             sd.ArgDescDic["TrailingStopAtrMultiplier"] = new ArgDesc { Text = "移动止损ATR倍数", Explain = "移动止损距离 = ATR × 此倍数", Type = "number" };
             sd.ArgDic["TrailingStopAtrMultiplier"] = 1.5;
 
+            sd.ArgDescDic["stopCooldownBars"] = new ArgDesc { Text = "止损冷却K线数", Explain = "止损后N根K线内禁止开仓,设0关闭", Type = "number" };
+            sd.ArgDic["stopCooldownBars"] = 5;
+
             sd.ColorDic["main-EMA_Fast"] = "#FF5722";
             sd.ColorDic["main-EMA_Slow"] = "#4ECDC4";
             sd.ColorDic["sub0-ADX"] = "#FFE66D";
@@ -144,6 +148,7 @@ namespace QjySDK.Stg
             _trailingStopAtrMultiplier = Convert.ToDecimal(ArgDic["TrailingStopAtrMultiplier"]);
             _mode = Convert.ToInt32(ArgDic["mode"]);
             _sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+            _stopCooldownBars = Convert.ToInt32(ArgDic["stopCooldownBars"]);
         }
 
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
@@ -234,6 +239,13 @@ namespace QjySDK.Stg
             decimal atr, double adxValue, double pdi, double mdi,
             decimal fastEma, decimal slowEma, double? emaFastPrev)
         {
+            // 止损后冷却期
+            if (state.CooldownRemaining > 0)
+            {
+                state.CooldownRemaining--;
+                return;
+            }
+
             bool isStrongTrend = adxValue > (double)_adxThreshold;
             if (!isStrongTrend) return;
 
@@ -247,14 +259,20 @@ namespace QjySDK.Stg
             bool priceAboveSlowEma = currentPrice > slowEma;
             bool priceBelowSlowEma = currentPrice < slowEma;
 
-            if (bullishTrend && priceAboveSlowEma && (priceTouchedEma || priceNearEma) && _mode != 2)
+            // 信号重置再武装：被封锁方向的入场信号不再成立时解除封锁
+            if (state.BlockedDir == 1 && !(bullishTrend && priceAboveSlowEma && (priceTouchedEma || priceNearEma)))
+                state.BlockedDir = 0;
+            else if (state.BlockedDir == 2 && !(bearishTrend && priceBelowSlowEma && (priceTouchedEma || priceNearEma)))
+                state.BlockedDir = 0;
+
+            if (bullishTrend && priceAboveSlowEma && (priceTouchedEma || priceNearEma) && _mode != 2 && state.BlockedDir != 1)
             {
                 if (currentPrice > fastEma)
                 {
                     OpenLongPosition(state, mktSymbol, currentPrice, atr, period);
                 }
             }
-            else if (bearishTrend && priceBelowSlowEma && (priceTouchedEma || priceNearEma) && _mode != 1)
+            else if (bearishTrend && priceBelowSlowEma && (priceTouchedEma || priceNearEma) && _mode != 1 && state.BlockedDir != 2)
             {
                 if (currentPrice < fastEma)
                 {
@@ -272,6 +290,8 @@ namespace QjySDK.Stg
                 if (currentPrice <= state.StopLoss)
                 {
                     ClosePosition(state, mktSymbol, currentPrice, period);
+                    state.BlockedDir = 1;
+                    state.CooldownRemaining = _stopCooldownBars;
                     return;
                 }
 
@@ -301,6 +321,8 @@ namespace QjySDK.Stg
                 if (currentPrice >= state.StopLoss)
                 {
                     ClosePosition(state, mktSymbol, currentPrice, period);
+                    state.BlockedDir = 2;
+                    state.CooldownRemaining = _stopCooldownBars;
                     return;
                 }
 
@@ -408,6 +430,8 @@ namespace QjySDK.Stg
             public decimal TakeProfit { get; set; } = 0;
             public decimal HighestPrice { get; set; } = 0;
             public decimal LowestPrice { get; set; } = decimal.MaxValue;
+            public int BlockedDir { get; set; }       // 止损后被封锁的方向:0无 1多 2空
+            public int CooldownRemaining { get; set; } // 止损后剩余冷却K线数
 
             public void Reset()
             {

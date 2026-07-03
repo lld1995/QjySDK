@@ -392,8 +392,8 @@ namespace QjySDK.Stg
                     state.Num = 0;
                 }
 
-                // 开空仓（双向模式）
-                if (state.Position == 0 && mode == 0)
+                // 开空仓（双向或仅做空模式）
+                if (state.Position == 0 && mode != 1)
                 {
                     Trade(tu.MktSymbol, OrderType.SELL, currentPrice, lots, period, sendMode);
                     state.Position = -1;

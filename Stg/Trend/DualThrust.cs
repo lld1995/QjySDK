@@ -121,6 +121,7 @@ namespace QjySDK.Stg
             public decimal Num { get; set; }          // 持仓数量
             public decimal EntryPrice { get; set; }   // 入场价格
             public DateTime EntryTime { get; set; }   // 入场时间
+            public int BlockedDir { get; set; }       // 止损封锁方向 0:无 1:禁开多 2:禁开空
         }
 
         /// <summary>
@@ -396,8 +397,14 @@ namespace QjySDK.Stg
         private void HandleEntrySignal(TableUnit tu, Period period, SkQuote q, State s, decimal num,
             DailyChannel channel, int mode, int sendMode)
         {
-            // 价格突破上轨 -> 做多
-            if (q.Close > channel.UpperBand && mode != 2)
+            // 止损后信号重置(re-arm)：价格先回到通道内，才解除同向封锁，再次突破才算新信号
+            if (s.BlockedDir == 1 && q.Close <= channel.UpperBand)
+                s.BlockedDir = 0;
+            else if (s.BlockedDir == 2 && q.Close >= channel.LowerBand)
+                s.BlockedDir = 0;
+
+            // 价格突破上轨 -> 做多（止损封锁同方向时不入场）
+            if (q.Close > channel.UpperBand && mode != 2 && s.BlockedDir != 1)
             {
                 s.Status = 1;
                 s.Num = num;
@@ -405,8 +412,8 @@ namespace QjySDK.Stg
                 s.EntryTime = q.Date;
                 Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
             }
-            // 价格突破下轨 -> 做空
-            else if (q.Close < channel.LowerBand && mode != 1)
+            // 价格突破下轨 -> 做空（止损封锁同方向时不入场）
+            else if (q.Close < channel.LowerBand && mode != 1 && s.BlockedDir != 2)
             {
                 s.Status = 2;
                 s.Num = num;
@@ -425,6 +432,7 @@ namespace QjySDK.Stg
         {
             bool shouldExit = false;
             bool shouldReverse = false;
+            bool stopLossHit = false;
 
             // 检查止损
             if (useStopLoss == 1)
@@ -433,6 +441,7 @@ namespace QjySDK.Stg
                 if (q.Close <= stopPrice)
                 {
                     shouldExit = true;
+                    stopLossHit = true;
                 }
             }
 
@@ -475,6 +484,8 @@ namespace QjySDK.Stg
                 }
                 else
                 {
+                    // 止损出场时封锁同方向，防止止损后立即同向重开
+                    if (stopLossHit) s.BlockedDir = 1;
                     ResetState(s);
                 }
             }
@@ -489,6 +500,7 @@ namespace QjySDK.Stg
         {
             bool shouldExit = false;
             bool shouldReverse = false;
+            bool stopLossHit = false;
 
             // 检查止损
             if (useStopLoss == 1)
@@ -497,6 +509,7 @@ namespace QjySDK.Stg
                 if (q.Close >= stopPrice)
                 {
                     shouldExit = true;
+                    stopLossHit = true;
                 }
             }
 
@@ -539,6 +552,8 @@ namespace QjySDK.Stg
                 }
                 else
                 {
+                    // 止损出场时封锁同方向，防止止损后立即同向重开
+                    if (stopLossHit) s.BlockedDir = 2;
                     ResetState(s);
                 }
             }

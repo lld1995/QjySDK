@@ -70,6 +70,7 @@ namespace QjySDK.Stg
         private int _emaSlopePeriod;
         private int _mode;
         private int _sendMode;
+        private int _stopCooldownBars;   // 止损后冷却K线数
         private Dictionary<string, TradeState> _stateDict = new Dictionary<string, TradeState>();
 
         public EMA_ADX_DI()
@@ -142,6 +143,9 @@ namespace QjySDK.Stg
             sd.ArgDescDic["EmaSlopePeriod"] = new ArgDesc { Text = "EMA斜率周期", Explain = "计算EMA斜率的回看周期", Type = "number" };
             sd.ArgDic["EmaSlopePeriod"] = 3;
 
+            sd.ArgDescDic["stopCooldownBars"] = new ArgDesc { Text = "止损冷却K线数", Explain = "止损后N根K线内禁止开仓,设0关闭", Type = "number" };
+            sd.ArgDic["stopCooldownBars"] = 5;
+
             // 颜色配置
             sd.ColorDic["main-EMA"] = "#2196F3";
             sd.ColorDic["sub0-ADX"] = "#FF9800";
@@ -174,6 +178,7 @@ namespace QjySDK.Stg
             _emaSlopePeriod = Convert.ToInt32(ArgDic["EmaSlopePeriod"]);
             _mode = Convert.ToInt32(ArgDic["mode"]);
             _sendMode = Convert.ToInt32(ArgDic["sendMode"]);
+            _stopCooldownBars = Convert.ToInt32(ArgDic["stopCooldownBars"]);
         }
 
         public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)
@@ -279,6 +284,19 @@ namespace QjySDK.Stg
             decimal atr, double adxValue, double pdi, double mdi, double diDiff,
             bool diGoldenCross, bool diDeathCross, decimal ema, double emaSlope)
         {
+            // 信号重置再武装：出现反向交叉信号时解除封锁
+            if (state.BlockedDir == 1 && diDeathCross)
+                state.BlockedDir = 0;
+            else if (state.BlockedDir == 2 && diGoldenCross)
+                state.BlockedDir = 0;
+
+            // 止损后冷却期
+            if (state.CooldownRemaining > 0)
+            {
+                state.CooldownRemaining--;
+                return;
+            }
+
             // ADX必须大于入场阈值
             if (adxValue < (double)_adxEntryThreshold) return;
 
@@ -286,7 +304,7 @@ namespace QjySDK.Stg
             if (Math.Abs(diDiff) < (double)_diDiffThreshold) return;
 
             // 做多条件（DI金叉为事件，不再叠加 currentPrice > ema 的瞬时位置过滤，避免与SMA同构的信号丢失）
-            if (diGoldenCross && _mode != 2)
+            if (diGoldenCross && _mode != 2 && state.BlockedDir != 1)
             {
                 // EMA斜率过滤：斜率必须向上
                 if (_useEmaSlopeFilter && emaSlope <= 0) return;
@@ -294,7 +312,7 @@ namespace QjySDK.Stg
                 OpenLongPosition(state, mktSymbol, currentPrice, atr, period);
             }
             // 做空条件
-            else if (diDeathCross && _mode != 1)
+            else if (diDeathCross && _mode != 1 && state.BlockedDir != 2)
             {
                 // EMA斜率过滤：斜率必须向下
                 if (_useEmaSlopeFilter && emaSlope >= 0) return;
@@ -327,6 +345,8 @@ namespace QjySDK.Stg
                 if (currentPrice <= state.StopLoss)
                 {
                     ClosePosition(state, mktSymbol, currentPrice, period, "StopLoss");
+                    state.BlockedDir = 1;
+                    state.CooldownRemaining = _stopCooldownBars;
                     return;
                 }
 
@@ -380,6 +400,8 @@ namespace QjySDK.Stg
                 if (currentPrice >= state.StopLoss)
                 {
                     ClosePosition(state, mktSymbol, currentPrice, period, "StopLoss");
+                    state.BlockedDir = 2;
+                    state.CooldownRemaining = _stopCooldownBars;
                     return;
                 }
 
@@ -507,6 +529,8 @@ namespace QjySDK.Stg
             public decimal HighestPrice { get; set; } = 0;
             public decimal LowestPrice { get; set; } = decimal.MaxValue;
             public int HoldBars { get; set; } = 0;
+            public int BlockedDir { get; set; }       // 止损后被封锁的方向:0无 1多 2空
+            public int CooldownRemaining { get; set; } // 止损后剩余冷却K线数
 
             public void Reset()
             {

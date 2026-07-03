@@ -193,6 +193,15 @@ namespace QjySDK.Stg
 			// 止损设置
 			sd.ArgDic["useStopLoss"] = 1;        // 是否使用止损（0否 1是）
 			sd.ArgDic["stopLossPercent"] = 5.0m; // 止损比例（百分比，如3表示3%）
+			sd.ArgDic["useTrailingStop"] = 0;     // 是否使用移动止损（0否 1是）
+			sd.ArgDic["trailingActivatePercent"] = 3.0m; // 盈利达到此百分比后激活移动止损
+			sd.ArgDic["trailingStopPercent"] = 2.0m;     // 从最高/最低点回撤此百分比触发移动止损
+			sd.ArgDic["signalExpiryBars"] = 0;     // 一买/一卖信号过期K线数，0为不过期
+			sd.ArgDic["useZhongShuExit"] = 0;      // 是否启用中枢回归平仓
+			sd.ArgDic["minHoldBarsForExit"] = 0;   // 中枢回归平仓最小持仓K线数
+			sd.ArgDic["tradeCooldownBars"] = 0;    // 平仓后冷却K线数
+			sd.ArgDic["noReversalOnBuy3Sell3"] = 0; // Buy3/Sell3是否禁止反手
+			sd.ArgDic["zhongShuExitScope"] = 0;    // 中枢平仓适用范围
 
 			sd.ArgDescDic["minBarCount"] = new ArgDesc() { Text = "最少K线数", Explain = "至少需要形成2个分型", Type = "number" };
 			sd.ArgDescDic["strokeMinBars"] = new ArgDesc() { Text = "笔最少K线", Explain = "笔的最少独立K线数，缠论标准为5", Type = "number" };
@@ -255,6 +264,11 @@ namespace QjySDK.Stg
 			public int LastTradedBSPointIndex { get; set; } = -1;  // 最后交易的买卖点索引（防止重复触发）
 			public ZhongShu? LastConfirmedDrawZhongShu { get; set; }  // 上次绘制的已确认中枢（用于防止中枢回退）
 			public int LastConfirmedStrokeCount { get; set; }  // 上次确认中枢时的笔数量
+			public decimal HighestSinceEntry { get; set; }     // 入场后最高价（移动止损）
+			public decimal LowestSinceEntry { get; set; }      // 入场后最低价（移动止损）
+			public int EntryBarIndex { get; set; } = -1;       // 入场K线索引
+			public int LastExitBarIndex { get; set; } = -1;    // 最近平仓K线索引（冷却期）
+			public BSPointType EntryBSPointType { get; set; } = BSPointType.None; // 入场买卖点类型
 		}
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -2100,12 +2114,37 @@ namespace QjySDK.Stg
 				}
 			}
 
-			// 止损检查（优先于其他交易逻辑）
+			// ==================== 风控参数读取 ====================
 			bool useStopLoss = Convert.ToInt32(ArgDic["useStopLoss"]) == 1;
 			decimal stopLossPercent = Convert.ToDecimal(ArgDic["stopLossPercent"]);
+			bool useTrailingStop = Convert.ToInt32(ArgDic["useTrailingStop"]) == 1;
+			decimal trailingActivatePercent = Convert.ToDecimal(ArgDic["trailingActivatePercent"]);
+			decimal trailingStopPercent = Convert.ToDecimal(ArgDic["trailingStopPercent"]);
+			int signalExpiryBars = Convert.ToInt32(ArgDic["signalExpiryBars"]);
+			bool useZhongShuExit = Convert.ToInt32(ArgDic["useZhongShuExit"]) == 1;
+			int minHoldBarsForExit = Convert.ToInt32(ArgDic["minHoldBarsForExit"]);
+			int tradeCooldownBars = Convert.ToInt32(ArgDic["tradeCooldownBars"]);
+			bool noReversalOnBuy3Sell3 = Convert.ToInt32(ArgDic["noReversalOnBuy3Sell3"]) == 1;
+			int zhongShuExitScope = Convert.ToInt32(ArgDic["zhongShuExitScope"]);
 			var currentPrice = q.Close;
+			int barIndex = tu.QuoteList.Count - 1;
 
-			// 止损检查（优先于其他交易逻辑）
+			// ==================== 持仓期间追踪最高/最低价 ====================
+			if (s.Status != 0 && s.EntryPrice > 0)
+			{
+				if (s.Status == 1)
+				{
+					if (s.HighestSinceEntry == 0) s.HighestSinceEntry = currentPrice;
+					else if (currentPrice > s.HighestSinceEntry) s.HighestSinceEntry = currentPrice;
+				}
+				else if (s.Status == 2)
+				{
+					if (s.LowestSinceEntry == 0) s.LowestSinceEntry = currentPrice;
+					else if (currentPrice < s.LowestSinceEntry) s.LowestSinceEntry = currentPrice;
+				}
+			}
+
+			// ==================== 固定止损 ====================
 			if (useStopLoss && s.Status != 0 && s.EntryPrice > 0)
 			{
 				bool stopLossTriggered = false;
@@ -2115,11 +2154,7 @@ namespace QjySDK.Stg
 					if (currentPrice <= stopLossPrice)
 					{
 						stopLossTriggered = true;
-						var oriNum = s.Num;
-						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oriNum, period, sendMode);
-						s.Status = 0;
-						s.Num = 0;
-						s.EntryPrice = 0;
+						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
 					}
 				}
 				else if (s.Status == 2)  // 空仓止损
@@ -2128,52 +2163,182 @@ namespace QjySDK.Stg
 					if (currentPrice >= stopLossPrice)
 					{
 						stopLossTriggered = true;
-						var oriNum = s.Num;
-						Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oriNum, period, sendMode);
-						s.Status = 0;
-						s.Num = 0;
-						s.EntryPrice = 0;
+						Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
 					}
 				}
 				if (stopLossTriggered)
+				{
+					s.Status = 0;
+					s.Num = 0;
+					s.EntryPrice = 0;
+					s.HighestSinceEntry = 0;
+					s.LowestSinceEntry = 0;
+					s.LastExitBarIndex = barIndex;
+					s.EntryBSPointType = BSPointType.None;
 					return;  // 止损后本周期不再进行其他交易
+				}
 			}
 
-			// 基于买卖点的交易逻辑
+			// ==================== 移动止损 ====================
+			if (useTrailingStop && s.Status != 0 && s.EntryPrice > 0)
+			{
+				bool trailingTriggered = false;
+				if (s.Status == 1)  // 多仓移动止损
+				{
+					decimal profitPercent = (s.HighestSinceEntry - s.EntryPrice) / s.EntryPrice * 100;
+					if (profitPercent >= trailingActivatePercent)
+					{
+						decimal trailingStopPrice = s.HighestSinceEntry * (1 - trailingStopPercent / 100);
+						if (currentPrice <= trailingStopPrice)
+						{
+							trailingTriggered = true;
+							Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
+						}
+					}
+				}
+				else if (s.Status == 2)  // 空仓移动止损
+				{
+					decimal profitPercent = (s.EntryPrice - s.LowestSinceEntry) / s.EntryPrice * 100;
+					if (profitPercent >= trailingActivatePercent)
+					{
+						decimal trailingStopPrice = s.LowestSinceEntry * (1 + trailingStopPercent / 100);
+						if (currentPrice >= trailingStopPrice)
+						{
+							trailingTriggered = true;
+							Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
+						}
+					}
+				}
+				if (trailingTriggered)
+				{
+					s.Status = 0;
+					s.Num = 0;
+					s.EntryPrice = 0;
+					s.HighestSinceEntry = 0;
+					s.LowestSinceEntry = 0;
+					s.LastExitBarIndex = barIndex;
+					s.EntryBSPointType = BSPointType.None;
+					return;
+				}
+			}
+
+			// ==================== 中枢回归平仓 ====================
+			if (useZhongShuExit && s.Status != 0 && s.EntryPrice > 0 && s.CurrentZhongShu != null && s.CurrentZhongShu.IsValid)
+			{
+int holdBars = barIndex - s.EntryBarIndex;
+				if (holdBars >= minHoldBarsForExit)
+				{
+					// zhongShuExitScope: 0=仅Buy3/Sell3, 1=Buy2/Buy3/Sell2/Sell3, 2=所有买卖点
+					bool inScope = false;
+					if (zhongShuExitScope == 2) inScope = true;
+					else if (zhongShuExitScope == 1 &&
+						s.EntryBSPointType != BSPointType.Buy1 && s.EntryBSPointType != BSPointType.Sell1) inScope = true;
+					else if (zhongShuExitScope == 0 &&
+						(s.EntryBSPointType == BSPointType.Buy3 || s.EntryBSPointType == BSPointType.Sell3)) inScope = true;
+
+					if (inScope)
+					{
+						var zs = s.CurrentZhongShu;
+						bool zhongShuExitTriggered = false;
+						if (s.Status == 1 && currentPrice >= zs.ZD && currentPrice <= zs.ZG)
+						{
+							zhongShuExitTriggered = true;
+							Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
+						}
+						else if (s.Status == 2 && currentPrice >= zs.ZD && currentPrice <= zs.ZG)
+						{
+							zhongShuExitTriggered = true;
+							Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
+						}
+						if (zhongShuExitTriggered)
+						{
+							s.Status = 0;
+							s.Num = 0;
+							s.EntryPrice = 0;
+							s.HighestSinceEntry = 0;
+							s.LowestSinceEntry = 0;
+							s.LastExitBarIndex = barIndex;
+							s.EntryBSPointType = BSPointType.None;
+							return;
+						}
+					}
+				}
+			}
+
+			// ==================== 基于买卖点的交易逻辑 ====================
 			if (s.BSPoints == null || s.BSPoints.Count == 0)
 				return;
 
 			// 获取最新的买卖点
 			var latestBSPoint = s.BSPoints[s.BSPoints.Count - 1];
-			
+
 			// 检查是否已经交易过这个买卖点（防止重复触发）
 			if (latestBSPoint.Index <= s.LastTradedBSPointIndex)
 				return;
 
-			// 判断买卖点类型并执行交易
-			bool isBuyPoint = latestBSPoint.Type == BSPointType.Buy1 || 
-							  latestBSPoint.Type == BSPointType.Buy2 || 
+			// 判断买卖点类型
+			bool isBuyPoint = latestBSPoint.Type == BSPointType.Buy1 ||
+							  latestBSPoint.Type == BSPointType.Buy2 ||
 							  latestBSPoint.Type == BSPointType.Buy3;
-			bool isSellPoint = latestBSPoint.Type == BSPointType.Sell1 || 
-							   latestBSPoint.Type == BSPointType.Sell2 || 
+			bool isSellPoint = latestBSPoint.Type == BSPointType.Sell1 ||
+							   latestBSPoint.Type == BSPointType.Sell2 ||
 							   latestBSPoint.Type == BSPointType.Sell3;
+
+			// ==================== 信号过期检查 ====================
+			if (signalExpiryBars > 0)
+			{
+				if (latestBSPoint.Type == BSPointType.Buy2 || latestBSPoint.Type == BSPointType.Buy3)
+				{
+					if (s.LastBuy1 == null || (s.MergedBars.Count - 1 - s.LastBuy1.Index) > signalExpiryBars)
+						return;  // 一买信号已过期，不再派生二买/三买
+				}
+				else if (latestBSPoint.Type == BSPointType.Sell2 || latestBSPoint.Type == BSPointType.Sell3)
+				{
+					if (s.LastSell1 == null || (s.MergedBars.Count - 1 - s.LastSell1.Index) > signalExpiryBars)
+						return;  // 一卖信号已过期，不再派生二卖/三卖
+				}
+			}
+
+			// ==================== 交易冷却检查 ====================
+			if (tradeCooldownBars > 0 && s.LastExitBarIndex > 0)
+			{
+int barsSinceExit = barIndex - s.LastExitBarIndex;
+				if (barsSinceExit < tradeCooldownBars)
+				{
+					// 冷却期内仅允许 Buy1/Sell1 开仓
+					if (latestBSPoint.Type != BSPointType.Buy1 && latestBSPoint.Type != BSPointType.Sell1)
+						return;
+				}
+			}
+
+			// ==================== Buy3/Sell3 禁止反手 ====================
+			if (noReversalOnBuy3Sell3)
+			{
+				if (latestBSPoint.Type == BSPointType.Buy3 && s.Status == 2)
+					return;  // Buy3 不能从空仓反手，只能从空仓开多
+				if (latestBSPoint.Type == BSPointType.Sell3 && s.Status == 1)
+					return;  // Sell3 不能从多仓反手，只能从空仓开空
+			}
 
 			if (isBuyPoint && mode != 2)  // 买点且不是仅做空模式
 			{
 				if (s.Status == 2)  // 有空仓，先平空
 				{
-					var oriNum = s.Num;
-					Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oriNum, period, sendMode);
+					Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
 				}
-				
+
 				if (s.Status != 1)  // 没有多仓，开多
 				{
 					s.Status = 1;
 					s.Num = num;
 					s.EntryPrice = q.Close;
+					s.EntryBarIndex = barIndex;
+					s.EntryBSPointType = latestBSPoint.Type;
+					s.HighestSinceEntry = q.High;
+					s.LowestSinceEntry = q.Low;
 					Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
 				}
-				
+
 				// 标记此买卖点已交易
 				s.LastTradedBSPointIndex = latestBSPoint.Index;
 			}
@@ -2181,18 +2346,21 @@ namespace QjySDK.Stg
 			{
 				if (s.Status == 1)  // 有多仓，先平多
 				{
-					var oriNum = s.Num;
-					Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oriNum, period, sendMode);
+					Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
 				}
-				
+
 				if (s.Status != 2)  // 没有空仓，开空
 				{
 					s.Status = 2;
 					s.Num = num;
 					s.EntryPrice = q.Close;
+					s.EntryBarIndex = barIndex;
+					s.EntryBSPointType = latestBSPoint.Type;
+					s.HighestSinceEntry = q.High;
+					s.LowestSinceEntry = q.Low;
 					Trade(tu.MktSymbol, OrderType.SELL, q.Close, num, period, sendMode);
 				}
-				
+
 				// 标记此买卖点已交易
 				s.LastTradedBSPointIndex = latestBSPoint.Index;
 			}

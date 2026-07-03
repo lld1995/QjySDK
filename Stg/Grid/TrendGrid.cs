@@ -38,6 +38,9 @@ namespace QjySDK.Stg
 		{
 			var sd = new StgDesc();
 
+			// 交易方向控制
+			sd.ArgDic["mode"] = 0;
+
 			// 趋势判断
 			sd.ArgDic["fastEmaPeriod"] = 20;
 			sd.ArgDic["slowEmaPeriod"] = 60;
@@ -61,6 +64,7 @@ namespace QjySDK.Stg
 			sd.ArgDic["useStopLoss"] = 1;
 			sd.ArgDic["stopLossPercent"] = 6.0m;
 
+			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制，被禁用方向的趋势视为中性区（清仓且不建网格）", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
 			sd.ArgDescDic["fastEmaPeriod"] = new ArgDesc() { Text = "快EMA周期", Explain = "趋势判断快速均线", Type = "number" };
 			sd.ArgDescDic["slowEmaPeriod"] = new ArgDesc() { Text = "慢EMA周期", Explain = "趋势判断慢速均线", Type = "number" };
 			sd.ArgDescDic["trendGapPercent"] = new ArgDesc() { Text = "趋势确认间距%", Explain = "快EMA与慢EMA差距超过慢EMA的此百分比才确认趋势，低于则为中性区", Type = "number" };
@@ -212,6 +216,11 @@ namespace QjySDK.Stg
 			if (emaGap > trendGapPct) newTrend = 1;       // 明确上升趋势
 			else if (emaGap < -trendGapPct) newTrend = 2;  // 明确下降趋势
 			else newTrend = 0;                              // 中性区，不交易
+
+			// 方向控制：被禁用方向的趋势按中性区处理（清仓且不建网格）
+			int mode = ArgDic.ContainsKey("mode") ? Convert.ToInt32(ArgDic["mode"]) : 0;
+			if (mode == 1 && newTrend == 2) newTrend = 0;
+			if (mode == 2 && newTrend == 1) newTrend = 0;
 
 			// 趋势反转或进入中性区 → 清仓
 			if (s.Trend != 0 && s.Trend != newTrend)

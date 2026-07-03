@@ -173,8 +173,8 @@ sd.ArgDescDic["lots"] = new ArgDesc { Text = "手数", Explain = "固定手数�
 sd.ArgDescDic["money"] = new ArgDesc { Text = "金额", Explain = "固定金额数量", Type = "number" };
             sd.ArgDic["money"] = 10000m;
 
-            sd.ArgDescDic["TradeMode"] = new ArgDesc { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
-            sd.ArgDic["TradeMode"] = 0;
+            sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDic["mode"] = 0;
 
             sd.ArgDescDic["SendMode"] = new ArgDesc { Text = "下单模式", Explain = "下单执行时机", Options = "0:立即下单|1:下根K线开盘下单", Type = "select" };
             sd.ArgDic["SendMode"] = 0;
@@ -234,7 +234,7 @@ sd.ArgDescDic["MaxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Expla
             _trailingActivationMultiplier = Convert.ToDecimal(ArgDic["TrailingActivationMultiplier"]);
 
             // 交易参数
-            _tradeMode = Convert.ToInt32(ArgDic["TradeMode"]);
+            _tradeMode = ArgDic.ContainsKey("mode") ? Convert.ToInt32(ArgDic["mode"]) : (ArgDic.ContainsKey("TradeMode") ? Convert.ToInt32(ArgDic["TradeMode"]) : 0);
             _sendMode = Convert.ToInt32(ArgDic["SendMode"]);
             _maxHoldBars = Convert.ToInt32(ArgDic["MaxHoldBars"]);
         }

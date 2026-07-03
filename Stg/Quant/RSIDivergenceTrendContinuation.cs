@@ -105,7 +105,7 @@ namespace QjySDK.Stg
             sd.ArgDic["useMaCrossExit"] = 0;            // 是否使用均线交叉出场
 
             // 交易方向
-            sd.ArgDic["tradeDirection"] = 0;            // 0:双向 1:仅做多 2:仅做空
+            sd.ArgDic["mode"] = 0;            // 0:双向 1:仅做多 2:仅做空
 
             // 发单模式
             sd.ArgDic["sendMode"] = 0;                  // 0:立即 1:下个开盘
@@ -147,7 +147,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["rsiExitOverbought"] = new ArgDesc() { Text = "RSI出场超买", Explain = "多头持仓RSI达到此值出场", Type = "number" };
             sd.ArgDescDic["rsiExitOversold"] = new ArgDesc() { Text = "RSI出场超卖", Explain = "空头持仓RSI达到此值出场", Type = "number" };
             sd.ArgDescDic["useMaCrossExit"] = new ArgDesc() { Text = "均线交叉出场", Explain = "均线交叉时平仓", Options = "0:不使用|1:使用均线死叉/金叉出场", Type = "bool" };
-            sd.ArgDescDic["tradeDirection"] = new ArgDesc() { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易方向", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
             sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
 
@@ -277,7 +277,7 @@ namespace QjySDK.Stg
             int rsiExitOverbought = Convert.ToInt32(ArgDic["rsiExitOverbought"]);
             int rsiExitOversold = Convert.ToInt32(ArgDic["rsiExitOversold"]);
             int useMaCrossExit = Convert.ToInt32(ArgDic["useMaCrossExit"]);
-            int tradeDirection = Convert.ToInt32(ArgDic["tradeDirection"]);
+            int mode = ArgDic.ContainsKey("mode") ? Convert.ToInt32(ArgDic["mode"]) : (ArgDic.ContainsKey("tradeDirection") ? Convert.ToInt32(ArgDic["tradeDirection"]) : 0);
             int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
 
             // 最小数据要求
@@ -490,8 +490,8 @@ namespace QjySDK.Stg
             }
 
             // 应用交易方向过滤
-            if (tradeDirection == 1) shortSignal = false;
-            if (tradeDirection == 2) longSignal = false;
+            if (mode == 1) shortSignal = false;
+            if (mode == 2) longSignal = false;
 
             // ==================== 持仓管理 ====================
             if (s.Position != 0)

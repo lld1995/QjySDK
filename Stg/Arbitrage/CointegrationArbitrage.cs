@@ -163,6 +163,8 @@ namespace QjySDK.Stg
             public int LastSignalDir { get; set; }
             public string PairedSymbol { get; set; }
             public double HedgeRatio { get; set; }   // 记录入场时的hedge ratio
+            public bool IsCoolingDown { get; set; }  // 是否处于止损冷却期(防止止损后同向立即重开)
+            public int CoolDownDir { get; set; }     // 冷却方向: 1=本品种做多腿方向止损 2=本品种做空腿方向止损
         }
 
         // 协整对数据: key = "SymY|SymX"
@@ -473,12 +475,17 @@ namespace QjySDK.Stg
                 }
 
                 bool exitSignal = false;
+                bool stopLossHit = false;
 
                 // 残差Z-Score回归
                 if (Math.Abs(resZ) <= currentExitZ) exitSignal = true;
 
                 // 残差Z-Score止损
-                if (!exitSignal && Math.Abs(resZ) > stopLossZScore) exitSignal = true;
+                if (!exitSignal && Math.Abs(resZ) > stopLossZScore)
+                {
+                    exitSignal = true;
+                    stopLossHit = true;
+                }
 
                 // 超时
                 if (!exitSignal && state.HoldBars >= maxHoldBars) exitSignal = true;
@@ -501,12 +508,36 @@ namespace QjySDK.Stg
                         else
                             Trade(mktSymbol, OrderType.SELL_TO_COVER, currentPrice, state.Num, period, sendMode);
                     }
+                    int prevStatus = state.Status;
                     state.Status = 0;
                     state.Num = 0;
                     state.HoldBars = 0;
                     state.PairedSymbol = null;
                     state.ConfirmCount = 0;
                     state.LastSignalDir = 0;
+
+                    if (stopLossHit)
+                    {
+                        // 止损后开启同向冷却并立即返回,确保同一根K线不会再进入开仓块同向重开
+                        state.IsCoolingDown = true;
+                        state.CoolDownDir = prevStatus;
+                        return;
+                    }
+                }
+            }
+
+            // ==================== 冷却解除 ====================
+            // 止损冷却:残差Z回到入场阈值以内(中性区)或反向穿越0才解除,杜绝止损后原地同向重开
+            if (state.Status == 0 && state.IsCoolingDown)
+            {
+                // 冷却方向信号所在的残差Z侧: Y腿做空(2)/X腿做多(1)对应resZ>0侧,反之对应resZ<0侧
+                int coolSide = ((state.CoolDownDir == 2) == isSymbolY) ? 1 : -1;
+                if (Math.Abs(resZ) <= entryZScore ||
+                    (coolSide == 1 && resZ <= 0) ||
+                    (coolSide == -1 && resZ >= 0))
+                {
+                    state.IsCoolingDown = false;
+                    state.CoolDownDir = 0;
                 }
             }
 
@@ -529,6 +560,9 @@ namespace QjySDK.Stg
                     if (resZ > entryZScore) signalDir = 1;       // Y高估→多X(对冲)
                     else if (resZ < -entryZScore) signalDir = 2; // Y低估→空X(对冲)
                 }
+
+                // 冷却期内屏蔽同向信号(反方向信号不受影响)
+                if (state.IsCoolingDown && signalDir == state.CoolDownDir) signalDir = 0;
 
                 // 连续确认
                 if (signalDir > 0 && signalDir == state.LastSignalDir)

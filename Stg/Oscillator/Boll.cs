@@ -167,21 +167,28 @@ namespace QjySDK.Stg
             {
                 // 多头持仓
                 bool shouldExit = false;
+                bool stopLossExit = false;
 
                 // 止损检查
                 var stopLoss = Convert.ToDecimal(ArgDic["stopLoss"]);
                 if (stopLoss > 0 && s.EntryPrice > 0 && q.Close < s.EntryPrice * (1 - stopLoss / 100m))
+                {
                     shouldExit = true;
-
-                if (!shouldExit && exitMode == 0)
-                {
-                    // 模式0：价格回归中轨平仓
-                    shouldExit = prevClose >= prevMiddle && q.Close < middle;
+                    stopLossExit = true;
                 }
-                else
+
+                if (!shouldExit)
                 {
-                    // 模式1：价格跌破下轨平仓
-                    shouldExit = prevClose >= prevLower && q.Close < lower;
+                    if (exitMode == 0)
+                    {
+                        // 模式0：价格回归中轨平仓
+                        shouldExit = prevClose >= prevMiddle && q.Close < middle;
+                    }
+                    else
+                    {
+                        // 模式1：价格跌破下轨平仓
+                        shouldExit = prevClose >= prevLower && q.Close < lower;
+                    }
                 }
 
                 if (shouldExit)
@@ -189,8 +196,8 @@ namespace QjySDK.Stg
                     var oriNum = s.Num;
                     Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oriNum, period, sendMode);
 
-                    // 判断是否反手做空
-                    if (exitMode == 1 && mode != 1)
+                    // 判断是否反手做空（止损出场不反手，避免止损后立即开仓）
+                    if (exitMode == 1 && mode != 1 && !stopLossExit)
                     {
                         // 反向突破模式下，跌破下轨直接反手做空
                         s.Status = 2;
@@ -210,21 +217,28 @@ namespace QjySDK.Stg
             {
                 // 空头持仓
                 bool shouldExit = false;
+                bool stopLossExit = false;
 
                 // 止损检查
                 var stopLoss2 = Convert.ToDecimal(ArgDic["stopLoss"]);
                 if (stopLoss2 > 0 && s.EntryPrice > 0 && q.Close > s.EntryPrice * (1 + stopLoss2 / 100m))
+                {
                     shouldExit = true;
-
-                if (!shouldExit && exitMode == 0)
-                {
-                    // 模式0：价格回归中轨平仓
-                    shouldExit = prevClose <= prevMiddle && q.Close > middle;
+                    stopLossExit = true;
                 }
-                else
+
+                if (!shouldExit)
                 {
-                    // 模式1：价格突破上轨平仓
-                    shouldExit = prevClose <= prevUpper && q.Close > upper;
+                    if (exitMode == 0)
+                    {
+                        // 模式0：价格回归中轨平仓
+                        shouldExit = prevClose <= prevMiddle && q.Close > middle;
+                    }
+                    else
+                    {
+                        // 模式1：价格突破上轨平仓
+                        shouldExit = prevClose <= prevUpper && q.Close > upper;
+                    }
                 }
 
                 if (shouldExit)
@@ -232,8 +246,8 @@ namespace QjySDK.Stg
                     var oriNum = s.Num;
                     Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oriNum, period, sendMode);
 
-                    // 判断是否反手做多
-                    if (exitMode == 1 && mode != 2)
+                    // 判断是否反手做多（止损出场不反手，避免止损后立即开仓）
+                    if (exitMode == 1 && mode != 2 && !stopLossExit)
                     {
                         // 反向突破模式下，突破上轨直接反手做多
                         s.Status = 1;

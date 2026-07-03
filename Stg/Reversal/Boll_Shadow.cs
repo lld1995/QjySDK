@@ -71,6 +71,9 @@ namespace QjySDK.Stg
 			sd.ColorDic["vol-vol"] = "#2196F3";
 			sd.ColorDic["main-shadow-down"] = "#00BCD4";
 			sd.ColorDic["main-shadow-up"] = "#E91E63";
+
+			sd.ArgDescDic["stopCooldownBars"] = new ArgDesc() { Text = "止损冷却K线数", Explain = "止损后N根K线内禁止开仓,设0关闭", Type = "number" };
+			sd.ArgDic["stopCooldownBars"] = 5;
 			return sd;
 		}
 
@@ -94,6 +97,9 @@ namespace QjySDK.Stg
 			/// 0 consolidation break 1 shadow
 			/// </summary>
 			public int OpenType { get; set; }
+
+			public int BlockedDir { get; set; }       // 止损后被封锁的方向:0无 1多 2空
+			public int CooldownRemaining { get; set; } // 止损后剩余冷却K线数
 
 			public void Reset()
 			{
@@ -221,14 +227,21 @@ namespace QjySDK.Stg
 			if (s.Status == 1)
 			{
 				var isClose = false;
+				var stopLossHit = false;
 
 				// [FIX-2] 硬止损5%
 				if (q.Close < s.EntryPrice * 0.95m)
+				{
 					isClose = true;
+					stopLossHit = true;
+				}
 
 				// [FIX-3] 追踪止损：从最高点回撤超过 trailingAtrMult * ATR
 				if (s.HighestSinceEntry > s.EntryPrice && q.Close < s.HighestSinceEntry - atr * trailingAtrMult)
+				{
 					isClose = true;
+					stopLossHit = true;
+				}
 
 				// [FIX-4] 影线反转用布林上轨止盈
 				if (s.OpenType == 1 && q.Close > (decimal)bl1.UpperBand)
@@ -242,19 +255,31 @@ namespace QjySDK.Stg
 				{
 					Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
 					s.Reset();
+					if (stopLossHit)
+					{
+						s.BlockedDir = 1;
+						s.CooldownRemaining = Convert.ToInt32(ArgDic["stopCooldownBars"]);
+					}
 				}
 			}
 			else if (s.Status == 2)
 			{
 				var isClose = false;
+				var stopLossHit = false;
 
 				// [FIX-2] 硬止损5%
 				if (q.Close > s.EntryPrice * 1.05m)
+				{
 					isClose = true;
+					stopLossHit = true;
+				}
 
 				// [FIX-3] 追踪止损：从最低点反弹超过 trailingAtrMult * ATR
 				if (s.LowestSinceEntry < s.EntryPrice && q.Close > s.LowestSinceEntry + atr * trailingAtrMult)
+				{
 					isClose = true;
+					stopLossHit = true;
+				}
 
 				// [FIX-4] 影线反转用布林下轨止盈
 				if (s.OpenType == 1 && q.Close < (decimal)bl1.LowerBand)
@@ -268,12 +293,30 @@ namespace QjySDK.Stg
 				{
 					Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
 					s.Reset();
+					if (stopLossHit)
+					{
+						s.BlockedDir = 2;
+						s.CooldownRemaining = Convert.ToInt32(ArgDic["stopCooldownBars"]);
+					}
 				}
 			}
 
 			// ========== 开仓逻辑 ==========
 			if (s.Status == 0)
 			{
+				// 信号重置再武装：价格回到中轨附近才解除封锁
+				if (s.BlockedDir == 1 && q.Close <= (decimal)bl1.Sma)
+					s.BlockedDir = 0;
+				else if (s.BlockedDir == 2 && q.Close >= (decimal)bl1.Sma)
+					s.BlockedDir = 0;
+
+				// 止损后冷却期
+				if (s.CooldownRemaining > 0)
+				{
+					s.CooldownRemaining--;
+					return;
+				}
+
 				var status = 0;
 				var openType = 0;
 
@@ -328,7 +371,7 @@ namespace QjySDK.Stg
 					else if (sellSignal) { status = 2; openType = 1; }
 				}
 
-				if (status == 1 && mode != 2)
+				if (status == 1 && mode != 2 && s.BlockedDir != 1)
 				{
 					s.Status = 1;
 					s.Num = num;
@@ -340,7 +383,7 @@ namespace QjySDK.Stg
 					s.OpenType = openType;
 					Trade(tu.MktSymbol, OrderType.BUY, q.Close, s.Num, period, sendMode);
 				}
-				else if (status == 2 && mode != 1)
+				else if (status == 2 && mode != 1 && s.BlockedDir != 2)
 				{
 					s.Status = 2;
 					s.Num = num;

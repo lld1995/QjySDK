@@ -22,6 +22,8 @@ namespace QjySDK.Stg
 		public override StgDesc GetStgDesc()
 		{
 			var sd = new StgDesc();
+			// 交易方向：1做多网格（逢跌买入/逢涨卖出） 2做空网格（逢涨卖空/逢跌买回）
+			sd.ArgDic["mode"] = 1;
 			// 网格基准价格（0表示使用第一个K线收盘价作为基准）
 			sd.ArgDic["basePrice"] = 0m;
 			// 网格间距百分比
@@ -49,6 +51,7 @@ namespace QjySDK.Stg
 			sd.ArgDic["autoRecenter"] = 1;
 			sd.ArgDic["recenterBars"] = 20;
 
+			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "1:做多网格|2:做空网格", Type = "select" };
 			sd.ArgDescDic["basePrice"] = new ArgDesc() { Text = "基准价格", Explain = "0表示使用第一个K线收盘价", Type = "number" };
 			sd.ArgDescDic["gridPercent"] = new ArgDesc() { Text = "网格间距%", Explain = "每格价格变动百分比", Type = "number" };
 			sd.ArgDescDic["gridCount"] = new ArgDesc() { Text = "网格数量", Explain = "上下各多少格", Type = "number" };
@@ -164,6 +167,7 @@ namespace QjySDK.Stg
 			var q = tu.QuoteList[tu.QuoteList.Count - 1];
 			var q2 = tu.QuoteList[tu.QuoteList.Count - 2];
 
+			int mode = ArgDic.ContainsKey("mode") ? Convert.ToInt32(ArgDic["mode"]) : 1;
 			decimal gridPercent = Convert.ToDecimal(ArgDic["gridPercent"]);
 			int gridCount = Convert.ToInt32(ArgDic["gridCount"]);
 			int sendMode = Convert.ToInt32(ArgDic["sendMode"]);
@@ -223,12 +227,15 @@ namespace QjySDK.Stg
 			}
 
 			// 止损检查：价格偏离基准超过止损百分比，全部平仓
-			if (useStopLoss == 1 && s.TotalPosition > 0)
+			if (useStopLoss == 1 && s.TotalPosition != 0)
 			{
 				decimal deviation = Math.Abs(q.Close - s.BasePrice) / s.BasePrice * 100m;
 				if (deviation >= stopLossPercent)
 				{
-					Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.TotalPosition, period, sendMode);
+					if (s.TotalPosition > 0)
+						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.TotalPosition, period, sendMode);
+					else
+						Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, Math.Abs(s.TotalPosition), period, sendMode);
 					s.TotalPosition = 0;
 					s.IsStopped = true;
 					s.CooldownRemaining = Convert.ToInt32(ArgDic["stopCooldownBars"]);
@@ -247,6 +254,10 @@ namespace QjySDK.Stg
 					if (s.TotalPosition > 0)
 					{
 						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.TotalPosition, period, sendMode);
+					}
+					else if (s.TotalPosition < 0)
+					{
+						Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, Math.Abs(s.TotalPosition), period, sendMode);
 					}
 					// 重建网格
 					InitializeGrid(s, q.Close, gridPercent, gridCount);
@@ -268,31 +279,67 @@ namespace QjySDK.Stg
 			decimal num = CalculateLots(tu, currentPrice);
 
 			// 检查价格穿越网格
-			foreach (var gl in s.GridLevels.OrderBy(x => x.Level))
+			if (mode != 2)
 			{
-				// 价格从上向下穿越网格线 - 买入
-				if (!gl.IsBought && q2.Close > gl.Price && q.Close <= gl.Price)
+				// 做多网格：逢跌买入，逢涨平仓
+				foreach (var gl in s.GridLevels.OrderBy(x => x.Level))
 				{
-					Trade(tu.MktSymbol, OrderType.BUY, currentPrice, num, period, sendMode);
-					gl.IsBought = true;
-					s.TotalPosition += num;
-					s.CurrentLevel = gl.Level;
-				}
-				// 价格从下向上穿越网格线 - 平掉下方最高已买入网格的仓位
-				else if (q2.Close < gl.Price && q.Close >= gl.Price && s.TotalPosition > 0)
-				{
-					var highestBoughtBelow = s.GridLevels
-						.Where(x => x.IsBought && x.Level < gl.Level)
-						.OrderByDescending(x => x.Level)
-						.FirstOrDefault();
-
-					if (highestBoughtBelow != null)
+					// 价格从上向下穿越网格线 - 买入
+					if (!gl.IsBought && q2.Close > gl.Price && q.Close <= gl.Price)
 					{
-						var sellNum = Math.Min(num, s.TotalPosition);
-						Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, currentPrice, sellNum, period, sendMode);
-						highestBoughtBelow.IsBought = false;
-						s.TotalPosition -= sellNum;
+						Trade(tu.MktSymbol, OrderType.BUY, currentPrice, num, period, sendMode);
+						gl.IsBought = true;
+						s.TotalPosition += num;
 						s.CurrentLevel = gl.Level;
+					}
+					// 价格从下向上穿越网格线 - 平掉下方最高已买入网格的仓位
+					else if (q2.Close < gl.Price && q.Close >= gl.Price && s.TotalPosition > 0)
+					{
+						var highestBoughtBelow = s.GridLevels
+							.Where(x => x.IsBought && x.Level < gl.Level)
+							.OrderByDescending(x => x.Level)
+							.FirstOrDefault();
+
+						if (highestBoughtBelow != null)
+						{
+							var sellNum = Math.Min(num, s.TotalPosition);
+							Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, currentPrice, sellNum, period, sendMode);
+							highestBoughtBelow.IsBought = false;
+							s.TotalPosition -= sellNum;
+							s.CurrentLevel = gl.Level;
+						}
+					}
+				}
+			}
+			else
+			{
+				// 做空网格：逢涨卖空，逢跌买回（IsBought 此处表示该格已卖空）
+				foreach (var gl in s.GridLevels.OrderByDescending(x => x.Level))
+				{
+					// 价格从下向上穿越网格线 - 卖空
+					if (!gl.IsBought && q2.Close < gl.Price && q.Close >= gl.Price)
+					{
+						Trade(tu.MktSymbol, OrderType.SELL, currentPrice, num, period, sendMode);
+						gl.IsBought = true;
+						s.TotalPosition -= num;
+						s.CurrentLevel = gl.Level;
+					}
+					// 价格从上向下穿越网格线 - 平掉上方最低已卖空网格的仓位
+					else if (q2.Close > gl.Price && q.Close <= gl.Price && s.TotalPosition < 0)
+					{
+						var lowestSoldAbove = s.GridLevels
+							.Where(x => x.IsBought && x.Level > gl.Level)
+							.OrderBy(x => x.Level)
+							.FirstOrDefault();
+
+						if (lowestSoldAbove != null)
+						{
+							var coverNum = Math.Min(num, Math.Abs(s.TotalPosition));
+							Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, currentPrice, coverNum, period, sendMode);
+							lowestSoldAbove.IsBought = false;
+							s.TotalPosition += coverNum;
+							s.CurrentLevel = gl.Level;
+						}
 					}
 				}
 			}

@@ -78,6 +78,7 @@ namespace QjySDK.Stg
         private int _maxHoldBars;
 
         // 共振模式
+        private int _mode;             // 交易方向: 0:双向 1:仅做多 2:仅做空
         private int _resonanceMode;
 
         // 状态管理
@@ -156,6 +157,10 @@ sd.ArgDescDic["trailingStopAtrMultiplier"] = new ArgDesc { Text = "移动止损A
 sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Explain = "持仓超过此数量K线强制平仓（0=不限制）", Type = "number" };
             sd.ArgDic["maxHoldBars"] = 0;
 
+            // 交易方向控制
+            sd.ArgDescDic["mode"] = new ArgDesc { Text = "交易方向", Explain = "0:双向 1:仅做多 2:仅做空", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
+            sd.ArgDic["mode"] = 0;
+
             // 共振模式
             sd.ArgDescDic["resonanceMode"] = new ArgDesc { Text = "共振模式", Explain = "共振确认方式", Options = "0:标准共振|1:严格共振(需RSI也在超卖/超买区)", Type = "select" };
             sd.ArgDic["resonanceMode"] = 0;
@@ -199,6 +204,7 @@ sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Expla
             _trailingStopAtrMultiplier = Convert.ToDecimal(ArgDic["trailingStopAtrMultiplier"]);
             _maxHoldBars = Convert.ToInt32(ArgDic["maxHoldBars"]);
 
+            _mode = Convert.ToInt32(ArgDic["mode"]);
             _resonanceMode = Convert.ToInt32(ArgDic["resonanceMode"]);
         }
 
@@ -302,7 +308,7 @@ sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Expla
             bool kdjGoldenCross, bool kdjDeathCross)
         {
             // 做多条件：KDJ金叉 + RSI确认
-            if (kdjGoldenCross)
+            if (kdjGoldenCross && _mode != 2)
             {
                 bool rsiConfirm = rsi > (double)_rsiBullThreshold;
 
@@ -321,7 +327,7 @@ sd.ArgDescDic["maxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Expla
                 }
             }
             // 做空条件：KDJ死叉 + RSI确认
-            else if (kdjDeathCross)
+            else if (kdjDeathCross && _mode != 1)
             {
                 bool rsiConfirm = rsi < (double)_rsiBearThreshold;
 

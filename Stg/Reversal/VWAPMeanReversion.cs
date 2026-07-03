@@ -67,6 +67,9 @@ namespace QjySDK.Stg
 			sd.UseGlobalCalc = 0;
 			sd.SubChartNum = 0;
 
+			sd.ArgDescDic["stopCooldownBars"] = new ArgDesc() { Text = "止损冷却K线数", Explain = "止损后N根K线内禁止开仓,设0关闭", Type = "number" };
+			sd.ArgDic["stopCooldownBars"] = 5;
+
 			sd.ColorDic["main-VWAP"] = "#FF9800";
 			sd.ColorDic["main-UpperBand"] = "#F44336";
 			sd.ColorDic["main-LowerBand"] = "#4CAF50";
@@ -78,6 +81,8 @@ namespace QjySDK.Stg
 			public int Status { get; set; } // 0: None, 1: Long, 2: Short
 			public decimal EntryPrice { get; set; }
 			public decimal TotalLots { get; set; }
+			public int BlockedDir { get; set; }       // 止损后被封锁的方向:0无 1多 2空
+			public int CooldownRemaining { get; set; } // 止损后剩余冷却K线数
 		}
 
 		private Dictionary<string, TradeState> _stateDic = new Dictionary<string, TradeState>();
@@ -154,26 +159,40 @@ namespace QjySDK.Stg
 
 			if (state.Status == 0)
 			{
-				if ((double)q.Close < lowerBand)
+				if (state.CooldownRemaining > 0)
 				{
-					// Buy to revert to VWAP
-					Trade(tu.MktSymbol, OrderType.BUY, q.Close, lots, period, sendMode);
-					state.Status = 1;
-					state.EntryPrice = q.Close;
-					state.TotalLots = lots;
+					state.CooldownRemaining--;
 				}
-				else if ((double)q.Close > upperBand)
+				else
 				{
-					// Short to revert to VWAP
-					Trade(tu.MktSymbol, OrderType.SELL, q.Close, lots, period, sendMode);
-					state.Status = 2;
-					state.EntryPrice = q.Close;
-					state.TotalLots = lots;
+					// 信号重置再武装：价格回到带内才解除封锁
+					if (state.BlockedDir == 1 && (double)q.Close >= lowerBand)
+						state.BlockedDir = 0;
+					else if (state.BlockedDir == 2 && (double)q.Close <= upperBand)
+						state.BlockedDir = 0;
+
+					if ((double)q.Close < lowerBand && state.BlockedDir != 1)
+					{
+						// Buy to revert to VWAP
+						Trade(tu.MktSymbol, OrderType.BUY, q.Close, lots, period, sendMode);
+						state.Status = 1;
+						state.EntryPrice = q.Close;
+						state.TotalLots = lots;
+					}
+					else if ((double)q.Close > upperBand && state.BlockedDir != 2)
+					{
+						// Short to revert to VWAP
+						Trade(tu.MktSymbol, OrderType.SELL, q.Close, lots, period, sendMode);
+						state.Status = 2;
+						state.EntryPrice = q.Close;
+						state.TotalLots = lots;
+					}
 				}
 			}
 			else if (state.Status == 1)
 			{
 				bool isClose = false;
+				bool stopLossHit = false;
 
 				// Take profit when reaching VWAP
 				if ((double)q.Close >= vwap)
@@ -181,7 +200,10 @@ namespace QjySDK.Stg
 
 				// Hard stop loss
 				if (q.Close <= state.EntryPrice * (1 - slPct))
+				{
 					isClose = true;
+					stopLossHit = true;
+				}
 
 				if (isClose)
 				{
@@ -189,11 +211,17 @@ namespace QjySDK.Stg
 					state.Status = 0;
 					state.TotalLots = 0;
 					state.EntryPrice = 0;
+					if (stopLossHit)
+					{
+						state.BlockedDir = 1;
+						state.CooldownRemaining = Convert.ToInt32(ArgDic["stopCooldownBars"]);
+					}
 				}
 			}
 			else if (state.Status == 2)
 			{
 				bool isClose = false;
+				bool stopLossHit = false;
 
 				// Take profit when reaching VWAP
 				if ((double)q.Close <= vwap)
@@ -201,7 +229,10 @@ namespace QjySDK.Stg
 
 				// Hard stop loss
 				if (q.Close >= state.EntryPrice * (1 + slPct))
+				{
 					isClose = true;
+					stopLossHit = true;
+				}
 
 				if (isClose)
 				{
@@ -209,6 +240,11 @@ namespace QjySDK.Stg
 					state.Status = 0;
 					state.TotalLots = 0;
 					state.EntryPrice = 0;
+					if (stopLossHit)
+					{
+						state.BlockedDir = 2;
+						state.CooldownRemaining = Convert.ToInt32(ArgDic["stopCooldownBars"]);
+					}
 				}
 			}
 		}

@@ -155,6 +155,8 @@ namespace QjySDK.Stg
             public int HoldBars { get; set; }
             public int ConfirmCount { get; set; }    // 连续偏离确认计数
             public int LastSignalDir { get; set; }   // 上一次信号方向
+            public bool IsCoolingDown { get; set; }  // 是否处于止损冷却期(防止止损后同向立即重开)
+            public int CoolDownDir { get; set; }     // 冷却方向: 1=做多(低估)方向止损 2=做空(高估)方向止损
         }
 
         // 全局偏离度数据
@@ -369,6 +371,7 @@ namespace QjySDK.Stg
                 }
 
                 bool exitSignal = false;
+                bool stopLossHit = false;
 
                 // Z-Score回归平仓
                 if (state.Status == 1 && zScore >= -currentExitZ)
@@ -386,10 +389,12 @@ namespace QjySDK.Stg
                     if (state.Status == 1 && zScore < -stopLossZScore)
                     {
                         exitSignal = true;
+                        stopLossHit = true;
                     }
                     else if (state.Status == 2 && zScore > stopLossZScore)
                     {
                         exitSignal = true;
+                        stopLossHit = true;
                     }
                 }
 
@@ -422,6 +427,7 @@ namespace QjySDK.Stg
                     {
                         Trade(mktSymbol, OrderType.BUY_TO_COVER, currentPrice, state.Num, period, sendMode);
                     }
+                    int prevStatus = state.Status;
                     state.Status = 0;
                     state.Num = 0;
                     state.EntryPrice = 0;
@@ -430,6 +436,27 @@ namespace QjySDK.Stg
                     state.ConfirmCount = 0;
                     state.LastSignalDir = 0;
                     _currentPositions--;
+
+                    if (stopLossHit)
+                    {
+                        // 止损后开启同向冷却并立即返回,确保同一根K线不会再进入开仓块同向重开
+                        state.IsCoolingDown = true;
+                        state.CoolDownDir = prevStatus;
+                        return;
+                    }
+                }
+            }
+
+            // ==================== 冷却解除 ====================
+            // 止损冷却:Z-Score回到入场阈值以内(中性区)或反向穿越0才解除,杜绝止损后原地同向重开
+            if (state.Status == 0 && state.IsCoolingDown)
+            {
+                if (Math.Abs(zScore) <= entryZScore ||
+                    (state.CoolDownDir == 1 && zScore >= 0) ||
+                    (state.CoolDownDir == 2 && zScore <= 0))
+                {
+                    state.IsCoolingDown = false;
+                    state.CoolDownDir = 0;
                 }
             }
 
@@ -443,6 +470,9 @@ namespace QjySDK.Stg
                 int signalDir = 0;
                 if (zScore < -entryZScore) signalDir = 1;       // 低估 → 做多
                 else if (zScore > entryZScore) signalDir = 2;   // 高估 → 做空
+
+                // 冷却期内屏蔽同向信号(反方向信号不受影响)
+                if (state.IsCoolingDown && signalDir == state.CoolDownDir) signalDir = 0;
 
                 // 连续确认
                 if (signalDir > 0 && signalDir == state.LastSignalDir)

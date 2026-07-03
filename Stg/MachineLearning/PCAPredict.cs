@@ -51,6 +51,7 @@ namespace QjySDK.Stg
             sd.ArgDic["atrPeriod"] = 14;             // ATR周期
             sd.ArgDic["atrMultiplier"] = 2.0;        // ATR止损倍数
             sd.ArgDic["takeProfitMultiplier"] = 3.0; // ATR止盈倍数
+            sd.ArgDic["stopCooldownBars"] = 5;       // 止损后冷却K线数
             sd.ArgDic["mode"] = 0;                   // 0:双向 1:仅做多 2:仅做空
             sd.ArgDic["sendMode"] = 0;               // 发单模式
 
@@ -71,6 +72,7 @@ namespace QjySDK.Stg
             sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "计算ATR的周期", Type = "number" };
             sd.ArgDescDic["atrMultiplier"] = new ArgDesc() { Text = "止损倍数", Explain = "ATR止损倍数", Type = "number" };
             sd.ArgDescDic["takeProfitMultiplier"] = new ArgDesc() { Text = "止盈倍数", Explain = "ATR止盈倍数", Type = "number" };
+            sd.ArgDescDic["stopCooldownBars"] = new ArgDesc() { Text = "止损冷却期", Explain = "止损后等待N根K线才允许重新开仓,0为不冷却", Type = "number" };
             sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "0:双向|1:仅做多|2:仅做空", Type = "select" };
             sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
             sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
@@ -556,6 +558,8 @@ namespace QjySDK.Stg
             public decimal EntryPrice { get; set; } // 入场价格
             public decimal StopLoss { get; set; }   // 止损价
             public decimal TakeProfit { get; set; } // 止盈价
+            public int CooldownRemaining { get; set; } // 止损后剩余冷却K线数
+            public int BlockedDir { get; set; }     // 止损后被封锁的方向:0无 1多 2空
             public int BarCount { get; set; }       // K线计数
             public PCAModel? Model { get; set; }    // PCA模型
             public int LastTrainBar { get; set; }   // 上次训练的K线索引
@@ -699,7 +703,25 @@ namespace QjySDK.Stg
                 // 信号 > 阈值 且 异常分数不太高（避免在异常时入场）
                 bool isNormalMarket = anomalyScore < anomalyThreshold * 1.5;
 
-                if (signal > pc1Threshold && mode != 2 && isNormalMarket)
+                // 止损后冷却期：冷却未结束时递减计数并跳过本根K线的开仓判断
+                if (s.CooldownRemaining > 0)
+                {
+                    s.CooldownRemaining--;
+                }
+                else
+                {
+                    // 信号重置再武装：被封锁方向的入场信号不再成立时解除封锁
+                    if (s.BlockedDir == 1 && signal <= pc1Threshold)
+                    {
+                        s.BlockedDir = 0;
+                    }
+                    else if (s.BlockedDir == 2 && signal >= -pc1Threshold)
+                    {
+                        s.BlockedDir = 0;
+                    }
+
+                    // 空仓：根据信号入场（被封锁方向禁止开仓）
+                    if (signal > pc1Threshold && mode != 2 && isNormalMarket && s.BlockedDir != 1)
                 {
                     // 看多信号
                     s.Status = 1;
@@ -713,7 +735,7 @@ namespace QjySDK.Stg
                     Plot("main", "stopLoss", PlotType.LINE, (double)s.StopLoss);
                     Plot("main", "takeProfit", PlotType.LINE, (double)s.TakeProfit);
                 }
-                else if (signal < -pc1Threshold && mode != 1 && isNormalMarket)
+                    else if (signal < -pc1Threshold && mode != 1 && isNormalMarket && s.BlockedDir != 2)
                 {
                     // 看空信号
                     s.Status = 2;
@@ -727,6 +749,7 @@ namespace QjySDK.Stg
                     Plot("main", "stopLoss", PlotType.LINE, (double)s.StopLoss);
                     Plot("main", "takeProfit", PlotType.LINE, (double)s.TakeProfit);
                 }
+                }
             }
             else if (s.Status == 1)
             {
@@ -735,9 +758,16 @@ namespace QjySDK.Stg
                 Plot("main", "takeProfit", PlotType.LINE, (double)s.TakeProfit);
 
                 bool shouldExit = false;
+                bool stopLossHit = false;
 
-                // 止损止盈
-                if (q.Close <= s.StopLoss || q.Close >= s.TakeProfit)
+                // 止损
+                if (q.Close <= s.StopLoss)
+                {
+                    shouldExit = true;
+                    stopLossHit = true;
+                }
+                // 止盈
+                else if (q.Close >= s.TakeProfit)
                 {
                     shouldExit = true;
                 }
@@ -757,6 +787,12 @@ namespace QjySDK.Stg
                     Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
                     s.Status = 0;
                     s.Num = 0;
+                    if (stopLossHit)
+                    {
+                        // 止损后进入冷却期，并封锁多头方向直至多头信号重置
+                        s.CooldownRemaining = Convert.ToInt32(ArgDic["stopCooldownBars"]);
+                        s.BlockedDir = 1;
+                    }
                 }
             }
             else if (s.Status == 2)
@@ -766,9 +802,16 @@ namespace QjySDK.Stg
                 Plot("main", "takeProfit", PlotType.LINE, (double)s.TakeProfit);
 
                 bool shouldExit = false;
+                bool stopLossHit = false;
 
-                // 止损止盈
-                if (q.Close >= s.StopLoss || q.Close <= s.TakeProfit)
+                // 止损
+                if (q.Close >= s.StopLoss)
+                {
+                    shouldExit = true;
+                    stopLossHit = true;
+                }
+                // 止盈
+                else if (q.Close <= s.TakeProfit)
                 {
                     shouldExit = true;
                 }
@@ -788,6 +831,12 @@ namespace QjySDK.Stg
                     Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
                     s.Status = 0;
                     s.Num = 0;
+                    if (stopLossHit)
+                    {
+                        // 止损后进入冷却期，并封锁空头方向直至空头信号重置
+                        s.CooldownRemaining = Convert.ToInt32(ArgDic["stopCooldownBars"]);
+                        s.BlockedDir = 2;
+                    }
                 }
             }
         }

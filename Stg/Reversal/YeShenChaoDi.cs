@@ -163,29 +163,33 @@ namespace QjySDK.Stg
 		private decimal FindRecentLow(List<SkQuote> quotes, int lookback)
 		{
 			var low = decimal.MaxValue;
-			var startIndex = Math.Max(0, quotes.Count - lookback);
-			for (int i = startIndex; i < quotes.Count; i++)
+			// 排除当前K线：否则 q.Close < s.RecentLow 永远不可能成立（当前K线 Low <= Close）
+			var endIndex = Math.Max(0, quotes.Count - 1);
+			var startIndex = Math.Max(0, endIndex - lookback);
+			for (int i = startIndex; i < endIndex; i++)
 			{
 				if (quotes[i].Low < low)
 				{
 					low = quotes[i].Low;
 				}
 			}
-			return low;
+			return low == decimal.MaxValue ? 0 : low;
 		}
 
 		private decimal FindRecentHigh(List<SkQuote> quotes, int lookback)
 		{
 			var high = decimal.MinValue;
-			var startIndex = Math.Max(0, quotes.Count - lookback);
-			for (int i = startIndex; i < quotes.Count; i++)
+			// 排除当前K线：否则 q.Close > s.RecentHigh 会被当前K线 High >= Close 恒压住
+			var endIndex = Math.Max(0, quotes.Count - 1);
+			var startIndex = Math.Max(0, endIndex - lookback);
+			for (int i = startIndex; i < endIndex; i++)
 			{
 				if (quotes[i].High > high)
 				{
 					high = quotes[i].High;
 				}
 			}
-			return high;
+			return high == decimal.MinValue ? 0 : high;
 		}
 
 		public override void OnBar(Period period, TableUnit tu, bool isFinal, SkQuote tq)

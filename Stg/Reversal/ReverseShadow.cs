@@ -194,7 +194,7 @@ namespace QjySDK.Stg
                     }
                     if (s.Status == 0)
                     {
-                        if (isDownShadow)
+                        if (isDownShadow && mode != 2)
                         {
                             var isOpen = true;
                             for (int i = tu.QuoteList.Count - 2; i >=0&& i>= tu.QuoteList.Count - 5; --i)
@@ -229,7 +229,7 @@ namespace QjySDK.Stg
 								Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
 							}
                         }
-                        else if (isUpShadow)
+                        else if (isUpShadow && mode != 1)
                         {
 							var isOpen = true;
 							for (int i = tu.QuoteList.Count - 2; i >= 0 && i >= tu.QuoteList.Count - 5; --i)
