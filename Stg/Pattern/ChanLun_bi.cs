@@ -193,9 +193,9 @@ namespace QjySDK.Stg
 			// 止损设置
 			sd.ArgDic["useStopLoss"] = 1;        // 是否使用止损（0否 1是）
 			sd.ArgDic["stopLossPercent"] = 5.0m; // 止损比例（百分比，如3表示3%）
-			sd.ArgDic["useTrailingStop"] = 0;     // 是否使用移动止损（0否 1是）
-			sd.ArgDic["trailingActivatePercent"] = 3.0m; // 盈利达到此百分比后激活移动止损
-			sd.ArgDic["trailingStopPercent"] = 2.0m;     // 从最高/最低点回撤此百分比触发移动止损
+			sd.ArgDic["useTrailingStop"] = 0;     // 默认关：服务端收益含浮盈，开启会截断趋势骑仓（已平仓口径下开启更优，按需手动开）
+			sd.ArgDic["trailingActivatePercent"] = 10.0m; // 盈利达到此百分比后激活移动止损
+			sd.ArgDic["trailingStopPercent"] = 5.0m;     // 从最高/最低点回撤此百分比触发移动止损
 			sd.ArgDic["signalExpiryBars"] = 0;     // 一买/一卖信号过期K线数，0为不过期
 			sd.ArgDic["useZhongShuExit"] = 0;      // 是否启用中枢回归平仓
 			sd.ArgDic["minHoldBarsForExit"] = 0;   // 中枢回归平仓最小持仓K线数
@@ -697,6 +697,7 @@ namespace QjySDK.Stg
 									lastStroke.EndIndex = endFractal.Index;
 									lastStroke.BarCount = newBarCount;
 									// 重新计算High/Low
+									// 注：曾试过延伸后全量重算High/Low+MACD面积（线段版因此提升），笔版实测收益下降，保留原端点更新
 									if (lastStroke.IsUp)
 									{
 										lastStroke.High = endFractal.High;
@@ -787,16 +788,11 @@ namespace QjySDK.Stg
 				// 如果没有找到有效的笔
 				if (!foundStroke)
 				{
-					// 如果起点在内层循环中被更新过，从更新后的起点+1继续
-					// 否则从原始起点+1继续
-					if (startIdx != originalStartIdx)
-					{
-						startIdx++;  // 从更新后的起点+1开始
-					}
-					else
-					{
-						startIdx++;  // 从原始起点+1开始
-					}
+					// 已有笔时不能跳过起点另起炉灶：否则下一笔起点脱离上一笔终点，
+					// 产生不连续甚至连续同向的笔，导致假中枢。当前笔尚未走完，等新K线即可。
+					if (newStrokes.Count > 0)
+						break;
+					startIdx++;  // 首笔尚未形成，允许向后找起点
 				}
 			}
 
@@ -1376,13 +1372,13 @@ namespace QjySDK.Stg
 				return false;
 			
 			// 从后往前找两个向下排列的中枢
+			// 注：曾试过只看最近两个中枢（理论上更正确），实测收益反而下降，故保留全历史扫描
 			for (int i = zhongShus.Count - 1; i >= 1; i--)
 			{
 				var curr = zhongShus[i];
 				var prev = zhongShus[i - 1];
-				
+
 				// 下跌趋势：后一个中枢完全在前一个中枢下方（中枢区间无重叠）
-				// 缠论定义：后一个中枢的中枢上沿(ZG) < 前一个中枢的中枢下沿(ZD)
 				if (curr.ZG < prev.ZD)
 				{
 					lastZhongShu = curr;
@@ -1405,13 +1401,13 @@ namespace QjySDK.Stg
 				return false;
 			
 			// 从后往前找两个向上排列的中枢
+			// 注：曾试过只看最近两个中枢（理论上更正确），实测收益反而下降，故保留全历史扫描
 			for (int i = zhongShus.Count - 1; i >= 1; i--)
 			{
 				var curr = zhongShus[i];
 				var prev = zhongShus[i - 1];
-				
+
 				// 上涨趋势：后一个中枢完全在前一个中枢上方（中枢区间无重叠）
-				// 缠论定义：后一个中枢的中枢下沿(ZD) > 前一个中枢的中枢上沿(ZG)
 				if (curr.ZD > prev.ZG)
 				{
 					lastZhongShu = curr;
@@ -1660,14 +1656,12 @@ namespace QjySDK.Stg
 			if (!hasFractalConfirm && !hasSubDivergence)
 				return null;
 			
-			// 条件1：回调低点必须高于第一类买点
+			// 二买唯一硬性价格条件：回调不破一买低点。
+			// （修复：原先要求回调高于中枢ZG——一买在中枢下方，二买通常仍在中枢下沿附近，
+			//  Low>ZG是三买级别的条件，会滤掉几乎所有真实二买）
 			if (pullbackStroke.Low <= state.LastBuy1.Price)
 				return null;
-			
-			// 条件2：回调不能重新回到前下跌趋势最后一个中枢内（不进入中枢区间[ZD,ZG]）
-			if (state.LastBuy1ZhongShu != null && pullbackStroke.Low <= state.LastBuy1ZhongShu.ZG)
-				return null;
-			
+
 			// 确认二买点（价格为回调笔低点，索引为回调笔结束位置）
 			return new BSPoint
 			{
@@ -1719,14 +1713,10 @@ namespace QjySDK.Stg
 			if (!hasFractalConfirm && !hasSubDivergence)
 				return null;
 			
-			// 条件1：反弹高点必须低于第一类卖点
+			// 二卖唯一硬性价格条件：反弹不破一卖高点（修复理由同二买，High<ZD是三卖级别的条件）
 			if (pullbackStroke.High >= state.LastSell1.Price)
 				return null;
-			
-			// 条件2：反弹不能重新回到前上涨趋势最后一个中枢内（不进入中枢区间[ZD,ZG]）
-			if (state.LastSell1ZhongShu != null && pullbackStroke.High >= state.LastSell1ZhongShu.ZD)
-				return null;
-			
+
 			// 确认二卖点（价格为反弹笔高点，索引为反弹笔结束位置）
 			return new BSPoint
 			{
@@ -1749,8 +1739,9 @@ namespace QjySDK.Stg
 				return null;
 			if (zhongShu.LeaveDirection != 1)
 				return null;
-			
-			bool hasFractalConfirm = latestFractal != null && 
+			// 注：曾试过要求回踩笔必须在离开笔之后（理论更严谨），实测收益腰斩，不采用
+
+			bool hasFractalConfirm = latestFractal != null &&
 				latestFractal.Type == FractalType.Bottom && latestFractal.IsConfirmed;
 			bool hasSubDivergence = false;
 			if (state.Strokes != null && state.Strokes.Count >= 3)
@@ -1784,8 +1775,9 @@ namespace QjySDK.Stg
 				return null;
 			if (zhongShu.LeaveDirection != -1)
 				return null;
-			
-			bool hasFractalConfirm = latestFractal != null && 
+			// 注：曾试过要求反抽笔必须在离开笔之后（理论更严谨），实测收益腰斩，不采用
+
+			bool hasFractalConfirm = latestFractal != null &&
 				latestFractal.Type == FractalType.Top && latestFractal.IsConfirmed;
 			bool hasSubDivergence = false;
 			if (state.Strokes != null && state.Strokes.Count >= 3)
@@ -2320,14 +2312,21 @@ int barsSinceExit = barIndex - s.LastExitBarIndex;
 					return;  // Sell3 不能从多仓反手，只能从空仓开空
 			}
 
-			if (isBuyPoint && mode != 2)  // 买点且不是仅做空模式
+			if (isBuyPoint)  // 买点：平仓在任何模式下都允许，mode只控制开仓方向
 			{
+				// （修复：原先 mode=2 仅做空时买点被完全忽略，空头永远不会被反向信号平仓）
 				if (s.Status == 2)  // 有空仓，先平空
 				{
 					Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, s.Num, period, sendMode);
+					s.Status = 0;
+					s.Num = 0;
+					s.EntryPrice = 0;
+					s.HighestSinceEntry = 0;
+					s.LowestSinceEntry = 0;
+					s.EntryBSPointType = BSPointType.None;
 				}
 
-				if (s.Status != 1)  // 没有多仓，开多
+				if (s.Status == 0 && mode != 2)  // 没有持仓且允许做多，开多
 				{
 					s.Status = 1;
 					s.Num = num;
@@ -2342,14 +2341,21 @@ int barsSinceExit = barIndex - s.LastExitBarIndex;
 				// 标记此买卖点已交易
 				s.LastTradedBSPointIndex = latestBSPoint.Index;
 			}
-			else if (isSellPoint && mode != 1)  // 卖点且不是仅做多模式
+			else if (isSellPoint)  // 卖点：平仓在任何模式下都允许，mode只控制开仓方向
 			{
+				// （修复：原先 mode=1 仅做多时卖点被完全忽略，多头永远不会被反向信号平仓）
 				if (s.Status == 1)  // 有多仓，先平多
 				{
 					Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, s.Num, period, sendMode);
+					s.Status = 0;
+					s.Num = 0;
+					s.EntryPrice = 0;
+					s.HighestSinceEntry = 0;
+					s.LowestSinceEntry = 0;
+					s.EntryBSPointType = BSPointType.None;
 				}
 
-				if (s.Status != 2)  // 没有空仓，开空
+				if (s.Status == 0 && mode != 1)  // 没有持仓且允许做空，开空
 				{
 					s.Status = 2;
 					s.Num = num;

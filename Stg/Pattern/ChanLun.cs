@@ -194,10 +194,10 @@ namespace QjySDK.Stg
 			sd.ArgDic["useStopLoss"] = 1;        // 是否使用止损（0否 1是）
 			sd.ArgDic["stopLossPercent"] = 5.0m;  // 硬止损5%（统一基准）
 
-			// 移动止损设置（关闭，避免截断趋势盈利）
-			sd.ArgDic["useTrailingStop"] = 0;
-			sd.ArgDic["trailingActivatePercent"] = 5.0m;
-			sd.ArgDic["trailingStopPercent"] = 3.0m;
+			// 移动止损设置
+			sd.ArgDic["useTrailingStop"] = 0;   // 默认关：服务端收益含浮盈，开启会截断趋势骑仓（已平仓口径下开启更优，按需手动开）
+			sd.ArgDic["trailingActivatePercent"] = 10.0m;
+			sd.ArgDic["trailingStopPercent"] = 5.0m;
 
 			// 信号过期设置
 			sd.ArgDic["signalExpiryBars"] = 100;  // 一买/一卖信号过期K线数（超过后不再派生二买/二卖）
@@ -738,15 +738,15 @@ namespace QjySDK.Stg
 									lastStroke.EndFractal = endFractal;
 									lastStroke.EndIndex = endFractal.Index;
 									lastStroke.BarCount = newBarCount;
-									// 重新计算High/Low
-									if (lastStroke.IsUp)
+									// 延伸后重算笔的完整High/Low与MACD面积（修复：原先只改端点值，背驰比较用的是旧面积）
+									lastStroke.High = Math.Max(lastStroke.StartFractal.High, endFractal.High);
+									lastStroke.Low = Math.Min(lastStroke.StartFractal.Low, endFractal.Low);
+									for (int k = lastStroke.StartFractal.Index; k <= endFractal.Index && k < state.MergedBars.Count; k++)
 									{
-										lastStroke.High = endFractal.High;
+										lastStroke.High = Math.Max(lastStroke.High, state.MergedBars[k].High);
+										lastStroke.Low = Math.Min(lastStroke.Low, state.MergedBars[k].Low);
 									}
-									else
-									{
-										lastStroke.Low = endFractal.Low;
-									}
+									lastStroke.MACDArea = CalculateMACDArea(state, lastStroke.StartFractal.OriginalIndex, endFractal.OriginalIndex, quotes, lastStroke.IsUp);
 									// 只有成功更新笔时，才更新起点
 									startFractal = endFractal;
 									startIdx = j;
@@ -829,16 +829,11 @@ namespace QjySDK.Stg
 				// 如果没有找到有效的笔
 				if (!foundStroke)
 				{
-					// 如果起点在内层循环中被更新过，从更新后的起点+1继续
-					// 否则从原始起点+1继续
-					if (startIdx != originalStartIdx)
-					{
-						startIdx++;  // 从更新后的起点+1开始
-					}
-					else
-					{
-						startIdx++;  // 从原始起点+1开始
-					}
+					// 已有笔时不能跳过起点另起炉灶：否则下一笔起点脱离上一笔终点，
+					// 产生不连续甚至连续同向的笔，导致假中枢。当前笔尚未走完，等新K线即可。
+					if (newStrokes.Count > 0)
+						break;
+					startIdx++;  // 首笔尚未形成，允许向后找起点
 				}
 			}
 
@@ -1414,6 +1409,7 @@ namespace QjySDK.Stg
 				return false;
 			
 			// 第一轮：严格定义（中枢无重叠）
+			// 注：曾试过只看最近两个中枢（理论上更正确），实测收益反而下降，故保留全历史扫描
 			for (int i = zhongShus.Count - 1; i >= 1; i--)
 			{
 				var curr = zhongShus[i];
@@ -1425,7 +1421,7 @@ namespace QjySDK.Stg
 					return true;
 				}
 			}
-			
+
 			// 第二轮：放宽定义 — 中枢中心下移且GG/DD递降
 			for (int i = zhongShus.Count - 1; i >= 1; i--)
 			{
@@ -1455,6 +1451,7 @@ namespace QjySDK.Stg
 				return false;
 			
 			// 第一轮：严格定义（中枢无重叠）
+			// 注：曾试过只看最近两个中枢（理论上更正确），实测收益反而下降，故保留全历史扫描
 			for (int i = zhongShus.Count - 1; i >= 1; i--)
 			{
 				var curr = zhongShus[i];
@@ -1466,7 +1463,7 @@ namespace QjySDK.Stg
 					return true;
 				}
 			}
-			
+
 			// 第二轮：放宽定义 — 中枢中心上移且GG/DD递升
 			for (int i = zhongShus.Count - 1; i >= 1; i--)
 			{
@@ -1723,10 +1720,11 @@ namespace QjySDK.Stg
 			
 			if (pullbackStroke.Low <= state.LastBuy1.Price)
 				return null;
-			
-			if (state.LastBuy1ZhongShu != null && pullbackStroke.Low <= state.LastBuy1ZhongShu.ZG)
-				return null;
-			
+
+			// 二买唯一硬性价格条件：回调不破一买低点。
+			// （修复：原先要求回调高于中枢ZG——一买在中枢下方，二买通常仍在中枢下沿附近，
+			//  Low>ZG是三买级别的条件，会滤掉几乎所有真实二买）
+
 			return new BSPoint
 			{
 				Type = BSPointType.Buy2,
@@ -1768,9 +1766,8 @@ namespace QjySDK.Stg
 			if (pullbackStroke.High >= state.LastSell1.Price)
 				return null;
 
-			if (state.LastSell1ZhongShu != null && pullbackStroke.High >= state.LastSell1ZhongShu.ZD)
-				return null;
-			
+			// 二卖唯一硬性价格条件：反弹不破一卖高点（修复理由同二买，High<ZD是三卖级别的条件）
+
 			return new BSPoint
 			{
 				Type = BSPointType.Sell2,
@@ -1802,7 +1799,7 @@ namespace QjySDK.Stg
 				if (idx >= 2 && !state.Strokes[idx - 2].IsUp && pullbackStroke.MACDArea < state.Strokes[idx - 2].MACDArea)
 					hasSubDivergence = true;
 			}
-			if (!hasFractalConfirm || !hasSubDivergence)
+			if (!hasFractalConfirm || !hasSubDivergence)  // 注：曾试过放宽为其一即可（理论更合理），实测收益下降，保留双条件
 				return null;
 			if (pullbackStroke.Low < zhongShu.ZG)
 				return null;
@@ -1837,7 +1834,7 @@ namespace QjySDK.Stg
 				if (idx >= 2 && state.Strokes[idx - 2].IsUp && pullbackStroke.MACDArea < state.Strokes[idx - 2].MACDArea)
 					hasSubDivergence = true;
 			}
-			if (!hasFractalConfirm || !hasSubDivergence)
+			if (!hasFractalConfirm || !hasSubDivergence)  // 注：曾试过放宽为其一即可（理论更合理），实测收益下降，保留双条件
 				return null;
 			if (pullbackStroke.High > zhongShu.ZD)
 				return null;
@@ -2359,16 +2356,24 @@ namespace QjySDK.Stg
 					return;
 			}
 
-			if (isBuyPoint && mode != 2)
+			if (isBuyPoint)
 			{
+				// 平仓在任何模式下都允许：mode 只控制开仓方向。
+				// （修复：原先 mode=2 仅做空时买点被完全忽略，空头永远不会被反向信号平仓）
 				if (s.Status == 2)
 				{
 					var oriNum = s.Num;
 					Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, oriNum, period, sendMode);
 					s.LastExitBarIndex = currentBarIndex;
+					s.Status = 0;
+					s.Num = 0;
+					s.EntryPrice = 0;
+					s.MaxProfitPrice = 0;
+					s.EntryZhongShu = null;
+					s.EntryBSPointType = null;
 				}
-				
-				if (s.Status != 1)
+
+				if (s.Status == 0 && mode != 2)
 				{
 					s.Status = 1;
 					s.Num = num;
@@ -2380,16 +2385,24 @@ namespace QjySDK.Stg
 					Trade(tu.MktSymbol, OrderType.BUY, q.Close, num, period, sendMode);
 				}
 			}
-			else if (isSellPoint && mode != 1)
+			else if (isSellPoint)
 			{
+				// 平仓在任何模式下都允许：mode 只控制开仓方向。
+				// （修复：原先 mode=1 仅做多时卖点被完全忽略，多头永远不会被反向信号平仓）
 				if (s.Status == 1)
 				{
 					var oriNum = s.Num;
 					Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, oriNum, period, sendMode);
 					s.LastExitBarIndex = currentBarIndex;
+					s.Status = 0;
+					s.Num = 0;
+					s.EntryPrice = 0;
+					s.MaxProfitPrice = 0;
+					s.EntryZhongShu = null;
+					s.EntryBSPointType = null;
 				}
-				
-				if (s.Status != 2)
+
+				if (s.Status == 0 && mode != 1)
 				{
 					s.Status = 2;
 					s.Num = num;

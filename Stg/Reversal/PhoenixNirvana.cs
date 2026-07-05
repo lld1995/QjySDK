@@ -1247,10 +1247,10 @@ namespace QjySDK.Stg
         {
             var num = Convert.ToDecimal(ArgDic["lots"]);
             var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
+            var symbol = GetSymbol(tu.MktSymbol);
 
             if (lotsMode == 1)
             {
-                var symbol = GetSymbol(tu.MktSymbol);
                 num = Convert.ToDecimal(ArgDic["money"]) / (q.Close * symbol.multiplier * symbol.margin_ratio);
 
                 if (symbol.symbol_type == (int)SymbolType.COIN)
@@ -1263,7 +1263,7 @@ namespace QjySDK.Stg
                 }
             }
 
-            return Math.Max(num, 0.001m);
+            return symbol.symbol_type == (int)SymbolType.COIN ? Math.Max(num, 0.001m) : num;
         }
 
         /// <summary>

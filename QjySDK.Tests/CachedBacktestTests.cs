@@ -264,14 +264,15 @@ namespace QjySDK.Tests
         {
             _output.WriteLine("========== ChanLunBi 参数网格搜索 ==========\n");
 
-            // 参数组定义：可自由扩展
+            // 参数组定义：现有参数的默认值寻优（不改逻辑）
             var paramSets = new List<(string name, Dictionary<string, object> overrides)>
             {
-                ("V2-default", null),
-                ("SL3%", new Dictionary<string, object> { ["stopLossPercent"] = 3.0m }),
-                ("SL5%+Trail", new Dictionary<string, object> { ["stopLossPercent"] = 5.0m, ["useTrailingStop"] = 1 }),
-                ("Cooldown5", new Dictionary<string, object> { ["tradeCooldownBars"] = 5 }),
-                ("Cooldown15", new Dictionary<string, object> { ["tradeCooldownBars"] = 15 }),
+                ("default", null),
+                ("Trail5-3", new Dictionary<string, object> { ["useTrailingStop"] = 1, ["trailingActivatePercent"] = 5.0m, ["trailingStopPercent"] = 3.0m }),
+                ("Trail10-5", new Dictionary<string, object> { ["useTrailingStop"] = 1, ["trailingActivatePercent"] = 10.0m, ["trailingStopPercent"] = 5.0m }),
+                ("SL3", new Dictionary<string, object> { ["stopLossPercent"] = 3.0m }),
+                ("SL8", new Dictionary<string, object> { ["stopLossPercent"] = 8.0m }),
+                ("cd5", new Dictionary<string, object> { ["tradeCooldownBars"] = 5 }),
             };
 
             // 收集结果
