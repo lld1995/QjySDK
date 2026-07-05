@@ -510,7 +510,7 @@ namespace QjySDK.Stg
                         // 信念仓位：共振分每超出门槛1分仓位加25%，封顶2倍
                         var baseNum = CalculateLots(tu, q);
                         decimal factor = Math.Min(1m + 0.25m * (score - minScore), 2m);
-                        decimal num = Math.Round(baseNum * factor, 3);
+                        decimal num = NormalizeLots(tu, baseNum * factor);
                         if (num <= 0) return;
                         OpenPosition(s, tu, q, isLong, 1, num, atrValue, atrMult, maxStopPct, period, sendMode);
                     }
@@ -518,7 +518,7 @@ namespace QjySDK.Stg
                     {
                         // TPS分批：首仓为总仓位的 1/(1+加仓次数)
                         var baseNum = CalculateLots(tu, q);
-                        decimal num = pulseAdds > 0 ? Math.Round(baseNum / (1 + pulseAdds), 3) : baseNum;
+                        decimal num = pulseAdds > 0 ? NormalizeLots(tu, baseNum / (1 + pulseAdds)) : baseNum;
                         if (num <= 0) return;
                         OpenPosition(s, tu, q, isLong, 2, num, atrValue, atrMult, maxStopPct, period, sendMode);
                     }
@@ -527,7 +527,7 @@ namespace QjySDK.Stg
                         // 破位入场：证据分调制仓位（凯利式——弱信号调仓位而非挡参与）
                         var baseNum = CalculateLots(tu, q);
                         decimal factor = Math.Min(1m + 0.25m * score, 2m);
-                        decimal num = Math.Round(baseNum * factor, 3);
+                        decimal num = NormalizeLots(tu, baseNum * factor);
                         if (num <= 0) return;
                         Diag("breach_entry");
                         OpenPosition(s, tu, q, isLong, 2, num, atrValue, atrMult, maxStopPct, period, sendMode);
@@ -752,7 +752,7 @@ namespace QjySDK.Stg
                 && q.Close <= s.LastFillPrice - atrValue * (decimal)AddStepAtr
                 && rsiValue < RsiOversold)
             {
-                decimal addNum = Math.Round(s.BaseNum * (decimal)AddRatio, 3);
+                decimal addNum = NormalizeLots(tu, s.BaseNum * (decimal)AddRatio);
                 if (addNum > 0)
                 {
                     s.AvgPrice = (s.AvgPrice * s.Num + q.Close * addNum) / (s.Num + addNum);
@@ -774,7 +774,7 @@ namespace QjySDK.Stg
             // 部分止盈：触及中轨了结一半，止损推至保本
             if (!s.PartialExited && q.Close >= middle)
             {
-                decimal exitNum = Math.Round(s.Num * (decimal)PartialRatio, 3);
+                decimal exitNum = NormalizeLots(tu, s.Num * (decimal)PartialRatio);
                 if (exitNum > 0 && exitNum < s.Num)
                 {
                     Trade(tu.MktSymbol, OrderType.SELL_TO_COVER, q.Close, exitNum, period, sendMode);
@@ -834,7 +834,7 @@ namespace QjySDK.Stg
                 && q.Close >= s.LastFillPrice + atrValue * (decimal)AddStepAtr
                 && rsiValue > RsiOverbought)
             {
-                decimal addNum = Math.Round(s.BaseNum * (decimal)AddRatio, 3);
+                decimal addNum = NormalizeLots(tu, s.BaseNum * (decimal)AddRatio);
                 if (addNum > 0)
                 {
                     s.AvgPrice = (s.AvgPrice * s.Num + q.Close * addNum) / (s.Num + addNum);
@@ -856,7 +856,7 @@ namespace QjySDK.Stg
             // 部分止盈：触及中轨了结一半，止损推至保本
             if (!s.PartialExited && q.Close <= middle)
             {
-                decimal exitNum = Math.Round(s.Num * (decimal)PartialRatio, 3);
+                decimal exitNum = NormalizeLots(tu, s.Num * (decimal)PartialRatio);
                 if (exitNum > 0 && exitNum < s.Num)
                 {
                     Trade(tu.MktSymbol, OrderType.BUY_TO_COVER, q.Close, exitNum, period, sendMode);
@@ -1008,7 +1008,7 @@ namespace QjySDK.Stg
             if (s.EntryPath == 1)
             {
                 maxAdds = sniperAdds;
-                addNum = Math.Round(s.BaseNum * (decimal)AddRatio, 3);
+                addNum = NormalizeLots(tu, s.BaseNum * (decimal)AddRatio);
                 addOk = (isLong
                         ? q.Close <= s.LastFillPrice - atrValue * (decimal)AddStepAtr
                         : q.Close >= s.LastFillPrice + atrValue * (decimal)AddStepAtr)
@@ -1252,18 +1252,17 @@ namespace QjySDK.Stg
             if (lotsMode == 1)
             {
                 num = Convert.ToDecimal(ArgDic["money"]) / (q.Close * symbol.multiplier * symbol.margin_ratio);
-
-                if (symbol.symbol_type == (int)SymbolType.COIN)
-                {
-                    num = Math.Floor(num * 1000) / 1000m;
-                }
-                else
-                {
-                    num = Math.Floor(num);
-                }
             }
 
-            return symbol.symbol_type == (int)SymbolType.COIN ? Math.Max(num, 0.001m) : num;
+            return NormalizeLots(tu, num);
+        }
+
+        private decimal NormalizeLots(TableUnit tu, decimal num)
+        {
+            var symbol = GetSymbol(tu.MktSymbol);
+            return symbol.symbol_type == (int)SymbolType.COIN
+                ? Math.Floor(num * 1000) / 1000m
+                : Math.Floor(num);
         }
 
         /// <summary>
