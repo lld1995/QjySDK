@@ -1,0 +1,17 @@
+[2026-05-14 17:02:44] START BollRsiShortReversion realtime SIMULATION raw=COIN_FUTURES_ETHUSDT mkt=FUTURES_ETHUSDT period=TIME_5M poll=30s limit=300 no_real_order=true polymarket_proxy=http://127.0.0.1:7888
+[2026-05-14 17:02:45] BAR time=2026-05-14 16:59:59 open=2266.44 high=2266.44 low=2265 close=2265.17 signal=none
+[2026-05-14 17:05:15] BAR time=2026-05-14 17:04:59 open=2265.17 high=2266.2 low=2263.46 close=2263.59 signal=none
+[2026-05-14 17:10:15] BAR time=2026-05-14 17:09:59 open=2263.6 high=2265.43 low=2263.59 close=2265.1 signal=none
+[2026-05-14 17:15:16] BAR time=2026-05-14 17:14:59 open=2265.11 high=2266.78 low=2262.81 close=2263.14 signal=none
+[2026-05-14 17:20:16] BAR time=2026-05-14 17:19:59 open=2263.14 high=2263.16 low=2261.55 close=2262.22 signal=none
+[2026-05-14 17:25:17] BAR time=2026-05-14 17:24:59 open=2262.21 high=2263.57 low=2261.19 close=2261.19 signal=none
+[2026-05-14 17:30:17] BAR time=2026-05-14 17:29:59 open=2261.2 high=2261.2 low=2258.52 close=2260 signal=none
+[2026-05-14 17:35:18] BAR time=2026-05-14 17:34:59 open=2260 high=2260 low=2255.8 close=2258.93 signal=none
+[2026-05-14 17:40:18] BAR time=2026-05-14 17:39:59 open=2258.94 high=2258.94 low=2251.25 close=2253.88 signal=none
+[2026-05-14 17:45:19] BAR time=2026-05-14 17:44:59 open=2253.87 high=2255.71 low=2253.18 close=2255.29 signal=none
+[2026-05-14 17:50:19] BAR time=2026-05-14 17:49:59 open=2255.28 high=2255.95 low=2253.27 close=2255.23 signal=none
+[2026-05-14 17:55:20] BAR time=2026-05-14 17:54:59 open=2255.24 high=2256 low=2254.55 close=2255.55 signal=none
+[2026-05-14 18:00:20] BAR time=2026-05-14 17:59:59 open=2255.56 high=2257.39 low=2255.34 close=2256.65 signal=none
+[2026-05-14 18:05:21] BAR time=2026-05-14 18:04:59 open=2256.66 high=2259.66 low=2255.81 close=2258.81 signal=none
+[2026-05-14 18:10:21] BAR time=2026-05-14 18:09:59 open=2258.81 high=2260 low=2256.11 close=2256.92 signal=none
+[2026-05-14 18:15:22] BAR time=2026-05-14 18:14:59 open=2256.92 high=2263.88 low=2256.54 close=2259.98 signal=none

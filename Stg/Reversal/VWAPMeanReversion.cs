@@ -102,7 +102,7 @@ namespace QjySDK.Stg
 				var sym = GetSymbol(tu.MktSymbol);
 				var num = Convert.ToDecimal(ArgDic["money"]) / (price * sym.multiplier * sym.margin_ratio);
 				if (sym.symbol_type == (int)SymbolType.COIN)
-					num = (int)(num * 1000) / 1000.0m;
+					num = (int)(num * sym.scale) / (decimal)sym.scale;
 				else
 					num = (int)num;
 				return Math.Max(num, 0.001m);

@@ -1044,11 +1044,11 @@ namespace QjySDK.Stg
         {
             var num = Convert.ToDecimal(ArgDic["lots"]);
             var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
-            var symbol = GetSymbol(tu.MktSymbol);
+            var sym = GetSymbol(tu.MktSymbol);
 
             if (lotsMode == 1)
             {
-                num = Convert.ToDecimal(ArgDic["money"]) / (q.Close * symbol.multiplier * symbol.margin_ratio);
+                num = Convert.ToDecimal(ArgDic["money"]) / (q.Close * sym.multiplier * sym.margin_ratio);
             }
 
             return NormalizeLots(tu, num);
@@ -1056,9 +1056,9 @@ namespace QjySDK.Stg
 
         private decimal NormalizeLots(TableUnit tu, decimal num)
         {
-            var symbol = GetSymbol(tu.MktSymbol);
-            return symbol.symbol_type == (int)SymbolType.COIN
-                ? Math.Floor(num * 1000) / 1000m
+            var sym = GetSymbol(tu.MktSymbol);
+            return sym.symbol_type == (int)SymbolType.COIN
+                ? (int)(num * sym.scale) / (decimal)sym.scale
                 : Math.Floor(num);
         }
 

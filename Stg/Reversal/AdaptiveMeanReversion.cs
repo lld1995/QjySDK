@@ -377,11 +377,11 @@ namespace QjySDK.Stg
             var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
-                var s2 = GetSymbol(tu.MktSymbol);
-                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio));
-                if (s2.symbol_type == (int)SymbolType.COIN)
+                var sym = GetSymbol(tu.MktSymbol);
+                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * sym.multiplier * sym.margin_ratio));
+                if (sym.symbol_type == (int)SymbolType.COIN)
                 {
-                    num = (int)(num * 1000) / 1000.0m;
+                    num = (int)(num * sym.scale) / (decimal)sym.scale;
                 }
                 else
                 {
@@ -393,11 +393,11 @@ namespace QjySDK.Stg
                 // 波动率反比：波动率高时减少仓位
                 double volInverse = 2.0 / atrPercent; // 假设2%为基准波动率
                 volInverse = Math.Max(0.5, Math.Min(2.0, volInverse));
-                var s2 = GetSymbol(tu.MktSymbol);
-                num = (decimal)(volInverse * (double)(Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio)));
-                if (s2.symbol_type == (int)SymbolType.COIN)
+                var sym = GetSymbol(tu.MktSymbol);
+                num = (decimal)(volInverse * (double)(Convert.ToDecimal(ArgDic["money"]) / (q.Close * sym.multiplier * sym.margin_ratio)));
+                if (sym.symbol_type == (int)SymbolType.COIN)
                 {
-                    num = (int)(num * 1000) / 1000.0m;
+                    num = (int)(num * sym.scale) / (decimal)sym.scale;
                 }
                 else
                 {

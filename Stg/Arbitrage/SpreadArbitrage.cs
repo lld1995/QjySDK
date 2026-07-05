@@ -535,11 +535,11 @@ namespace QjySDK.Stg
 
             if (lotsMode == 1)
             {
-                var s = GetSymbol(mktSymbol);
-                num = (Convert.ToDecimal(ArgDic["money"]) / (price * s.multiplier * s.margin_ratio));
-                if (s.symbol_type == (int)SymbolType.COIN)
+                var sym = GetSymbol(mktSymbol);
+                num = (Convert.ToDecimal(ArgDic["money"]) / (price * sym.multiplier * sym.margin_ratio));
+                if (sym.symbol_type == (int)SymbolType.COIN)
                 {
-                    num = (int)(num * 1000) / 1000.0m;
+                    num = (int)(num * sym.scale) / (decimal)sym.scale;
                 }
                 else
                 {
@@ -550,11 +550,11 @@ namespace QjySDK.Stg
             {
                 // Z-Score加权：偏离越大仓位越重
                 double zWeight = Math.Min(2.0, Math.Abs(zScore) / Math.Max(0.1, entryZ));
-                var s = GetSymbol(mktSymbol);
-                num = (decimal)(zWeight * (double)(Convert.ToDecimal(ArgDic["money"]) / (price * s.multiplier * s.margin_ratio)));
-                if (s.symbol_type == (int)SymbolType.COIN)
+                var sym = GetSymbol(mktSymbol);
+                num = (decimal)(zWeight * (double)(Convert.ToDecimal(ArgDic["money"]) / (price * sym.multiplier * sym.margin_ratio)));
+                if (sym.symbol_type == (int)SymbolType.COIN)
                 {
-                    num = (int)(num * 1000) / 1000.0m;
+                    num = (int)(num * sym.scale) / (decimal)sym.scale;
                 }
                 else
                 {

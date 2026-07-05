@@ -148,7 +148,7 @@ namespace QjySDK.Stg
                 num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * sym.multiplier * sym.margin_ratio));
                 if (sym.symbol_type == (int)SymbolType.COIN)
                 {
-                    num = (int)(num * 1000) / 1000.0m;
+                    num = (int)(num * sym.scale) / (decimal)sym.scale;
                 }
                 else
                 {

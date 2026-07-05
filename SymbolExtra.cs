@@ -10,5 +10,6 @@ namespace Model
         public decimal margin_ratio { get; set; }
         public decimal multiplier { get; set; }
         public int symbol_type { get; set; }
+        public int scale { get; set; }
     }
 }

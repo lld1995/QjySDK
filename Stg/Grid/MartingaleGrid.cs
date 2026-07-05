@@ -135,7 +135,7 @@ namespace QjySDK.Stg
 				var sym = GetSymbol(tu.MktSymbol);
 				var num = Convert.ToDecimal(ArgDic["money"]) / (price * sym.multiplier * sym.margin_ratio);
 				if (sym.symbol_type == (int)SymbolType.COIN)
-					num = (int)(num * 1000) / 1000.0m;
+					num = (int)(num * sym.scale) / (decimal)sym.scale;
 				else
 					num = (int)num;
 				return Math.Max(num, 0.001m);
@@ -286,7 +286,7 @@ namespace QjySDK.Stg
 						decimal lots = baseLots * (decimal)Math.Pow(multiplier, layerIdx);
 						var sym = GetSymbol(tu.MktSymbol);
 						if (sym.symbol_type == (int)SymbolType.COIN)
-							lots = (int)(lots * 1000) / 1000.0m;
+							lots = (int)(lots * sym.scale) / (decimal)sym.scale;
 						else
 							lots = (int)lots;
 						lots = Math.Max(lots, 0.001m);
@@ -327,7 +327,7 @@ namespace QjySDK.Stg
 						decimal lots = baseLots * (decimal)Math.Pow(multiplier, layerIdx);
 						var sym = GetSymbol(tu.MktSymbol);
 						if (sym.symbol_type == (int)SymbolType.COIN)
-							lots = (int)(lots * 1000) / 1000.0m;
+							lots = (int)(lots * sym.scale) / (decimal)sym.scale;
 						else
 							lots = (int)lots;
 						lots = Math.Max(lots, 0.001m);

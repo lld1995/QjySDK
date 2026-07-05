@@ -588,10 +588,10 @@ namespace QjySDK.Stg
                     {
                         // X腿: num * |beta| (对冲比例)
                         tradeNum = baseNum * Math.Max(0.001m, (decimal)Math.Abs(bestPair.Beta));
-                        var s = GetSymbol(mktSymbol);
-                        if (s.symbol_type == (int)SymbolType.COIN)
+                        var sym = GetSymbol(mktSymbol);
+                        if (sym.symbol_type == (int)SymbolType.COIN)
                         {
-                            tradeNum = (int)(tradeNum * 1000) / 1000.0m;
+                            tradeNum = (int)(tradeNum * sym.scale) / (decimal)sym.scale;
                         }
                         else
                         {
@@ -636,11 +636,11 @@ namespace QjySDK.Stg
             var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
-                var s = GetSymbol(mktSymbol);
-                num = (Convert.ToDecimal(ArgDic["money"]) / (price * s.multiplier * s.margin_ratio));
-                if (s.symbol_type == (int)SymbolType.COIN)
+                var sym = GetSymbol(mktSymbol);
+                num = (Convert.ToDecimal(ArgDic["money"]) / (price * sym.multiplier * sym.margin_ratio));
+                if (sym.symbol_type == (int)SymbolType.COIN)
                 {
-                    num = (int)(num * 1000) / 1000.0m;
+                    num = (int)(num * sym.scale) / (decimal)sym.scale;
                 }
                 else
                 {

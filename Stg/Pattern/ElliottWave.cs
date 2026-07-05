@@ -888,13 +888,19 @@ namespace QjySDK.Stg
         {
             var num = Convert.ToDecimal(ArgDic["lots"]);
             var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
+
             if (lotsMode == 1)
             {
-                var symbol = GetSymbol(tu.MktSymbol);
-                num = Convert.ToDecimal(ArgDic["money"]) / (quote.Close * symbol.multiplier * symbol.margin_ratio);
-                num = symbol.symbol_type == (int)SymbolType.COIN ? (int)(num * 1000) / 1000.0m : (int)num;
+                var sym = GetSymbol(tu.MktSymbol);
+                num = Convert.ToDecimal(ArgDic["money"]) / (quote.Close * sym.multiplier * sym.margin_ratio);
+
+                if (sym.symbol_type == (int)SymbolType.COIN)
+                    num = (int)(num * sym.scale) / (decimal)sym.scale;
+                else
+                    num = Math.Floor(num);
             }
-            return num;
+
+            return Math.Max(num, 0.001m);
         }
 
         private void PlotWaveInfo(WaveState wave, bool isNewPivot)

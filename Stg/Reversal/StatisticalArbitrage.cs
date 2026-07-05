@@ -331,11 +331,11 @@ sd.ArgDescDic["targetProfitAtr"] = new ArgDesc { Text = "目标最低盈利(ATR)
             var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
-                var s2 = GetSymbol(tu.MktSymbol);
-                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio));
-                if (s2.symbol_type == (int)SymbolType.COIN)
+                var sym = GetSymbol(tu.MktSymbol);
+                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * sym.multiplier * sym.margin_ratio));
+                if (sym.symbol_type == (int)SymbolType.COIN)
                 {
-                    num = (int)(num * 1000) / 1000.0m;
+                    num = (int)(num * sym.scale) / (decimal)sym.scale;
                 }
                 else
                 {
@@ -345,11 +345,11 @@ sd.ArgDescDic["targetProfitAtr"] = new ArgDesc { Text = "目标最低盈利(ATR)
             else if (lotsMode == 2)
             {
                 double zWeight = Math.Min(2.0, Math.Abs(zScore) / dynamicEntryZ);
-                var s2 = GetSymbol(tu.MktSymbol);
-                num = (decimal)(zWeight * (double)(Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio)));
-                if (s2.symbol_type == (int)SymbolType.COIN)
+                var sym = GetSymbol(tu.MktSymbol);
+                num = (decimal)(zWeight * (double)(Convert.ToDecimal(ArgDic["money"]) / (q.Close * sym.multiplier * sym.margin_ratio)));
+                if (sym.symbol_type == (int)SymbolType.COIN)
                 {
-                    num = (int)(num * 1000) / 1000.0m;
+                    num = (int)(num * sym.scale) / (decimal)sym.scale;
                 }
                 else
                 {

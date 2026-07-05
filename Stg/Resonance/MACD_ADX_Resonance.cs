@@ -847,10 +847,10 @@ sd.ArgDescDic["MaxHoldBars"] = new ArgDesc { Text = "最大持仓K线数", Expla
             var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
-                var s2 = GetSymbol(mktSymbol);
-                num = (Convert.ToDecimal(ArgDic["money"]) / (price * s2.multiplier * s2.margin_ratio));
-                if (s2.symbol_type == (int)SymbolType.COIN)
-                    num = (int)(num * 1000) / 1000.0m;
+                var sym = GetSymbol(mktSymbol);
+                num = (Convert.ToDecimal(ArgDic["money"]) / (price * sym.multiplier * sym.margin_ratio));
+                if (sym.symbol_type == (int)SymbolType.COIN)
+                    num = (int)(num * sym.scale) / (decimal)sym.scale;
                 else
                     num = (int)num;
             }

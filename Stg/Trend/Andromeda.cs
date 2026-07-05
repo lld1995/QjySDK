@@ -319,10 +319,10 @@ namespace QjySDK.Stg
 
             if (lotsMode == 1)
             {
-                var symbol2 = GetSymbol(tu.MktSymbol);
-                decimal num = Convert.ToDecimal(ArgDic["money"]) / (q.Close * symbol2.multiplier * symbol2.margin_ratio);
-                if (symbol2.symbol_type == (int)SymbolType.COIN)
-                    num = Math.Floor(num * 1000) / 1000.0m;
+                var sym2 = GetSymbol(tu.MktSymbol);
+                decimal num = Convert.ToDecimal(ArgDic["money"]) / (q.Close * sym2.multiplier * sym2.margin_ratio);
+                if (sym2.symbol_type == (int)SymbolType.COIN)
+                    num = (int)(num * sym2.scale) / (decimal)sym2.scale;
                 else
                     num = Math.Floor(num);
                 return Math.Max(num, 0);
@@ -333,8 +333,8 @@ namespace QjySDK.Stg
             double riskPerTrade = Convert.ToDouble(ArgDic["riskPerTrade"]);
             double atrStopMultiplier = Convert.ToDouble(ArgDic["atrStopMultiplier"]);
 
-            var symbol = GetSymbol(tu.MktSymbol);
-            decimal multiplier = symbol.multiplier;
+            var sym = GetSymbol(tu.MktSymbol);
+            decimal multiplier = sym.multiplier;
 
             // 风险金额 = 账户权益 × 风险比例
             decimal riskAmount = accountEquity * (decimal)riskPerTrade;
@@ -351,9 +351,9 @@ namespace QjySDK.Stg
             decimal positionSize = riskAmount / riskPerLot;
 
             // 根据品种类型取整
-            if (symbol.symbol_type == (int)SymbolType.COIN)
+            if (sym.symbol_type == (int)SymbolType.COIN)
             {
-                positionSize = Math.Floor(positionSize * 1000) / 1000.0m;
+                positionSize = Math.Floor(positionSize * sym.scale) / (decimal)sym.scale;
             }
             else
             {

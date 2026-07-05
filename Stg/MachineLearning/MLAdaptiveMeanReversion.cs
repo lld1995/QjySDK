@@ -875,11 +875,11 @@ namespace QjySDK.Stg
             var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
             if (lotsMode == 1)
             {
-                var s2 = GetSymbol(tu.MktSymbol);
-                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio));
-                if (s2.symbol_type == (int)SymbolType.COIN)
+                var sym = GetSymbol(tu.MktSymbol);
+                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * sym.multiplier * sym.margin_ratio));
+                if (sym.symbol_type == (int)SymbolType.COIN)
                 {
-                    num = (int)(num * 1000) / 1000.0m;
+                    num = (int)(num * sym.scale) / (decimal)sym.scale;
                 }
                 else
                 {
@@ -894,11 +894,11 @@ namespace QjySDK.Stg
                 double b = takeProfitAtr / stopLossAtr;
                 double kellyFraction = Math.Max(0, Math.Min(0.25, (p * b - (1 - p)) / b));
 
-                var s2 = GetSymbol(tu.MktSymbol);
-                num = (decimal)(kellyFraction * (double)(Convert.ToDecimal(ArgDic["money"]) / (q.Close * s2.multiplier * s2.margin_ratio)));
-                if (s2.symbol_type == (int)SymbolType.COIN)
+                var sym = GetSymbol(tu.MktSymbol);
+                num = (decimal)(kellyFraction * (double)(Convert.ToDecimal(ArgDic["money"]) / (q.Close * sym.multiplier * sym.margin_ratio)));
+                if (sym.symbol_type == (int)SymbolType.COIN)
                 {
-                    num = (int)(num * 1000) / 1000.0m;
+                    num = (int)(num * sym.scale) / (decimal)sym.scale;
                 }
                 else
                 {

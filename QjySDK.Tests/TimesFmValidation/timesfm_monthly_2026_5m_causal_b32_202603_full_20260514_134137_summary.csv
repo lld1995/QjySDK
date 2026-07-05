@@ -1,0 +1,2 @@
+strategy,mode,month,source_total,total,valid,pass,hit,coverage,win_rate,max_loss_streak,max_win_streak,start,end,seconds
+"TimesFmDirection","causal_b32",2026-03,8920,8920,8920,3157,1627,0.353924,0.515363,10,12,"2026-03-01 00:04:59","2026-03-31 23:59:59",10440.14

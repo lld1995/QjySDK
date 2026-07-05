@@ -104,7 +104,7 @@ K线数: {TotalBars}
         private static readonly Dictionary<string, Symbol> _cache = new Dictionary<string, Symbol>();
 
         /// <summary>
-        /// 从 MySQL symbol 表加载真实的 multiplier / margin_ratio / symbol_type
+        /// 从 MySQL symbol 表加载真实的 multiplier / margin_ratio / symbol_type / scale
         /// mktSymbol 格式: "SPOT_BTCUSDT" / "FUTURES_XAUUSDT" / "SPOT_SHSE.600519"
         /// </summary>
         public static Symbol Load(string mktSymbol)
@@ -132,7 +132,7 @@ K线数: {TotalBars}
                 using var conn = new MySqlConnection(TestConfig.MySQL);
                 conn.Open();
                 using var cmd = new MySqlCommand(
-                    "SELECT multiplier, margin_ratio, symbol_type FROM symbol WHERE mkt_type=@mkt AND symbol_=@sym LIMIT 1", conn);
+                    "SELECT multiplier, margin_ratio, symbol_type, scale FROM symbol WHERE mkt_type=@mkt AND symbol_=@sym LIMIT 1", conn);
                 cmd.Parameters.AddWithValue("@mkt", mktType);
                 cmd.Parameters.AddWithValue("@sym", symbolName);
                 using var reader = cmd.ExecuteReader();
@@ -144,10 +144,11 @@ K线数: {TotalBars}
                     {
                         multiplier = rawMul > 0 ? rawMul : 1m,
                         margin_ratio = rawMar > 0 ? rawMar : 1m,
-                        symbol_type = reader.GetInt32(2)
+                        symbol_type = reader.GetInt32(2),
+                        scale = reader.GetInt32(3)
                     };
                     _cache[mktSymbol] = sym;
-                    Console.WriteLine($"[SymbolLoader] {mktSymbol} → multiplier={sym.multiplier}, margin_ratio={sym.margin_ratio}, symbol_type={sym.symbol_type}");
+                    Console.WriteLine($"[SymbolLoader] {mktSymbol} → multiplier={sym.multiplier}, margin_ratio={sym.margin_ratio}, symbol_type={sym.symbol_type}, scale={sym.scale}");
                     return sym;
                 }
             }
@@ -170,8 +171,8 @@ K线数: {TotalBars}
 
         private static Symbol DefaultSymbol(string mktSymbol)
         {
-            Console.WriteLine($"[SymbolLoader] {mktSymbol} 未找到，使用默认值 multiplier=1, margin_ratio=1");
-            var sym = new Symbol { multiplier = 1m, margin_ratio = 1m, symbol_type = 0 };
+            Console.WriteLine($"[SymbolLoader] {mktSymbol} 未找到，使用默认值 multiplier=1, margin_ratio=1, scale=0");
+            var sym = new Symbol { multiplier = 1m, margin_ratio = 1m, symbol_type = 0, scale = 0 };
             _cache[mktSymbol] = sym;
             return sym;
         }

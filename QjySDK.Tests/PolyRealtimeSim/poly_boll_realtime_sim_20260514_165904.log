@@ -1,0 +1,2 @@
+[2026-05-14 16:59:07] START BollRsiShortReversion realtime SIMULATION; no trader connection; no real Polymarket order placement; Polymarket proxy requirement=http://127.0.0.1:7888
+[2026-05-14 16:59:07] ERROR System.Management.Automation.MethodInvocationException: Exception calling "LoadKlines" with "3" argument(s): "Could not load file or assembly 'System.Text.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'. The located assembly's manifest definition does not match the assembly reference. (0x80131040)"

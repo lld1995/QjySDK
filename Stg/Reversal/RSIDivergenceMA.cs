@@ -702,11 +702,11 @@ namespace QjySDK.Stg
 
             if (lotsMode == 1)
             {
-                var symbol = GetSymbol(tu.MktSymbol);
-                num = Convert.ToDecimal(ArgDic["money"]) / (q.Close * symbol.multiplier * symbol.margin_ratio);
+                var sym = GetSymbol(tu.MktSymbol);
+                num = Convert.ToDecimal(ArgDic["money"]) / (q.Close * sym.multiplier * sym.margin_ratio);
 
-                if (symbol.symbol_type == (int)SymbolType.COIN)
-                    num = Math.Floor(num * 1000) / 1000m;
+                if (sym.symbol_type == (int)SymbolType.COIN)
+                    num = (int)(num * sym.scale) / (decimal)sym.scale;
                 else
                     num = Math.Floor(num);
             }

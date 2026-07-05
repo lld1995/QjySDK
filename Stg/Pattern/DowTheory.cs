@@ -452,11 +452,11 @@ namespace QjySDK.Stg
             
             if (lotsMode == 1)
             {
-                var symbol = GetSymbol(mktSymbol);
-                num = Convert.ToDecimal(ArgDic["money"]) / (price * symbol.multiplier * symbol.margin_ratio);
-                if (symbol.symbol_type == (int)SymbolType.COIN)
+                var sym = GetSymbol(mktSymbol);
+                num = Convert.ToDecimal(ArgDic["money"]) / (price * sym.multiplier * sym.margin_ratio);
+                if (sym.symbol_type == (int)SymbolType.COIN)
                 {
-                    num = (int)(num * 1000) / 1000.0m;
+                    num = (int)(num * sym.scale) / (decimal)sym.scale;
                 }
                 else
                 {
