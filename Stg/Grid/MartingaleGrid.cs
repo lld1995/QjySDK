@@ -55,10 +55,17 @@ namespace QjySDK.Stg
 			sd.ArgDic["lots"] = 1.0m;
 			sd.ArgDic["money"] = 10000m;
 
+			// 动态网格（默认启用：根据Common.GridSizingHelper按波动率调整加仓间距）
+			sd.ArgDic["dynamicGrid"] = 1;
+			sd.ArgDic["atrPeriod"] = 14;
+			sd.ArgDic["atrMultiplier"] = 1.2m;
+			sd.ArgDic["minGridPercent"] = 0.2m;
+			sd.ArgDic["maxGridPercent"] = 5.0m;
+
 			// 冷却
 			sd.ArgDic["cooldownBars"] = 3;
 
-			sd.ArgDescDic["gridPercent"] = new ArgDesc() { Text = "网格间距%", Explain = "每层加仓的价格间距百分比", Type = "number" };
+			sd.ArgDescDic["gridPercent"] = new ArgDesc() { Text = "基准网格间距%", Explain = "动态网格关闭或历史不足时使用的兜底加仓间距", Type = "number" };
 			sd.ArgDescDic["maxLayers"] = new ArgDesc() { Text = "最大加仓层数", Explain = "最多加仓次数，防止无限加仓", Type = "number" };
 			sd.ArgDescDic["multiplier"] = new ArgDesc() { Text = "手数倍率", Explain = "每层手数=基础手数*倍率^层数，经典马丁为2", Type = "number" };
 			sd.ArgDescDic["takeProfitPercent"] = new ArgDesc() { Text = "止盈百分比", Explain = "价格高于持仓均价此百分比时止盈", Type = "number" };
@@ -66,6 +73,11 @@ namespace QjySDK.Stg
 			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "1:做多(逢跌加仓)|2:做空(逢涨加仓)", Type = "select" };
 			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
 			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
+			sd.ArgDescDic["dynamicGrid"] = new ArgDesc() { Text = "动态网格", Explain = "默认启用；调用Common.GridSizingHelper，基于ATR均值和真实波幅中位数计算每层加仓间距，自动适配所选K线周期和品种波动", Options = "0:关闭|1:启用动态波动率网格", Type = "bool" };
+			sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "动态网格使用的波动统计周期", Type = "number" };
+			sd.ArgDescDic["atrMultiplier"] = new ArgDesc() { Text = "ATR倍率", Explain = "动态网格=波动率×倍率，并结合真实波幅中位数降低极端K线影响", Type = "number" };
+			sd.ArgDescDic["minGridPercent"] = new ArgDesc() { Text = "最小网格%", Explain = "动态网格下限，避免低波动时加仓过密", Type = "number" };
+			sd.ArgDescDic["maxGridPercent"] = new ArgDesc() { Text = "最大网格%", Explain = "动态网格上限，避免极端波动后加仓间距过宽", Type = "number" };
 			sd.ArgDescDic["cooldownBars"] = new ArgDesc() { Text = "冷却K线数", Explain = "止损后等待N根K线再重新入场，0为不冷却", Type = "number" };
 
 
@@ -103,6 +115,7 @@ namespace QjySDK.Stg
 			public int CooldownRemaining { get; set; }
 			public int BlockedDir { get; set; } // 止损后封锁方向:0无 1多 2空
 			public decimal StopReferencePrice { get; set; } // 止损轮首次入场价，回到该价才允许重启
+			public decimal LastGridPercent { get; set; }
 		}
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -159,7 +172,19 @@ namespace QjySDK.Stg
 			var s = GetOrCreateState(sk);
 			var q = tu.QuoteList[tu.QuoteList.Count - 1];
 
-			decimal gridPct = Convert.ToDecimal(ArgDic["gridPercent"]) / 100m;
+			decimal gridPct = Convert.ToDecimal(ArgDic["gridPercent"]);
+			int dynamicGrid = ArgDic.ContainsKey("dynamicGrid") ? Convert.ToInt32(ArgDic["dynamicGrid"]) : 1;
+			if (dynamicGrid == 1)
+			{
+				int atrPeriod = ArgDic.ContainsKey("atrPeriod") ? Convert.ToInt32(ArgDic["atrPeriod"]) : 14;
+				decimal atrMultiplier = ArgDic.ContainsKey("atrMultiplier") ? Convert.ToDecimal(ArgDic["atrMultiplier"]) : 1.2m;
+				decimal minGridPercent = ArgDic.ContainsKey("minGridPercent") ? Convert.ToDecimal(ArgDic["minGridPercent"]) : 0.2m;
+				decimal maxGridPercent = ArgDic.ContainsKey("maxGridPercent") ? Convert.ToDecimal(ArgDic["maxGridPercent"]) : 5.0m;
+				gridPct = GridSizingHelper.CalculateDynamicGridPercent(tu.QuoteList, q.Close, gridPct, atrPeriod, atrMultiplier, minGridPercent, maxGridPercent, s.LastGridPercent);
+				s.LastGridPercent = gridPct;
+				Plot("sub0", "GridPercent", PlotType.LINE, (double)gridPct);
+			}
+			decimal gridPctRatio = gridPct / 100m;
 			int maxLayers = Convert.ToInt32(ArgDic["maxLayers"]);
 			double multiplier = Convert.ToDouble(ArgDic["multiplier"]);
 			decimal tpPct = Convert.ToDecimal(ArgDic["takeProfitPercent"]) / 100m;
@@ -206,12 +231,12 @@ namespace QjySDK.Stg
 				if (direction == 0)
 				{
 					Trade(tu.MktSymbol, OrderType.BUY, q.Close, lots, period, sendMode);
-					s.NextGridPrice = q.Close * (1 - gridPct);
+					s.NextGridPrice = q.Close * (1 - gridPctRatio);
 				}
 				else
 				{
 					Trade(tu.MktSymbol, OrderType.SELL, q.Close, lots, period, sendMode);
-					s.NextGridPrice = q.Close * (1 + gridPct);
+					s.NextGridPrice = q.Close * (1 + gridPctRatio);
 				}
 			}
 			else
@@ -268,7 +293,7 @@ namespace QjySDK.Stg
 
 						AddLayer(s, q.Close, lots);
 						Trade(tu.MktSymbol, OrderType.BUY, q.Close, lots, period, sendMode);
-						s.NextGridPrice = q.Close * (1 - gridPct);
+						s.NextGridPrice = q.Close * (1 - gridPctRatio);
 					}
 				}
 				else
@@ -309,7 +334,7 @@ namespace QjySDK.Stg
 
 						AddLayer(s, q.Close, lots);
 						Trade(tu.MktSymbol, OrderType.SELL, q.Close, lots, period, sendMode);
-						s.NextGridPrice = q.Close * (1 + gridPct);
+						s.NextGridPrice = q.Close * (1 + gridPctRatio);
 					}
 				}
 			}

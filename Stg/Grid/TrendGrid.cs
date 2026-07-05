@@ -51,9 +51,12 @@ namespace QjySDK.Stg
 			sd.ArgDic["gridCount"] = 3;
 			sd.ArgDic["sendMode"] = 0;
 
-			// 动态网格
-			sd.ArgDic["dynamicGrid"] = 0;
+			// 动态网格（默认启用：根据Common.GridSizingHelper按波动率调整网格间距）
+			sd.ArgDic["dynamicGrid"] = 1;
 			sd.ArgDic["atrPeriod"] = 14;
+			sd.ArgDic["atrMultiplier"] = 1.2m;
+			sd.ArgDic["minGridPercent"] = 0.2m;
+			sd.ArgDic["maxGridPercent"] = 5.0m;
 
 			// 手数控制
 			sd.ArgDic["lotsMode"] = 1;
@@ -68,11 +71,14 @@ namespace QjySDK.Stg
 			sd.ArgDescDic["fastEmaPeriod"] = new ArgDesc() { Text = "快EMA周期", Explain = "趋势判断快速均线", Type = "number" };
 			sd.ArgDescDic["slowEmaPeriod"] = new ArgDesc() { Text = "慢EMA周期", Explain = "趋势判断慢速均线", Type = "number" };
 			sd.ArgDescDic["trendGapPercent"] = new ArgDesc() { Text = "趋势确认间距%", Explain = "快EMA与慢EMA差距超过慢EMA的此百分比才确认趋势，低于则为中性区", Type = "number" };
-			sd.ArgDescDic["gridPercent"] = new ArgDesc() { Text = "网格间距%", Explain = "每格价格变动百分比", Type = "number" };
+			sd.ArgDescDic["gridPercent"] = new ArgDesc() { Text = "基准网格间距%", Explain = "动态网格关闭或历史不足时使用的兜底网格间距", Type = "number" };
 			sd.ArgDescDic["gridCount"] = new ArgDesc() { Text = "网格数量", Explain = "单方向网格层数", Type = "number" };
 			sd.ArgDescDic["sendMode"] = new ArgDesc() { Text = "发单模式", Explain = "下单执行时机", Options = "0:立即|1:下个开盘", Type = "select" };
-			sd.ArgDescDic["dynamicGrid"] = new ArgDesc() { Text = "动态网格", Explain = "根据ATR自动调整网格间距", Options = "0:关闭|1:启用ATR动态调整", Type = "bool" };
-			sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "动态网格使用的ATR周期", Type = "number" };
+			sd.ArgDescDic["dynamicGrid"] = new ArgDesc() { Text = "动态网格", Explain = "默认启用；调用Common.GridSizingHelper，基于ATR均值和真实波幅中位数计算网格大小，自动适配所选K线周期和品种波动", Options = "0:关闭|1:启用动态波动率网格", Type = "bool" };
+			sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "动态网格使用的波动统计周期", Type = "number" };
+			sd.ArgDescDic["atrMultiplier"] = new ArgDesc() { Text = "ATR倍率", Explain = "动态网格=波动率×倍率，并结合真实波幅中位数降低极端K线影响", Type = "number" };
+			sd.ArgDescDic["minGridPercent"] = new ArgDesc() { Text = "最小网格%", Explain = "动态网格下限，避免低波动时网格过密", Type = "number" };
+			sd.ArgDescDic["maxGridPercent"] = new ArgDesc() { Text = "最大网格%", Explain = "动态网格上限，避免极端波动后网格过宽", Type = "number" };
 			sd.ArgDescDic["lotsMode"] = new ArgDesc() { Text = "手数模式", Explain = "手数计算方式", Options = "0:固定手数|1:固定金额", Type = "select" };
 			sd.ArgDescDic["useStopLoss"] = new ArgDesc() { Text = "启用止损", Explain = "触及止损价自动平仓", Options = "0:关闭|1:启用", Type = "bool" };
 			sd.ArgDescDic["stopLossPercent"] = new ArgDesc() { Text = "止损百分比", Explain = "持仓总亏损超过此百分比时全部平仓", Type = "number" };
@@ -107,6 +113,7 @@ namespace QjySDK.Stg
 			public List<GridLevel> Grids { get; set; } = new List<GridLevel>();
 			public decimal TotalPosition { get; set; }
 			public bool Initialized { get; set; }
+			public decimal LastGridPercent { get; set; }
 		}
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -187,17 +194,15 @@ namespace QjySDK.Stg
 			int useStopLoss = Convert.ToInt32(ArgDic["useStopLoss"]);
 			decimal stopLossPct = Convert.ToDecimal(ArgDic["stopLossPercent"]);
 
-			// 动态网格
-			if (dynamicGrid == 1 && tu.QuoteList.Count >= atrPeriod)
-			{
-				var atrList = tu.QuoteList.GetAtr(atrPeriod).ToList();
-				var atr = atrList[atrList.Count - 1];
-				if (atr.Atr.HasValue)
+				// 动态网格：默认使用Common.GridSizingHelper按当前周期波动率计算网格间距
+				if (dynamicGrid == 1)
 				{
-					gridPct = (decimal)(atr.Atr.Value / (double)q.Close * 100);
-					gridPct = Math.Max(0.5m, Math.Min(5m, gridPct));
+					decimal atrMultiplier = ArgDic.ContainsKey("atrMultiplier") ? Convert.ToDecimal(ArgDic["atrMultiplier"]) : 1.2m;
+					decimal minGridPercent = ArgDic.ContainsKey("minGridPercent") ? Convert.ToDecimal(ArgDic["minGridPercent"]) : 0.2m;
+					decimal maxGridPercent = ArgDic.ContainsKey("maxGridPercent") ? Convert.ToDecimal(ArgDic["maxGridPercent"]) : 5.0m;
+					gridPct = GridSizingHelper.CalculateDynamicGridPercent(tu.QuoteList, q.Close, gridPct, atrPeriod, atrMultiplier, minGridPercent, maxGridPercent, s.LastGridPercent);
+					Plot("sub0", "GridPercent", PlotType.LINE, (double)gridPct);
 				}
-			}
 
 			// 趋势判断
 			var fastEmaList = tu.QuoteList.GetEma(fastP).ToList();
@@ -232,12 +237,13 @@ namespace QjySDK.Stg
 			// 中性区不建网格
 			if (newTrend == 0) return;
 
-			// 初始化网格
-			if (!s.Initialized)
-			{
-				BuildGrid(s, q.Close, gridPct, gridCount);
-				s.Initialized = true;
-			}
+				// 初始化网格；动态网格变化超过20%时，仅在无持仓时重建，避免持仓中途丢失网格状态
+				if (!s.Initialized || (dynamicGrid == 1 && s.LastGridPercent > 0 && Math.Abs(gridPct - s.LastGridPercent) / s.LastGridPercent > 0.2m && s.TotalPosition == 0))
+				{
+					BuildGrid(s, q.Close, gridPct, gridCount);
+					s.LastGridPercent = gridPct;
+					s.Initialized = true;
+				}
 
 			decimal num = CalcLots(tu, q.Close);
 

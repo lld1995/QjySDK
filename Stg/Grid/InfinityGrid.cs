@@ -44,6 +44,13 @@ namespace QjySDK.Stg
 			sd.ArgDic["gridRatio"] = 1.5m;
 			sd.ArgDic["investPerGrid"] = 1000m;
 
+			// 动态网格（默认启用：根据Common.GridSizingHelper按波动率调整几何网格比例）
+			sd.ArgDic["dynamicGrid"] = 1;
+			sd.ArgDic["atrPeriod"] = 14;
+			sd.ArgDic["atrMultiplier"] = 1.2m;
+			sd.ArgDic["minGridPercent"] = 0.2m;
+			sd.ArgDic["maxGridPercent"] = 5.0m;
+
 			// 保护参数
 			sd.ArgDic["maxTotalInvest"] = 50000m;
 			sd.ArgDic["lowerPriceLimit"] = 0m;
@@ -58,8 +65,13 @@ namespace QjySDK.Stg
 			sd.ArgDic["sendMode"] = 0;
 
 			sd.ArgDescDic["mode"] = new ArgDesc() { Text = "交易模式", Explain = "交易方向控制", Options = "1:做多网格|2:做空网格", Type = "select" };
-			sd.ArgDescDic["gridRatio"] = new ArgDesc() { Text = "网格比例%", Explain = "相邻网格价格比例百分比，如1.5表示每格间距1.5%", Type = "number" };
+			sd.ArgDescDic["gridRatio"] = new ArgDesc() { Text = "基准网格比例%", Explain = "动态网格关闭或历史不足时使用的兜底几何网格比例", Type = "number" };
 			sd.ArgDescDic["investPerGrid"] = new ArgDesc() { Text = "每格投入金额", Explain = "每个网格投入的金额(非手数)", Type = "number" };
+			sd.ArgDescDic["dynamicGrid"] = new ArgDesc() { Text = "动态网格", Explain = "默认启用；调用Common.GridSizingHelper，基于ATR均值和真实波幅中位数计算几何网格比例，自动适配所选K线周期和品种波动", Options = "0:关闭|1:启用动态波动率网格", Type = "bool" };
+			sd.ArgDescDic["atrPeriod"] = new ArgDesc() { Text = "ATR周期", Explain = "动态网格使用的波动统计周期", Type = "number" };
+			sd.ArgDescDic["atrMultiplier"] = new ArgDesc() { Text = "ATR倍率", Explain = "动态网格=波动率×倍率，并结合真实波幅中位数降低极端K线影响", Type = "number" };
+			sd.ArgDescDic["minGridPercent"] = new ArgDesc() { Text = "最小网格%", Explain = "动态网格下限，避免低波动时网格过密", Type = "number" };
+			sd.ArgDescDic["maxGridPercent"] = new ArgDesc() { Text = "最大网格%", Explain = "动态网格上限，避免极端波动后网格过宽", Type = "number" };
 			sd.ArgDescDic["maxTotalInvest"] = new ArgDesc() { Text = "最大总投入", Explain = "持仓总投入金额上限，0为不限", Type = "number" };
 			sd.ArgDescDic["lowerPriceLimit"] = new ArgDesc() { Text = "价格下限", Explain = "低于此价格停止买入，0为不限", Type = "number" };
 			sd.ArgDescDic["upperPriceLimit"] = new ArgDesc() { Text = "价格上限", Explain = "高于此价格停止卖出，0为不限", Type = "number" };
@@ -96,6 +108,7 @@ namespace QjySDK.Stg
 			public decimal TotalPosition { get; set; }
 			public decimal RealizedPnL { get; set; }
 			public bool IsStopped { get; set; }
+			public decimal LastGridPercent { get; set; }
 		}
 
 		private Dictionary<string, State> _stateDic = new Dictionary<string, State>();
@@ -143,6 +156,16 @@ namespace QjySDK.Stg
 
 			int mode = ArgDic.ContainsKey("mode") ? Convert.ToInt32(ArgDic["mode"]) : 1;
 			decimal gridRatio = Convert.ToDecimal(ArgDic["gridRatio"]);
+			int dynamicGrid = ArgDic.ContainsKey("dynamicGrid") ? Convert.ToInt32(ArgDic["dynamicGrid"]) : 1;
+			if (dynamicGrid == 1)
+			{
+				int atrPeriod = ArgDic.ContainsKey("atrPeriod") ? Convert.ToInt32(ArgDic["atrPeriod"]) : 14;
+				decimal atrMultiplier = ArgDic.ContainsKey("atrMultiplier") ? Convert.ToDecimal(ArgDic["atrMultiplier"]) : 1.2m;
+				decimal minGridPercent = ArgDic.ContainsKey("minGridPercent") ? Convert.ToDecimal(ArgDic["minGridPercent"]) : 0.2m;
+				decimal maxGridPercent = ArgDic.ContainsKey("maxGridPercent") ? Convert.ToDecimal(ArgDic["maxGridPercent"]) : 5.0m;
+				gridRatio = GridSizingHelper.CalculateDynamicGridPercent(tu.QuoteList, q.Close, gridRatio, atrPeriod, atrMultiplier, minGridPercent, maxGridPercent, s.LastGridPercent);
+				s.LastGridPercent = gridRatio;
+			}
 			decimal investPerGrid = Convert.ToDecimal(ArgDic["investPerGrid"]);
 			decimal maxTotalInvest = Convert.ToDecimal(ArgDic["maxTotalInvest"]);
 			decimal lowerLimit = Convert.ToDecimal(ArgDic["lowerPriceLimit"]);
