@@ -138,6 +138,8 @@ SDK 内置了丰富的量化交易策略，按类型分类如下：
 | RSI 背离 + 均线 | `RSIDivergenceMA.cs` | RSI背离+均线过滤的反转系统，自动识别趋势/震荡市场 |
 | 统计套利 | `StatisticalArbitrage.cs` | 基于Z-Score和半衰期的统计套利策略 |
 | 夜神抄底 | `YeShenChaoDi.cs` | RSI超卖+价格企稳反转信号的抄底策略 |
+| 凤凰涅槃 | `PhoenixNirvana.cs` | 凤凰反转的"挂账回本"变体。双引擎共振评分入场，整体亏损时挂账不出、MA5/MA120正偏离接管落袋盈利 |
+| 凤凰反转 | `PhoenixReversal.cs` | 双引擎（狙击+脉冲）共振评分入场，顺大势逆向衰竭点入场，制度检测+多级出场 |
 
 #### ![](images/icons/quant.svg) 量化因子类 (Quant)
 | 策略名称 | 文件 | 简介 |

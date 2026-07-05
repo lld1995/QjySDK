@@ -138,6 +138,8 @@ The SDK includes a rich set of quantitative trading strategies, categorized as f
 | RSI Divergence + MA | `RSIDivergenceMA.cs` | RSI divergence + MA filter reversal system, auto-detects trend/range markets |
 | Statistical Arbitrage | `StatisticalArbitrage.cs` | Z-Score and half-life based statistical arbitrage |
 | YeShen Bottom Fishing | `YeShenChaoDi.cs` | RSI oversold + price stabilization reversal signals |
+| Phoenix Nirvana | `PhoenixNirvana.cs` | "Hold-and-recover" variant of Phoenix Reversal. Dual-engine resonance entry, holds losing positions until MA5/MA120 positive deviation locks in profit |
+| Phoenix Reversal | `PhoenixReversal.cs` | Dual-engine (Sniper+Pulse) resonance scoring entry against trend exhaustion with trend direction, regime detection (VR+OU half-life), multi-stage exits |
 
 #### ![](images/icons/quant.svg) Quantitative Factors (Quant)
 | Strategy Name | File | Description |
