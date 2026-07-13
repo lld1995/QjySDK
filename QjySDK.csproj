@@ -19,7 +19,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Kiota.Bundle" Version="1.20.1" />
     <PackageReference Include="OpenAI" Version="2.5.0" />
-    <PackageReference Include="Nethereum.Web3" Version="4.29.0" />
+    <PackageReference Include="Nethereum.Web3" Version="6.1.0" />
     <PackageReference Include="Polymarket.Net" Version="3.0.0" />
     <PackageReference Include="Skender.Stock.Indicators" Version="2.7.0" />
   </ItemGroup>
