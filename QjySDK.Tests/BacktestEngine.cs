@@ -256,6 +256,16 @@ K线数: {TotalBars}
         }
 
         /// <summary>
+        /// 覆盖策略默认参数（须在 InitForTest 之后调用，因为 InitForTest 会重置 ArgDic）
+        /// </summary>
+        public static void ApplyArgs(StgBase stg, Dictionary<string, object> overrides)
+        {
+            if (overrides == null || overrides.Count == 0) return;
+            var argDic = (Dictionary<string, object>)_argDicProp.GetValue(stg)!;
+            foreach (var kv in overrides) argDic[kv.Key] = kv.Value;
+        }
+
+        /// <summary>
         /// 读取 _rtr 并清空，返回本轮交易记录
         /// </summary>
         public static List<RemoteTradeRecord> DrainTrades(StgBase stg)
@@ -504,9 +514,11 @@ K线数: {TotalBars}
         /// 模式A：单品种 bar-by-bar 回测（任意周期）
         /// </summary>
         public static BacktestResult RunSingleSymbol(
-            StgBase stg, string mktSymbol, List<SkQuote> quotes, Period period = Period.TIME_1D)
+            StgBase stg, string mktSymbol, List<SkQuote> quotes, Period period = Period.TIME_1D,
+            Dictionary<string, object> argOverrides = null)
         {
             var cts = StgTestHelper.InitForTest(stg, mktSymbol);
+            StgTestHelper.ApplyArgs(stg, argOverrides);
             try
             {
                 var tu = new TableUnit
