@@ -32,6 +32,8 @@ namespace QjySDK.Tests
         public int LossCount { get; set; }
         public decimal TotalProfit { get; set; }
         public decimal MaxDrawdown { get; set; }
+        public double MaxDrawdownRate { get; set; }
+        public double AnnualizedReturn { get; set; }
         public double WinRate => TradeCount > 0 ? (double)WinCount / TradeCount * 100 : 0;
         public decimal AvgWin { get; set; }
         public decimal AvgLoss { get; set; }
@@ -55,7 +57,8 @@ K线数: {TotalBars}
 胜: {WinCount}  负: {LossCount}
 胜率: {WinRate:F1}%
 总收益: {TotalProfit:F2}
-最大回撤: {MaxDrawdown:F2}
+年化收益率: {AnnualizedReturn:F2}%
+最大回撤: {MaxDrawdown:F2} ({MaxDrawdownRate:F2}%)
 平均盈利: {AvgWin:F2}  平均亏损: {AvgLoss:F2}
 盈亏比: {ProfitFactor:F2}
 夏普率: {SharpeRatio:F4}
@@ -547,7 +550,8 @@ K线数: {TotalBars}
                 }
 
                 var lastPrices = new Dictionary<string, decimal> { { mktSymbol, quotes.Last().Close } };
-                var result = CalcResult(stg.GetType().Name, new[] { mktSymbol }, quotes.Count, trades, period, lastPrices);
+                var result = CalcResult(stg.GetType().Name, new[] { mktSymbol }, quotes.Count, trades, period,
+                    lastPrices, quotes.First().Date, quotes.Last().Date);
 
                 // 提取买卖点统计
                 Dictionary<string, int> bsCounts = null;
@@ -657,7 +661,9 @@ K线数: {TotalBars}
                     sortedDates.Count,
                     trades,
                     period,
-                    lastPrices);
+                    lastPrices,
+                    sortedDates.FirstOrDefault(),
+                    sortedDates.LastOrDefault());
             }
             finally
             {
@@ -670,7 +676,8 @@ K线数: {TotalBars}
         /// </summary>
         private static BacktestResult CalcResult(
             string strategyName, string[] symbols, int totalBars, List<RemoteTradeRecord> trades, Period period = Period.TIME_1D,
-            Dictionary<string, decimal>? lastPrices = null)
+            Dictionary<string, decimal>? lastPrices = null, DateTime? startDate = null, DateTime? endDate = null,
+            decimal initialCapital = 100000m)
         {
             var result = new BacktestResult
             {
@@ -772,6 +779,15 @@ K线数: {TotalBars}
             result.LossCount = losses.Count;
             result.TotalProfit = equity;
             result.MaxDrawdown = maxDrawdown;
+            result.MaxDrawdownRate = initialCapital > 0 ? (double)(maxDrawdown / initialCapital) * 100 : 0;
+            if (initialCapital > 0 && startDate.HasValue && endDate.HasValue && endDate > startDate)
+            {
+                double years = (endDate.Value - startDate.Value).TotalDays / 365.2425;
+                double wealthRatio = 1.0 + (double)(equity / initialCapital);
+                result.AnnualizedReturn = years > 0 && wealthRatio > 0
+                    ? (Math.Pow(wealthRatio, 1.0 / years) - 1.0) * 100.0
+                    : wealthRatio <= 0 ? -100.0 : 0.0;
+            }
             result.AvgWin = wins.Count > 0 ? wins.Average() : 0;
             result.AvgLoss = losses.Count > 0 ? losses.Average() : 0;
 

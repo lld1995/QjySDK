@@ -95,7 +95,12 @@ namespace QjySDK.Stg
                 _sendMode = Convert.ToInt32(ArgDic["sendMode"]);
             }
 
+            if (_exitMode < 0 || _exitMode > 1 || _mode < 0 || _mode > 2 || _sendMode < 0 || _sendMode > 1)
+                return;
+
             var quotes = tu.QuoteList;
+            if (_entryPeriod <= 0 || _exitPeriod <= 0) return;
+
             int minBars = Math.Max(_entryPeriod, _exitPeriod) + 1;
             if (quotes == null || quotes.Count < minBars)
                 return;
@@ -113,13 +118,18 @@ namespace QjySDK.Stg
 
             var entryChannel = entryDonchian[entryDonchian.Count - 2];
             var exitChannel = exitDonchian[exitDonchian.Count - 2];
+            if (!entryChannel.UpperBand.HasValue || !entryChannel.LowerBand.HasValue || !entryChannel.Centerline.HasValue ||
+                !exitChannel.UpperBand.HasValue || !exitChannel.LowerBand.HasValue)
+            {
+                return;
+            }
 
-            decimal upperBand = (decimal)(entryChannel.UpperBand ?? 0);
-            decimal lowerBand = (decimal)(entryChannel.LowerBand ?? 0);
-            decimal middleBand = (decimal)(entryChannel.Centerline ?? 0);
+            decimal upperBand = (decimal)entryChannel.UpperBand.Value;
+            decimal lowerBand = (decimal)entryChannel.LowerBand.Value;
+            decimal middleBand = (decimal)entryChannel.Centerline.Value;
 
-            decimal exitUpper = (decimal)(exitChannel.UpperBand ?? 0);
-            decimal exitLower = (decimal)(exitChannel.LowerBand ?? 0);
+            decimal exitUpper = (decimal)exitChannel.UpperBand.Value;
+            decimal exitLower = (decimal)exitChannel.LowerBand.Value;
 
             var q = quotes.Last();
             decimal currentClose = q.Close;
@@ -138,11 +148,26 @@ namespace QjySDK.Stg
 
             int position = _positionState[stateKey];
 
+            // 方向模式改变后，不继续持有已被禁用的方向；本根仅平仓，不反向开仓。
+            if ((position > 0 && _mode == 2) || (position < 0 && _mode == 1))
+            {
+                OrderType closeOrder = position > 0 ? OrderType.SELL_TO_COVER : OrderType.BUY_TO_COVER;
+                decimal holdNum = _holdNum[stateKey];
+                if (holdNum > 0)
+                    Trade(tu.MktSymbol, closeOrder, currentClose, holdNum, period, _sendMode);
+
+                _positionState[stateKey] = 0;
+                _entryPrice[stateKey] = 0;
+                _holdNum[stateKey] = 0;
+                return;
+            }
+
             if (position == 0)
             {
                 if (currentClose > upperBand && prevHigh <= upperBand && _mode != 2)
                 {
                     var num = CalculateLots(tu, q);
+                    if (num <= 0) return;
                     Trade(tu.MktSymbol, OrderType.BUY, currentClose, num, period, _sendMode);
                     _positionState[stateKey] = 1;
                     _entryPrice[stateKey] = currentClose;
@@ -151,6 +176,7 @@ namespace QjySDK.Stg
                 else if (currentClose < lowerBand && prevLow >= lowerBand && _mode != 1)
                 {
                     var num = CalculateLots(tu, q);
+                    if (num <= 0) return;
                     Trade(tu.MktSymbol, OrderType.SELL, currentClose, num, period, _sendMode);
                     _positionState[stateKey] = -1;
                     _entryPrice[stateKey] = currentClose;
@@ -223,22 +249,29 @@ namespace QjySDK.Stg
 
         private decimal CalculateLots(TableUnit tu, SkQuote q)
         {
-            var num = Convert.ToDecimal(ArgDic["lots"]);
             var lotsMode = Convert.ToInt32(ArgDic["lotsMode"]);
+            if (lotsMode < 0 || lotsMode > 1) return 0;
+
+            decimal num = Convert.ToDecimal(ArgDic["lots"]);
             if (lotsMode == 1)
             {
                 var sym = GetSymbol(tu.MktSymbol);
-                num = (Convert.ToDecimal(ArgDic["money"]) / (q.Close * sym.multiplier * sym.margin_ratio));
+                decimal denominator = q.Close * sym.multiplier * sym.margin_ratio;
+                decimal money = Convert.ToDecimal(ArgDic["money"]);
+                if (denominator <= 0 || money <= 0) return 0;
+
+                num = money / denominator;
                 if (sym.symbol_type == (int)SymbolType.COIN)
                 {
+                    if (sym.scale <= 0) return 0;
                     num = (int)(num * sym.scale) / (decimal)sym.scale;
                 }
                 else
                 {
-                    num = (int)num;
+                    num = Math.Floor(num);
                 }
             }
-            return num;
+            return Math.Max(num, 0);
         }
     }
 }

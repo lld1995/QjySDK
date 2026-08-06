@@ -13,3 +13,5 @@ QjySDK.Tests/*.csv
 _align_out/
 *.lscache
 activity.log
+reversal_turtle_*.log
+QjySDK.Tests/poly_compare_progress.log
