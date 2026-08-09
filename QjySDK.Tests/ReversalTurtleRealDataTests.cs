@@ -30,7 +30,7 @@ namespace QjySDK.Tests
 
         private static readonly (string name, Func<StgBase> create, Dictionary<string, object> args)[] Strategies =
         {
-            ("ReversalTurtle", () => new ReversalTurtleTrading(), new Dictionary<string, object>()),
+            ("ReversalTurtle", () => new TrendAwareReversalTurtleTrading(), new Dictionary<string, object>()),
             ("Turtle", () => new TurtleTrading(), Args(("systemType", 1), ("useLastTradeFilter", 0))),
             ("Donchian", () => new DonchianChannel(), new Dictionary<string, object>()),
         };

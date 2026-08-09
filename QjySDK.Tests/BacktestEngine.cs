@@ -580,9 +580,11 @@ K线数: {TotalBars}
         /// 模式B：多品种 OnGlobalIndicator + OnBar 回测（套利策略专用）
         /// </summary>
         public static BacktestResult RunMultiSymbol(
-            StgBase stg, Dictionary<string, List<SkQuote>> symbolQuotes)
+            StgBase stg, Dictionary<string, List<SkQuote>> symbolQuotes,
+            Dictionary<string, object>? argOverrides = null)
         {
             var cts = StgTestHelper.InitForTest(stg, symbolQuotes.Keys.ToArray());
+            StgTestHelper.ApplyArgs(stg, argOverrides);
             try
             {
                 var period = Period.TIME_1D;
